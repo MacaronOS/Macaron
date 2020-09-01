@@ -1,5 +1,7 @@
-#include <stddef.h>
-#include <stdint.h>
+typedef unsigned int   uint32_t;
+typedef unsigned short uint16_t;
+typedef unsigned char  uint8_t;
+typedef int size_t;
 
 volatile uint16_t* vga_buffer = (uint16_t*)0xB8000;
 
@@ -59,5 +61,5 @@ void kernel_main(){
     term_init();
 
     term_print("Hello, World!\n");
-	term_print("Welcome to the kerneffl.\n");
+	term_print("Welcome to the kernefflfdfdfdfd.\n");
 }
