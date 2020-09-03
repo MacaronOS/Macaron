@@ -22,6 +22,7 @@ void inc_vga_pos(){
     if (term_row >= VGA_ROWS){
         term_row = 0;
         term_col = 0;
+        term_init();
     }
 }
 
