@@ -1,65 +1,13 @@
-typedef unsigned int   uint32_t;
-typedef unsigned short uint16_t;
-typedef unsigned char  uint8_t;
-typedef int size_t;
-
-volatile uint16_t* vga_buffer = (uint16_t*)0xB8000;
-
-const int VGA_COLS = 80;
-const int VGA_ROWS = 25;
-
-int term_col = 0;
-int term_row = 0;
-uint8_t term_color = 0x0F;
-
-int get_vga_index(){
-    return term_row * VGA_COLS + term_col;
-}
-
-void inc_vga_pos(){
-    term_col++;
-    if (term_col >= VGA_COLS){
-        term_col = 0;
-        term_row++; 
-    }
-    if (term_row >= VGA_ROWS){
-        term_row = 0;
-        term_col = 0;
-    }
-}
-
-void term_init(){
-    for (int row = 0 ; row < VGA_ROWS ; row++){
-        for (int col = 0 ; col < VGA_COLS ; col++){
-            vga_buffer[row * VGA_COLS + col] = ((uint16_t)term_color << 8) | ' ';
-        }
-    }
-}
-
-void term_putc(char c){
-    switch (c)
-    {
-    case '\n':
-        term_col = 0;
-        term_row++;
-        break;
-    
-    default:
-        vga_buffer[get_vga_index()] = ((uint16_t)term_color << 8) | c;
-        inc_vga_pos();
-        break;
-    }
-}
-
-void term_print(const char* str){
-    for (size_t i = 0 ; str[i] != '\0' ; i++){
-        term_putc(str[i]);
-    }
-}
+#include "monitor.h"
+#include "descriptor_tables.h"
 
 void kernel_main(){
+    init_descriptor_tables();
     term_init();
 
     term_print("Hello, World!\n");
-	term_print("Welcome to the kernefflfdfdfdfd.\n");
+	term_print("Welcome to the kernel.\n");
+    
+    asm volatile ("int $0x3");
+    asm volatile ("int $0x4");
 }
