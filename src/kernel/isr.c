@@ -12,9 +12,14 @@ void register_interrupt_handler(uint8_t n, isr_handler_t handler)
 // This gets called from our ASM interrupt handler stub.
 void isr_handler(registers_t regs)
 {
-   term_print("recieved interrupt: ");
-   term_printd(regs.int_no);
-   term_print("\n");
+   if (interrupt_handlers[regs.int_no] != 0) {
+      interrupt_handlers[regs.int_no]();
+   } 
+   else {
+      term_print("recieved interrupt: ");
+      term_printd(regs.int_no);
+      term_print("\n");
+   }
 }
 
 // This gets called from our ASM interrupt handler stub.
