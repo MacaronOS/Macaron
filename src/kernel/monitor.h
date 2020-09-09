@@ -7,4 +7,6 @@ void term_print();
 
 void term_printd();
 
+void term_putc(char);
+
 #endif // MISTIX_KERNEL_MONITOR_H

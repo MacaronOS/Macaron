@@ -13,6 +13,15 @@ int get_vga_index(){
     return term_row * VGA_COLS + term_col;
 }
 
+
+void term_init(){
+    for (int row = 0 ; row < VGA_ROWS ; row++){
+        for (int col = 0 ; col < VGA_COLS ; col++){
+            vga_buffer[row * VGA_COLS + col] = ((uint16_t)term_color << 8) | ' ';
+        }
+    }
+}
+
 void inc_vga_pos(){
     term_col++;
     if (term_col >= VGA_COLS){
@@ -23,14 +32,6 @@ void inc_vga_pos(){
         term_row = 0;
         term_col = 0;
         term_init();
-    }
-}
-
-void term_init(){
-    for (int row = 0 ; row < VGA_ROWS ; row++){
-        for (int col = 0 ; col < VGA_COLS ; col++){
-            vga_buffer[row * VGA_COLS + col] = ((uint16_t)term_color << 8) | ' ';
-        }
     }
 }
 
@@ -55,15 +56,17 @@ void term_print(const char* str){
     }
 }
 
-void term_printd(int numb) {
+void term_printd(long long numb) {
     char buffer[sizeof(int)];
     int pos = 0;
 
-    while (numb) {
+    do
+    {
         buffer[pos] = numb % 10 + '0';
         numb /= 10;
         pos++;
-    }
+    } while (numb);
+    
     while (pos) {
         term_putc((char)buffer[pos - 1]);
         pos--;
