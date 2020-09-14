@@ -1,5 +1,5 @@
 #include "bitmap.h"
-#include "../memory.h"
+#include "../memory/memory.h"
 #include "monitor.h"
 #include "types.h"
 
@@ -8,7 +8,7 @@
 
 bitmap_t bitmap_init(size_t sz)
 {
-    uint32_t location = kmalloc(BITMAP_CHUNK_COUNT(sz) * 4, 0, 0);
+    uint32_t location = kmalloc(BITMAP_CHUNK_COUNT(sz) * 4);
 
     bitmap_t bitmap;
     bitmap.size = sz;
@@ -17,6 +17,16 @@ bitmap_t bitmap_init(size_t sz)
     bitmap_clear(&bitmap);
 
     return bitmap;
+}
+/*
+put bitmap array at location, returns the size of array
+*/
+uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, void* location)
+{
+    bitmap->size = sz;
+    bitmap->location = location;
+
+    return BITMAP_CHUNK_COUNT(bitmap->location) * BITMAP_CHUNK_SIZE;
 }
 
 void bitmap_set_true(bitmap_t* bitmap, size_t pos)
@@ -41,6 +51,12 @@ void bitmap_clear(bitmap_t* bitmap)
     }
 }
 
+void bitmap_set_all(bitmap_t* bitmap, bool val) {
+    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(bitmap->size); chunk++) {
+        ((uint32_t*)bitmap->location)[chunk] = (val & 1);
+    }
+}
+
 uint32_t bitmap_find_first_zero(bitmap_t* bitmap)
 {
     for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(bitmap->size); chunk++) {
@@ -53,5 +69,5 @@ uint32_t bitmap_find_first_zero(bitmap_t* bitmap)
         }
     }
 
-    return -1;
+    return BITMAP_NULL;
 }
