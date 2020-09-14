@@ -1,32 +1,64 @@
-/* Link.ld -- Linker script for the kernel - ensure everything goes in the */
-/*            Correct place.  */
-/*            Original file taken from Bran's Kernel Development */
-/*            tutorials: http://www.osdever.net/bkerndev/index.php. */
-
+/* The bootloader will look at this image and start execution at the symbol
+   designated as the entry point. */
 ENTRY(start)
+ 
+/* Tell where the various sections of the object files will be put in the final
+   kernel image. */
 SECTIONS
 {
-  .text 0x100000 :
-  {
-    code = .; _code = .; __code = .;
-    *(.text)
-    . = ALIGN(4096);
-  }
+	/* Begin putting sections at 1 MiB, a conventional place for kernels to be
+	   loaded at by the bootloader. */
+	. = 1M;
+ 
+	/* First put the multiboot header, as it is required to be put very early
+	   early in the image or the bootloader won't recognize the file format.
+	   Next we'll put the .text section. */
 
-  .data :
-  {
-     data = .; _data = .; __data = .;
-     *(.data)
-     *(.rodata)
-     . = ALIGN(4096);
-  }
+	_kernel_start = .;
+	_kernel_text_start = .;
 
-  .bss :
-  {
-    bss = .; _bss = .; __bss = .;
-    *(.bss)
-    . = ALIGN(4096);
-  }
+	.text BLOCK(4K) : ALIGN(4K)
+	{
+		*(.multiboot)
+		*(.text)
+	}
 
-  end = .; _end = .; __end = .;
+	_kernel_text_end = .;
+	_kernel_rodata_start = .;
+ 
+	/* Read-only data. */
+	.rodata BLOCK(4K) : ALIGN(4K)
+	{
+		*(.rodata)
+	}
+
+	_kernel_rodata_end = .;
+	_kernel_data_start = .;
+ 
+	/* Read-write data (initialized) */
+	.data BLOCK(4K) : ALIGN(4K)
+	{
+		data = .;
+		*(.data)
+	}
+
+	_kernel_data_end = .;
+	_kernel_bss_start = .;
+ 
+	/* Read-write data (uninitialized) and stack */
+	.bss BLOCK(4K) : ALIGN(4K)
+	{
+		bss = .;
+		*(COMMON)
+		*(.bss)
+	}
+
+	_kernel_bss_end = .;
+	. = ALIGN(4K);
+	_kernel_end = .;
+
+	end = .;
+ 
+	/* The compiler may produce other sections, by default it will put them in
+	   a segment with the same name. Simply add stuff here as needed. */
 }
