@@ -18,7 +18,7 @@ void pmm_init(multiboot_info_t* mb_structure)
     const uint32_t blocks_size = mem_size / BLOCK_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
-    const uint32_t bitmap_memory_size = bitmap_init_at_location(&pmmap, blocks_size, get_kernel_end());
+    const uint32_t bitmap_memory_size = bitmap_init_at_location(&pmmap, blocks_size, get_kernel_pmm_bitmap_start());
 
     bitmap_set_all(&pmmap, 1); // for now, all blocks are inaccessible
 
@@ -48,10 +48,12 @@ void pmm_init(multiboot_info_t* mb_structure)
     if (bitmap_memory_size % BLOCK_SIZE) {
         bitmap_block_size++;
     }
+
     // then set this blocks to occypied
     for (uint32_t cur_bitmap_block = 0; cur_bitmap_block < bitmap_block_size; cur_bitmap_block++) {
-        bitmap_set_true(&pmmap, (uint32_t)get_kernel_end() / BLOCK_SIZE + cur_bitmap_block);
+        bitmap_set_true(&pmmap, (uint32_t)get_kernel_pmm_bitmap_start() / BLOCK_SIZE + cur_bitmap_block);
     }
+
 }
 
 void pmm_init_available_regions(multiboot_info_t* multiboot_structure)

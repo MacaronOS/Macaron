@@ -2,6 +2,8 @@
 #include "pmm.h"
 #include "memory.h"
 #include "../types.h"
+#include "../monitor.h"
+#include "../assert.h"
 
 // int paging.s
 extern void set_cr3(uint32_t page_directory_base_adress);
@@ -41,52 +43,39 @@ bool vmm_switch_directory(page_directory_t* dir) {
 
 void vmm_map_page(void* phys, void* virt) {
     uint32_t virt_index = (uint32_t)virt / PAGE_SIZE;
-    page_directory_entry_t pd_entry = cur_directory->entries[virt_index / 1024];
+    page_directory_entry_t* pd_entry = &cur_directory->entries[virt_index / 1024];
 
-    if (!pd_entry.present) {
+    if (!pd_entry->present) {
         // allocating page table
         page_table_t* pt = pmm_allocate_block();
         memset(pt, 0, sizeof(page_table_t));
 
-        pd_entry.present = 1;
-        pd_entry.rw = 1;
-        pd_entry.page_table_base_adress = (uint32_t)pt / PAGE_SIZE;
+        pd_entry->present = 1;
+        pd_entry->rw = 1;
+        pd_entry->page_table_base_adress = (uint32_t)pt / PAGE_SIZE;
     }
 
-    // create page table entry
-    page_table_entry_t pt_entry;
-    pt_entry.__bits = 0;
-    pt_entry.present = 1;
-    pt_entry.rw = 1;
-    pt_entry.frame_adress = (uint32_t)phys / PAGE_SIZE;
-
-    // set page table entry
-    page_table_t* pt = pd_entry.page_table_base_adress * PAGE_SIZE;
-    pt->entries[virt_index / 1024 / 1024] = pt_entry;
+    page_table_t* pt = pd_entry->page_table_base_adress * PAGE_SIZE;
+    page_table_entry_t* pt_entry = &pt->entries[virt_index % 1024];
+    
+    pt_entry->__bits = 0;
+    pt_entry->present = 1;
+    pt_entry->rw = 1;
+    pt_entry->frame_adress = (uint32_t)phys / PAGE_SIZE;
 }
 
 void vmm_init() {
-    // allocate default page table
-    page_table_t* table = pmm_allocate_block();
-
-    for (uint32_t phyz = 0, virt = 0, i = 0; i < 1024; phyz+=PAGE_SIZE, virt += PAGE_SIZE, i++) {
-        table->entries[i].__bits = 0;
-        table->entries[i].present = 1;
-        table->entries[i].rw = 1;
-        table->entries[i].frame_adress = phyz / PAGE_SIZE;
-    }
-
+    // create kernel page directory
     page_directory_t* p_directory = pmm_allocate_block();
     for (size_t i = 0; i < 1024; i++) {
         p_directory->entries[i].__bits = 0;
     }
-
-    p_directory->entries[0].__bits = 0;
-    p_directory->entries[0].page_table_base_adress = (uint32_t)table / PAGE_SIZE;
-    p_directory->entries[0].present = 1;
-    p_directory->entries[0].rw = 1;
-
     cur_directory = p_directory;
+
+    // identity map 8 mb 
+    for (uint32_t phys = 0, virt = 0; phys < 8 * 1024 * 1024; phys+=PAGE_SIZE, virt += PAGE_SIZE) {
+        vmm_map_page(phys, virt);
+    }
 
     vmm_switch_directory(cur_directory);
 
