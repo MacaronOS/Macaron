@@ -1,5 +1,5 @@
 #include "bitmap.h"
-#include "../memory/memory.h"
+#include "../memory/kmalloc.h"
 #include "monitor.h"
 #include "types.h"
 

@@ -1,13 +1,18 @@
 #include "monitor.h"
 #include "descriptor_tables.h"
+#include "multiboot.h"
+#include "memory/pmm.h"
+#include "memory/vmm.h"
+#include "assert.h"
+#include "memory/regions.h"
+#include "memory/kmalloc.h"
 
-void kernel_main(){
+void kernel_main(multiboot_info_t* multiboot_structure) {
     init_descriptor_tables();
     term_init();
-
-    term_print("Hello, World!\n");
-	term_print("Welcome to the kernel.\n");
+    pmm_init(multiboot_structure);
+    vmm_init();
+    kmalloc_init();
     
-    asm volatile ("int $0x3");
-    asm volatile ("int $0x4");
+    term_print("Hello, World!\n");
 }

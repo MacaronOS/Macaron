@@ -5,6 +5,4 @@
 
 void* memset(void* ptr, int value, size_t num);
 
-uint32_t kmalloc(uint32_t sz);
-
 #endif // MISTIX_KERNEL_MEMORY_H
