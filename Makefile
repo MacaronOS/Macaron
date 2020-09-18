@@ -3,6 +3,9 @@ CC=i686-elf-gcc
 ASFLAGS=-felf
 LDFLAGS=-ffreestanding -nostdlib -g -T src/linker.ld
 
+DISC=drive.img
+QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISC},if=none -device ide-drive,drive=disk,bus=ide.0
+
 TARGET_EXEC ?= a.out
 
 BUILD_DIR ?= ./build
@@ -35,8 +38,11 @@ $(BUILD_DIR)/%.c.o: %.c
 clean:
 	$(RM) -r $(BUILD_DIR)
 
+drive:
+	qemu-img create -f raw ${DISC} 16M
+
 run:
-	qemu-system-i386 -kernel $(BUILD_DIR)/a.out
+	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/a.out
 
 -include $(DEPS)
 
