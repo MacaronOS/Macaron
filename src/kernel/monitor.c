@@ -56,19 +56,33 @@ void term_print(const char* str){
     }
 }
 
-void term_printd(long long numb) {
-    char buffer[sizeof(int)];
+void term_printn(int64_t numb, uint32_t s) { 
+    bool negative = 0;
+
+    if (numb < 0) {
+        numb *= -1;
+        negative = 1;
+    }
+
+    char buffer[sizeof(uint32_t) * 8 + 2];
     int pos = 0;
 
     do
     {
-        buffer[pos] = numb % 10 + '0';
-        numb /= 10;
-        pos++;
+        buffer[pos++] = numb % s + '0';
+        numb /= s;
     } while (numb);
+
+    if (negative) {
+        term_putc('-');
+    }
     
     while (pos) {
         term_putc((char)buffer[pos - 1]);
         pos--;
     }
+}
+
+void term_printd(int64_t numb) {
+    term_printn(numb, 10);
 }

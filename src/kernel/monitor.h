@@ -5,7 +5,7 @@ void term_init();
 
 void term_print();
 
-void term_printd();
+void term_printd(int64_t);
 
 void term_putc(char);
 
