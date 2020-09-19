@@ -1,3 +1,12 @@
+EXT2_FORMATTER 				:=
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Linux)
+	EXT2_FORMATTER = mkfs
+endif
+ifeq ($(UNAME_S), Darwin)
+	EXT2_FORMATTER = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
+endif
+
 AS=nasm
 CC=i686-elf-gcc
 ASFLAGS=-felf
@@ -40,6 +49,7 @@ clean:
 
 drive:
 	qemu-img create -f raw ${DISC} 16M
+	sudo ${EXT2_FORMATTER} -t ext2 -r 0 -b 1024 ${DISC}
 
 run:
 	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/a.out

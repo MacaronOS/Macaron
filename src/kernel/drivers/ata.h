@@ -1,6 +1,9 @@
 #ifndef MISTIX_KERNEL_DRIVERS_ATA_H
 #define MISTIX_KERNEL_DRIVERS_ATA_H
 
+#define WORDS_PER_SECTOR 256
+#define BYTES_PER_SECTOR 512
+
 #include "../types.h"
 
 typedef struct {

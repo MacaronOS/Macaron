@@ -8,6 +8,7 @@
 #include "memory/regions.h"
 #include "memory/kmalloc.h"
 #include "drivers/ata.h"
+#include "fs/ext2.h"
 
 void kernel_main(multiboot_info_t* multiboot_structure) {
     init_descriptor_tables();
@@ -18,22 +19,9 @@ void kernel_main(multiboot_info_t* multiboot_structure) {
 
     term_print("Hello, World!\n");
 
-    // testing up ata driver
     ata_t ata;
     ata_init(&ata, 0x1F0, true);
     ata_identify(&ata);
 
-    uint16_t buf[256];
-    memset(&buf, 1, 256 * 2);
-
-    ata_write28(&ata, 0, 1, &buf);
-
-    uint16_t buf2[256];
-    memset(&buf2, 2, 256 * 2);
-
-    ata_read28(&ata, 0, 1, &buf2);
-
-    for (size_t i = 0; i < 256; i++) {
-        term_printd(buf2[i]);
-    }
+    ext2_init(&ata);
 }

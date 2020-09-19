@@ -4,8 +4,6 @@
 #include "../port.h"
 #include "../types.h"
 
-#define WORDS_PER_SECTOR 256
-
 // comand port commands
 #define IDENTIFY_COMMAND        0xEC
 #define WRITE_SECTORS_COMMAND   0x30
@@ -45,7 +43,7 @@ static inline void ata_handle_error(uint8_t error)
         "Bad Block detected\n",
     };
 
-    return error_to_description[error];
+    term_print(error_to_description[error]);
 }
 
 // macro, which waits until device doen't have an apropiate value,
@@ -142,8 +140,8 @@ void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
 
     for (size_t i = 0; i < count * WORDS_PER_SECTOR; i++) {
         uint16_t read_word = inw(ata->data_port);
-        ((uint8_t*)addr)[2 * i + 0] = ((read_word >> 8) & 0xFF);
-        ((uint8_t*)addr)[2 * i + 1] = ((read_word >> 0) & 0xFF);
+        ((uint8_t*)addr)[2 * i + 0] = ((read_word >> 0) & 0xFF);
+        ((uint8_t*)addr)[2 * i + 1] = ((read_word >> 8) & 0xFF);
     }
 }
 
@@ -168,7 +166,7 @@ void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
     ata_wait_bit(ata, BSY, false);
 
     for (size_t i = 0; i < count * WORDS_PER_SECTOR; i++) {
-        outw(ata->data_port, (((uint8_t*)addr)[2 * i + 0] << 8) | (((uint8_t*)addr)[2 * i + 1] << 0));
+        outw(ata->data_port, (((uint8_t*)addr)[2 * i + 1] << 8) | (((uint8_t*)addr)[2 * i + 0] << 0));
         ata_flush(ata);
     }
 }
