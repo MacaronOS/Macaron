@@ -24,8 +24,8 @@ typedef struct {
 
 void ata_identify(ata_t* ata);
 void ata_flush(ata_t* ata);
-void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr);
-void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, void* addr);
+void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr);
+void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr);
 void ata_init(ata_t* ata, uint16_t port_base, bool master);
 
 #endif // MISTIX_KERNEL_DRIVERS_ATA_H

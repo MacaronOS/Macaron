@@ -46,9 +46,18 @@ static inline void ata_handle_error(uint8_t error)
     term_print(error_to_description[error]);
 }
 
+// macro, which gives the drive a 400ns delay to reset 
+// DRQ and set BSY bits 
+#define ata_400ns_delay(ata)          \
+    {                                 \
+        for (int i = 0; i < 5; i++) { \
+            inb(ata->command_port);   \
+        }                             \
+    }
+
 // macro, which waits until device doen't have an apropiate value,
 // also checks an error bit and processes it, if an error occurs
-#define ata_wait_bit(ata, bit, value)                                                     \
+#define ata_wait_bit(ata, bit, value)                                            \
     {                                                                            \
         uint8_t status = inb(ata->command_port);                                 \
         while (((status >> bit) & 1) != (value & 1) && !((status >> ERR) & 1)) { \
@@ -125,7 +134,7 @@ void ata_identify(ata_t* ata)
     }
 }
 
-void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
+void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr)
 {
     outb(ata->device_port, (ata->master ? 0xE0 : 0xF0) | ((lba >> 24) & 0x0F));
     outb(ata->sector_count_port, count);
@@ -136,12 +145,15 @@ void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
 
     outb(ata->command_port, READ_SECTORS_COMMAND);
 
+    ata_400ns_delay(ata);
+
     ata_wait_bit(ata, BSY, false);
 
     for (size_t i = 0; i < count * WORDS_PER_SECTOR; i++) {
         uint16_t read_word = inw(ata->data_port);
-        ((uint8_t*)addr)[2 * i + 0] = ((read_word >> 0) & 0xFF);
-        ((uint8_t*)addr)[2 * i + 1] = ((read_word >> 8) & 0xFF);
+        addr[2 * i + 0] = (read_word >> 0) & 0xFF;
+        addr[2 * i + 1] = (read_word >> 8) & 0xFF;
+        ata_wait_bit(ata, BSY, false);
     }
 }
 
@@ -149,10 +161,12 @@ void ata_flush(ata_t* ata)
 {
     outb(ata->command_port, FLUSH_COMMAND);
 
+    ata_400ns_delay(ata);
+    
     ata_wait_bit(ata, BSY, false);
 }
 
-void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
+void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr)
 {
     outb(ata->device_port, (ata->master ? 0xE0 : 0xF0) | ((lba >> 24) & 0x0F));
     outb(ata->sector_count_port, count);
@@ -163,10 +177,12 @@ void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
 
     outb(ata->command_port, WRITE_SECTORS_COMMAND);
 
+    ata_400ns_delay(ata);
+
     ata_wait_bit(ata, BSY, false);
 
     for (size_t i = 0; i < count * WORDS_PER_SECTOR; i++) {
-        outw(ata->data_port, (((uint8_t*)addr)[2 * i + 1] << 8) | (((uint8_t*)addr)[2 * i + 0] << 0));
+        outw(ata->data_port, ((uint16_t)(addr[2 * i + 1]) << 8) | ((uint16_t)addr[2 * i + 0] << 0));
         ata_flush(ata);
     }
 }
