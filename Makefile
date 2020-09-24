@@ -7,6 +7,8 @@ ifeq ($(UNAME_S), Darwin)
 	EXT2_FORMATTER = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
 endif
 
+MOUNT_EXT2=fuse-ext2
+
 AS=nasm
 CC=i686-elf-gcc
 ASFLAGS=-felf
@@ -48,8 +50,15 @@ clean:
 	$(RM) -r $(BUILD_DIR)
 
 drive:
+	rm -f ${DISC}
 	qemu-img create -f raw ${DISC} 16M
 	sudo ${EXT2_FORMATTER} -t ext2 -r 0 -b 1024 ${DISC}
+
+	sudo mkdir -p mountpoint
+	sudo ${MOUNT_EXT2} ${DISC} mountpoint -o rw+
+	sudo touch mountpoint/file.txt
+	sudo bash -c 'echo "testing..." > mountpoint/file.txt'
+	sudo umount mountpoint
 
 run:
 	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/a.out

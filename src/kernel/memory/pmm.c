@@ -6,9 +6,7 @@
 
 #include "../multiboot.h"
 
-#define KB 1024
-
-#define KB_TO_BLOCKS(x) (x * 1024 / BLOCK_SIZE)
+#define KB_TO_BLOCKS(x) (x * KB / BLOCK_SIZE)
 
 bitmap_t pmmap; // contains the state of each memory block (0 - unused, 1 - used)
 

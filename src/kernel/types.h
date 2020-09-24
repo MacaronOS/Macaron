@@ -14,10 +14,13 @@ typedef signed char    int8_t;
 typedef char           bool;
 typedef int            size_t;
 
-#define false 0
-#define true 1
+#define false   0
+#define true    1
 
 #define unlikely(expr)  __builtin_expect(!!(expr), 0)
 #define likely(expr)    __builtin_expect(!!(expr), 1)
+
+
+#define KB 1024
 
 #endif // MISTIX_KERNEL_TYPES_H

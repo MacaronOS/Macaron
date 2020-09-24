@@ -24,4 +24,5 @@ void kernel_main(multiboot_info_t* multiboot_structure) {
     ata_identify(&ata);
 
     ext2_init(&ata);
+    ext2_read_inode(&ata, 2);
 }
