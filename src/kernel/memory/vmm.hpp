@@ -1,7 +1,7 @@
 #ifndef MISTIX_KERNEL_MEMORY_VMM_H
 #define MISTIX_KERNEL_MEMORY_VMM_H
 
-#include "../types.h"
+#include "../types.hpp"
 
 typedef union {
     struct {

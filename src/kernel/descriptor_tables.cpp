@@ -1,11 +1,11 @@
-#include "descriptor_tables.h"
-#include "memory.h"
-#include "types.h"
-#include "port.h"
+#include "descriptor_tables.hpp"
+#include "memory.hpp"
+#include "types.hpp"
+#include "port.hpp"
 
 // Lets us access our ASM functions from our C code.
-extern void gdt_flush(uint32_t);
-extern void idt_flush(uint32_t);
+extern "C" void gdt_flush(uint32_t);
+extern "C" void idt_flush(uint32_t);
 
 gdt_entry_t gdt_entries[5];
 gdt_ptr_t gdt_ptr;

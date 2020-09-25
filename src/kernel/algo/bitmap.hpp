@@ -1,7 +1,7 @@
 #ifndef MISTIX_KERNEL_ALGO_BITMAP_H
 #define MISTIX_KERNEL_ALGO_BITMAP_H
 
-#include "types.h"
+#include "types.hpp"
 
 #define BITMAP_NULL -1
 
@@ -11,7 +11,7 @@ typedef struct {
 } bitmap_t;
 
 bitmap_t bitmap_init(size_t sz);
-uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, void* location);
+uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, uint32_t location);
 void bitmap_set_true(bitmap_t* bitmap, size_t pos);
 void bitmap_set_false(bitmap_t* bitmap, size_t pos);
 bool bitmap_test(bitmap_t* bitmap, size_t pos);

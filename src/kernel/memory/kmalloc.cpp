@@ -1,11 +1,11 @@
-#include "kmalloc.h"
-#include "regions.h"
+#include "kmalloc.hpp"
+#include "regions.hpp"
 
-#include "../types.h"
+#include "../types.hpp"
 
 void kmalloc_init()
 {
-    kmalloc_header_t* first_block = get_kernel_heap_start();
+    kmalloc_header_t* first_block = reinterpret_cast<kmalloc_header_t*>(get_kernel_heap_start());
 
     first_block->free = 1;
     first_block->next_block = 0;
@@ -13,9 +13,9 @@ void kmalloc_init()
     first_block->size = get_kernel_heap_end() - get_kernel_heap_start() - sizeof(kmalloc_header_t);
 }
 
-void* kmalloc(size_t size)
+uint32_t kmalloc(size_t size)
 {
-    kmalloc_header_t* block = get_kernel_heap_start();
+    kmalloc_header_t* block = reinterpret_cast<kmalloc_header_t*>(get_kernel_heap_start());
     kmalloc_header_t* first_fit_block = 0;
 
     while (block && !first_fit_block) {
@@ -47,7 +47,7 @@ void* kmalloc(size_t size)
 
 void kfree(void* mem)
 {
-    kmalloc_header_t* block = (uint32_t)mem - sizeof(kmalloc_header_t);
+    kmalloc_header_t* block = reinterpret_cast<kmalloc_header_t*>((uint32_t)mem - sizeof(kmalloc_header_t));
 
     if (block->prev_block && block->prev_block->free) {
         block->prev_block->size += block->size + sizeof(kmalloc_header_t);

@@ -1,8 +1,8 @@
 #ifndef MISTIX_KERNEL_KMALLOC_H
 #define MISTIX_KERNEL_KMALLOC_H
 
-#include "../types.h"
-#include "regions.h"
+#include "../types.hpp"
+#include "regions.hpp"
 
 #define HEAP_SIZE 4 * 1024 * 1024
 
@@ -14,7 +14,7 @@ typedef struct kmalloc_header {
 } kmalloc_header_t;
 
 void kmalloc_init();
-void* kmalloc(size_t);
+uint32_t kmalloc(size_t);
 void kfree(void*);
 
 #endif // MISTIX_KERNEL_KMALLOC_H

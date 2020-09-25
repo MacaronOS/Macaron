@@ -1,6 +1,6 @@
-#include "isr.h"
-#include "monitor.h"
-#include "port.h"
+#include "isr.hpp"
+#include "monitor.hpp"
+#include "port.hpp"
 
 isr_handler_t interrupt_handlers[256];
 
@@ -10,10 +10,11 @@ void register_interrupt_handler(uint8_t n, isr_handler_t handler)
 }
 
 // This gets called from our ASM interrupt handler stub.
+extern "C"
 void isr_handler(registers_t regs)
 {
    if (interrupt_handlers[regs.int_no] != 0) {
-      interrupt_handlers[regs.int_no]();
+      interrupt_handlers[regs.int_no](regs);
    } 
    else {
       term_print("recieved interrupt: ");
@@ -23,6 +24,7 @@ void isr_handler(registers_t regs)
 }
 
 // This gets called from our ASM interrupt handler stub.
+extern "C"
 void irq_handler(registers_t regs)
 {
    // Send an EOI (end of interrupt) signal to the PICs.

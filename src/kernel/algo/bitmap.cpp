@@ -1,7 +1,7 @@
-#include "bitmap.h"
-#include "../memory/kmalloc.h"
-#include "monitor.h"
-#include "types.h"
+#include "bitmap.hpp"
+#include "../memory/kmalloc.hpp"
+#include "monitor.hpp"
+#include "types.hpp"
 
 #define BITMAP_CHUNK_SIZE 32
 #define BITMAP_CHUNK_COUNT(sz) (sz / BITMAP_CHUNK_SIZE + ((sz % BITMAP_CHUNK_SIZE > 0) ? 1 : 0))
@@ -21,7 +21,7 @@ bitmap_t bitmap_init(size_t sz)
 /*
 put bitmap array at location, returns the size of array
 */
-uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, void* location)
+uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, uint32_t location)
 {
     bitmap->size = sz;
     bitmap->location = location;

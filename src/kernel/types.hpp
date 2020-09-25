@@ -11,7 +11,9 @@ typedef signed int     int32_t;
 typedef signed short   int16_t;
 typedef signed char    int8_t;
 
+#ifndef __cplusplus
 typedef char           bool;
+#endif
 typedef int            size_t;
 
 #define false   0
@@ -19,7 +21,6 @@ typedef int            size_t;
 
 #define unlikely(expr)  __builtin_expect(!!(expr), 0)
 #define likely(expr)    __builtin_expect(!!(expr), 1)
-
 
 #define KB 1024
 

@@ -1,12 +1,12 @@
-#include "ext2.h"
+#include "ext2.hpp"
 
-#include "../drivers/ata.h"
+#include "../drivers/ata.hpp"
 
-#include "../memory/kmalloc.h"
+#include "../memory/kmalloc.hpp"
 
-#include "../assert.h"
-#include "../memory/memory.h"
-#include "../monitor.h"
+#include "../assert.hpp"
+#include "../memory/memory.hpp"
+#include "../monitor.hpp"
 
 #define EXT2_MAGIC 0xEF53
 
@@ -45,7 +45,7 @@ void ext2_read_from_block_pointers_table(ata_t* ata, uint32_t bpt[], uint32_t bp
 {
     size_t read_size = 0;
     for (size_t bpt_index = 0; bpt_index < bpt_size; bpt_index++) {
-        ata_read28(ata, bpt[bpt_index] * 2, 2, (uint32_t)mem + read_size);
+        ata_read28(ata, bpt[bpt_index] * 2, 2, reinterpret_cast<void*>((uint32_t)mem + read_size));
         read_size += 1024;
     }
 }
@@ -75,7 +75,7 @@ void ext2_read_inode_content(ata_t* ata, inode_t* inode, void* mem)
         for (size_t i = 0; i < 1024 / sizeof(uint32_t); i++) {
             uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
             ata_read28(ata, doubly_inderect_bpt[i] * 2, 2, &indirect_bpt);
-            ext2_read_from_block_pointers_table(ata, &indirect_bpt, 1024 / sizeof(uint32_t), mem + read_bytes);
+            ext2_read_from_block_pointers_table(ata, indirect_bpt, 1024 / sizeof(uint32_t), mem + read_bytes);
         }
 
         read_bytes += (1024 / sizeof(uint32_t)) * 1024;
@@ -93,7 +93,7 @@ void ext2_read_inode_content(ata_t* ata, inode_t* inode, void* mem)
             for (size_t j = 0; j < 1024 / sizeof(uint32_t); j++) {
                 uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
                 ata_read28(ata, doubly_inderect_bpt[j] * 2, 2, &indirect_bpt);
-                ext2_read_from_block_pointers_table(ata, &indirect_bpt, 1024 / sizeof(uint32_t), mem + read_bytes);
+                ext2_read_from_block_pointers_table(ata, indirect_bpt, 1024 / sizeof(uint32_t), mem + read_bytes);
             }
 
             read_bytes += (1024 / sizeof(uint32_t)) * 1024;
@@ -123,7 +123,7 @@ inode_t ext2_get_inode_structure(ata_t* ata, uint32_t inode)
 void ext2_read_inode(ata_t* ata, uint32_t inode)
 {
     inode_t inode_struct = ext2_get_inode_structure(ata, inode);
-    uint8_t* inode_content = kmalloc(inode_struct.size);
+    uint8_t* inode_content = (uint8_t*)kmalloc(inode_struct.size);
 
     ext2_read_inode_content(ata, &inode_struct, inode_content);
 
@@ -132,7 +132,7 @@ void ext2_read_inode(ata_t* ata, uint32_t inode)
     while (entry_pointer < inode_struct.size) {
         uint32_t name_size = (((dir_entry_t*)(inode_content + entry_pointer))[0].name_len_low);
         char name[1024];
-        memcpy(&name, &((dir_entry_t*)(inode_content + entry_pointer))[0].name_characters, name_size);
+        memcpy(name, &((dir_entry_t*)(inode_content + entry_pointer))[0].name_characters, name_size);
         name[name_size] = '\0';
         term_print(name);
         term_print("\n");

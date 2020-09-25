@@ -1,8 +1,8 @@
 #ifndef MISTIX_KERNEL_FS_EXT2_H
 #define MISTIX_KERNEL_FS_EXT2_H
 
-#include "../types.h"
-#include "../drivers/ata.h"
+#include "../types.hpp"
+#include "../drivers/ata.hpp"
 
 #define EXT2_STATE_CLEAN     1
 #define EXT2_STATE_ERRORS    2

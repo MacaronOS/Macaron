@@ -1,7 +1,7 @@
 #ifndef MISTIX_KERNEL_TIMER_H
 #define MISTIX_KERNEL_TIMER_H
 
-#include "types.h"
+#include "types.hpp"
 
 void init_timer(uint32_t frequency);
 

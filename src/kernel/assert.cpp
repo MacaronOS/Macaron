@@ -1,5 +1,5 @@
-#include "assert.h"
-#include "monitor.h"
+#include "assert.hpp"
+#include "monitor.hpp"
 
 void ASSERT_PANIC(char* message)
 {

@@ -1,14 +1,58 @@
-#include "types.h"
-#include "regions.h"
-#include "pmm.h"
+#include "types.hpp"
+#include "regions.hpp"
+#include "pmm.hpp"
 
-#include "algo/bitmap.h"
-
-#include "../multiboot.h"
+#include "algo/bitmap.hpp"
+#include "../memory/memory.hpp"
+#include "../monitor.hpp"
+#include "../multiboot.hpp"
 
 #define KB_TO_BLOCKS(x) (x * KB / BLOCK_SIZE)
 
 bitmap_t pmmap; // contains the state of each memory block (0 - unused, 1 - used)
+
+void pmm_init_region(uint32_t base, size_t size)
+{
+    for (size_t block = base / BLOCK_SIZE; block < base / BLOCK_SIZE + size / BLOCK_SIZE; block++) {
+        bitmap_set_false(&pmmap, block);
+    }
+}
+
+void pmm_init_available_regions(multiboot_info_t* multiboot_structure)
+{
+    for (
+        multiboot_memory_map_t* mmap = reinterpret_cast<multiboot_memory_map_t*>(multiboot_structure->mmap_addr);
+        mmap < (multiboot_memory_map_t*)(multiboot_structure->mmap_addr + multiboot_structure->mmap_length);
+        mmap++
+    ) {
+        if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
+            pmm_init_region(mmap->addr, mmap->len);
+        }
+    }
+}
+
+void pmm_deinit_region(uint32_t base, size_t size) {
+        for (size_t block = base / BLOCK_SIZE; block < base / BLOCK_SIZE + size / BLOCK_SIZE; block++) {
+        bitmap_set_true(&pmmap, block);
+    }
+}
+
+void* pmm_allocate_block(ShouldZeroFill s)
+{
+    uint32_t block = bitmap_find_first_zero(&pmmap);
+
+    if (block == BITMAP_NULL) {
+        return 0;
+    }
+    memset((void*)(block * BLOCK_SIZE), 0, 4096);
+    bitmap_set_true(&pmmap, block); // mark this block as occupied
+    return reinterpret_cast<void*>(block * BLOCK_SIZE); // return the physical locatiin of the available block
+}
+
+void pmm_free_block(void* block_address)
+{
+    bitmap_set_false(&pmmap, (uint32_t)block_address / BLOCK_SIZE);
+}
 
 void pmm_init(multiboot_info_t* mb_structure)
 {
@@ -52,47 +96,4 @@ void pmm_init(multiboot_info_t* mb_structure)
         bitmap_set_true(&pmmap, (uint32_t)get_kernel_pmm_bitmap_start() / BLOCK_SIZE + cur_bitmap_block);
     }
 
-}
-
-void pmm_init_available_regions(multiboot_info_t* multiboot_structure)
-{
-    for (
-        multiboot_memory_map_t* mmap = multiboot_structure->mmap_addr;
-        mmap < (multiboot_memory_map_t*)(multiboot_structure->mmap_addr + multiboot_structure->mmap_length);
-        mmap++
-    ) {
-        if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
-            pmm_init_region(mmap->addr, mmap->len);
-        }
-    }
-}
-
-void pmm_init_region(uint32_t base, size_t size)
-{
-    for (size_t block = base / BLOCK_SIZE; block < base / BLOCK_SIZE + size / BLOCK_SIZE; block++) {
-        bitmap_set_true(&pmmap, block);
-    }
-}
-
-void pmm_deinit_region(uint32_t base, size_t size) {
-        for (size_t block = base / BLOCK_SIZE; block < base / BLOCK_SIZE + size / BLOCK_SIZE; block++) {
-        bitmap_set_true(&pmmap, block);
-    }
-}
-
-void* pmm_allocate_block()
-{
-    uint32_t block = bitmap_find_first_zero(&pmmap);
-
-    if (block == BITMAP_NULL) {
-        return 0;
-    }
-
-    bitmap_set_true(&pmmap, block); // mark this block as occupied
-    return block * BLOCK_SIZE; // return the physical locatiin of the available block
-}
-
-void pmm_free_block(void* block_address)
-{
-    bitmap_set_false(&pmmap, (uint32_t)block_address / BLOCK_SIZE);
 }

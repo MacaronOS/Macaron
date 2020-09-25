@@ -10,6 +10,7 @@ endif
 MOUNT_EXT2=fuse-ext2
 
 AS=nasm
+CPPC=i686-elf-g++
 CC=i686-elf-gcc
 ASFLAGS=-felf
 LDFLAGS=-ffreestanding -nostdlib -g -T src/linker.ld
@@ -43,6 +44,11 @@ $(BUILD_DIR)/%.s.o: %.s
 $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+# cpp source
+$(BUILD_DIR)/%.cpp.o: %.cpp
+	$(MKDIR_P) $(dir $@)
+	$(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 

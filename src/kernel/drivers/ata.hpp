@@ -4,7 +4,7 @@
 #define WORDS_PER_SECTOR 256
 #define BYTES_PER_SECTOR 512
 
-#include "../types.h"
+#include "../types.hpp"
 
 typedef struct {
     uint16_t data_port;
@@ -24,7 +24,7 @@ typedef struct {
 
 void ata_identify(ata_t* ata);
 void ata_flush(ata_t* ata);
-void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr);
+void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr);
 void ata_write28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr);
 void ata_init(ata_t* ata, uint16_t port_base, bool master);
 

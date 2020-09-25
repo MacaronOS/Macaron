@@ -1,4 +1,4 @@
-#include "types.h"
+#include "types.hpp"
 
 volatile uint16_t* vga_buffer = (uint16_t*)0xB8000;
 
@@ -9,40 +9,42 @@ int term_col = 0;
 int term_row = 0;
 uint8_t term_color = 0x0F;
 
-int get_vga_index(){
+int get_vga_index()
+{
     return term_row * VGA_COLS + term_col;
 }
 
-
-void term_init(){
-    for (int row = 0 ; row < VGA_ROWS ; row++){
-        for (int col = 0 ; col < VGA_COLS ; col++){
+void term_init()
+{
+    for (int row = 0; row < VGA_ROWS; row++) {
+        for (int col = 0; col < VGA_COLS; col++) {
             vga_buffer[row * VGA_COLS + col] = ((uint16_t)term_color << 8) | ' ';
         }
     }
 }
 
-void inc_vga_pos(){
+void inc_vga_pos()
+{
     term_col++;
-    if (term_col >= VGA_COLS){
+    if (term_col >= VGA_COLS) {
         term_col = 0;
-        term_row++; 
+        term_row++;
     }
-    if (term_row >= VGA_ROWS){
+    if (term_row >= VGA_ROWS) {
         term_row = 0;
         term_col = 0;
         term_init();
     }
 }
 
-void term_putc(char c){
-    switch (c)
-    {
+void term_putc(char c)
+{
+    switch (c) {
     case '\n':
         term_col = 0;
         term_row++;
         break;
-    
+
     default:
         vga_buffer[get_vga_index()] = ((uint16_t)term_color << 8) | c;
         inc_vga_pos();
@@ -50,13 +52,15 @@ void term_putc(char c){
     }
 }
 
-void term_print(const char* str){
-    for (size_t i = 0 ; str[i] != '\0' ; i++){
+void term_print(const char* str)
+{
+    for (size_t i = 0; str[i] != '\0'; i++) {
         term_putc(str[i]);
     }
 }
 
-void term_printn(int64_t numb, uint32_t s) { 
+void term_printn(int64_t numb, uint32_t s)
+{
     bool negative = 0;
 
     if (numb < 0) {
@@ -67,8 +71,7 @@ void term_printn(int64_t numb, uint32_t s) {
     char buffer[sizeof(uint32_t) * 8 + 2];
     int pos = 0;
 
-    do
-    {
+    do {
         buffer[pos++] = numb % s + '0';
         numb /= s;
     } while (numb);
@@ -76,13 +79,14 @@ void term_printn(int64_t numb, uint32_t s) {
     if (negative) {
         term_putc('-');
     }
-    
+
     while (pos) {
         term_putc((char)buffer[pos - 1]);
         pos--;
     }
 }
 
-void term_printd(int64_t numb) {
+void term_printd(int64_t numb)
+{
     term_printn(numb, 10);
 }

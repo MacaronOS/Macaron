@@ -1,5 +1,5 @@
-#include "regions.h"
-#include "../types.h"
+#include "regions.hpp"
+#include "../types.hpp"
 
 extern uint32_t _kernel_start;
 
@@ -17,30 +17,37 @@ extern uint32_t _kernel_bss_end;
 
 extern uint32_t _kernel_end;
 
-void* get_kernel_stack_start() {
+uint32_t get_kernel_stack_start()
+{
     return 0;
 }
 
-void* get_kernel_stack_end() {
+uint32_t get_kernel_stack_end()
+{
     return get_kernel_stack_start() + KERNEL_STACK_SIZE;
 }
 
-void* get_kernel_start() {
-    return &_kernel_start;
+uint32_t get_kernel_start()
+{
+    return reinterpret_cast<uint32_t>(&_kernel_start);
 }
 
-void* get_kernel_end() {
-    return &_kernel_end;
+uint32_t get_kernel_end()
+{
+    return reinterpret_cast<uint32_t>(&_kernel_end);
 }
 
-void* get_kernel_heap_start() {
+uint32_t get_kernel_heap_start()
+{
     return get_kernel_end();
 }
 
-void* get_kernel_heap_end() {
+uint32_t get_kernel_heap_end()
+{
     return get_kernel_heap_start() + KERNEL_HEAP_SIZE;
 }
 
-void* get_kernel_pmm_bitmap_start() {
+uint32_t get_kernel_pmm_bitmap_start()
+{
     return get_kernel_heap_end();
 }

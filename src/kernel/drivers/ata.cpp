@@ -1,8 +1,8 @@
-#include "ata.h"
+#include "ata.hpp"
 
-#include "../monitor.h"
-#include "../port.h"
-#include "../types.h"
+#include "../monitor.hpp"
+#include "../port.hpp"
+#include "../types.hpp"
 
 // comand port commands
 #define IDENTIFY_COMMAND        0xEC
@@ -134,7 +134,7 @@ void ata_identify(ata_t* ata)
     }
 }
 
-void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr)
+void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, void* addr)
 {
     outb(ata->device_port, (ata->master ? 0xE0 : 0xF0) | ((lba >> 24) & 0x0F));
     outb(ata->sector_count_port, count);
@@ -151,8 +151,8 @@ void ata_read28(ata_t* ata, uint32_t lba, uint8_t count, uint8_t* addr)
 
     for (size_t i = 0; i < count * WORDS_PER_SECTOR; i++) {
         uint16_t read_word = inw(ata->data_port);
-        addr[2 * i + 0] = (read_word >> 0) & 0xFF;
-        addr[2 * i + 1] = (read_word >> 8) & 0xFF;
+        ((uint8_t*)addr)[2 * i + 0] = (read_word >> 0) & 0xFF;
+        ((uint8_t*)addr)[2 * i + 1] = (read_word >> 8) & 0xFF;
         ata_wait_bit(ata, BSY, false);
     }
 }

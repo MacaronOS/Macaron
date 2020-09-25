@@ -1,13 +1,13 @@
-#include "vmm.h"
-#include "pmm.h"
-#include "memory.h"
-#include "../types.h"
-#include "../monitor.h"
-#include "../assert.h"
+#include "vmm.hpp"
+#include "../assert.hpp"
+#include "../monitor.hpp"
+#include "../types.hpp"
+#include "memory.hpp"
+#include "pmm.hpp"
 
 // int paging.s
-extern void set_cr3(uint32_t page_directory_base_adress);
-extern void enable_paging();
+extern "C" void set_cr3(void* page_directory_base_adress);
+extern "C" void enable_paging();
 
 page_directory_t* cur_directory = 0; // keeps a pointer to the current active page directory
 
@@ -16,8 +16,9 @@ page_directory_t* cur_directory = 0; // keeps a pointer to the current active pa
 
 #define PAGE_SIZE 4096
 
-bool vmm_allocate_page(page_table_entry_t* pt) {
-    void* frame = pmm_allocate_block();
+bool vmm_allocate_page(page_table_entry_t* pt)
+{
+    uint32_t frame = (uint32_t)pmm_allocate_block();
     if (!frame) {
         return false;
     }
@@ -28,26 +29,31 @@ bool vmm_allocate_page(page_table_entry_t* pt) {
     return true;
 }
 
-void vmm_free_page(page_table_entry_t* pt) {
-    pmm_free_block(pt->frame_adress * PAGE_SIZE);
+void vmm_free_page(page_table_entry_t* pt)
+{
+    pmm_free_block((void*)(pt->frame_adress * PAGE_SIZE));
     pt->present = false;
 }
 
-bool vmm_switch_directory(page_directory_t* dir) {
+bool vmm_switch_directory(page_directory_t* dir)
+{
     if (dir == 0) {
         return false;
     }
     cur_directory = dir;
     set_cr3(cur_directory->entries);
+
+    return true;
 }
 
-void vmm_map_page(void* phys, void* virt) {
-    uint32_t virt_index = (uint32_t)virt / PAGE_SIZE;
+void vmm_map_page(uint32_t phys, uint32_t virt)
+{
+    uint32_t virt_index = virt / PAGE_SIZE;
     page_directory_entry_t* pd_entry = &cur_directory->entries[virt_index / 1024];
 
     if (!pd_entry->present) {
         // allocating page table
-        page_table_t* pt = pmm_allocate_block();
+        page_table_t* pt = reinterpret_cast<page_table_t*>(pmm_allocate_block());
         memset(pt, 0, sizeof(page_table_t));
 
         pd_entry->present = 1;
@@ -55,25 +61,28 @@ void vmm_map_page(void* phys, void* virt) {
         pd_entry->page_table_base_adress = (uint32_t)pt / PAGE_SIZE;
     }
 
-    page_table_t* pt = pd_entry->page_table_base_adress * PAGE_SIZE;
+    page_table_t* pt = reinterpret_cast<page_table_t*>(pd_entry->page_table_base_adress * PAGE_SIZE);
     page_table_entry_t* pt_entry = &pt->entries[virt_index % 1024];
-    
+
     pt_entry->__bits = 0;
     pt_entry->present = 1;
     pt_entry->rw = 1;
     pt_entry->frame_adress = (uint32_t)phys / PAGE_SIZE;
 }
 
-void vmm_init() {
+void vmm_init()
+{
     // create kernel page directory
-    page_directory_t* p_directory = pmm_allocate_block();
+    page_directory_t* p_directory = reinterpret_cast<page_directory_t*>(pmm_allocate_block());
+    
     for (size_t i = 0; i < 1024; i++) {
-        p_directory->entries[i].__bits = 0;
+        p_directory->entries[i].present = 0;
     }
+
     cur_directory = p_directory;
 
-    // identity map 8 mb 
-    for (uint32_t phys = 0, virt = 0; phys < 8 * 1024 * 1024; phys+=PAGE_SIZE, virt += PAGE_SIZE) {
+    // identity map 8 mb
+    for (uint32_t phys = 0, virt = 0; phys < 8 * 1024 * 1024; phys += PAGE_SIZE, virt += PAGE_SIZE) {
         vmm_map_page(phys, virt);
     }
 
