@@ -24,9 +24,11 @@ mboot:
 
 [GLOBAL start]                  ; Kernel entry point.
 [EXTERN kernel_main]            ; This is the entry point of our C code
+[EXTERN call_constructors]
 
 start:
   mov     esp, 16384
+  call    call_constructors
 
   push    ebx                   ; Load multiboot header location
 

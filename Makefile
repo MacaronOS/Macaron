@@ -13,7 +13,7 @@ AS=nasm
 CPPC=i686-elf-g++
 CC=i686-elf-gcc
 ASFLAGS=-felf
-LDFLAGS=-ffreestanding -nostdlib -g -T src/linker.ld
+LDFLAGS=  -Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
 
 DISC=drive.img
 QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISC},if=none -device ide-drive,drive=disk,bus=ide.0
@@ -30,7 +30,7 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CFLAGS ?= $(INC_FLAGS)-nostdlib -nostdinc -fno-builtin -fno-stack-protector -ffreestanding
+CFLAGS ?= $(INC_FLAGS)-nostdlib -nostdinc -fno-builtin -fno-stack-protector -ffreestanding -fno-exceptions -m32 -Iinclude -fno-use-cxa-atexit -fno-rtti -fno-leading-underscore -Wno-write-strings
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ -lgcc
