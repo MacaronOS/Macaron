@@ -14,7 +14,7 @@ typedef signed char    int8_t;
 #ifndef __cplusplus
 typedef char           bool;
 #endif
-typedef int            size_t;
+typedef uint32_t            size_t;
 
 #define false   0
 #define true    1

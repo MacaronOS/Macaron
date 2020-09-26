@@ -2,7 +2,7 @@
 #define MISTIX_KERNEL_FS_EXT2_H
 
 #include "../types.hpp"
-#include "../drivers/ata.hpp"
+#include "../drivers/disc/Ata.hpp"
 
 #define EXT2_STATE_CLEAN     1
 #define EXT2_STATE_ERRORS    2
@@ -122,7 +122,7 @@ typedef struct
     char name_characters;
 } __attribute__((packed)) dir_entry_t;
 
-bool ext2_init(ata_t* ata);
-void ext2_read_inode(ata_t* ata, uint32_t inode);
+bool ext2_init(kernel::drivers::Ata::Ata&);
+void ext2_read_inode(kernel::drivers::Ata::Ata&, uint32_t);
 
 #endif // MISTIX_KERNEL_FS_EXT2_H

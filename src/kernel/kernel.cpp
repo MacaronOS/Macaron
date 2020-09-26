@@ -1,6 +1,7 @@
 #include "assert.hpp"
 #include "descriptor_tables.hpp"
-#include "drivers/ata.hpp"
+#include "drivers/disc/Ata.hpp"
+#include "drivers/DriverManager.hpp"
 #include "fs/ext2.hpp"
 #include "memory/kmalloc.hpp"
 #include "memory/memory.hpp"
@@ -32,10 +33,13 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     vmm_init();
     kmalloc_init();
 
-    ata_t ata;
-    ata_init(&ata, 0x1F0, true);
-    ata_identify(&ata);
+    kernel::drivers::DriverManager driver_manager = kernel::drivers::DriverManager();
+    
+    kernel::drivers::Ata::Ata ata = kernel::drivers::Ata::Ata(0x1F0, true);
 
-    ext2_init(&ata);    
-    ext2_read_inode(&ata, 2);
+    driver_manager.add_driver(ata);
+    driver_manager.install_all();
+
+    ext2_init(ata);
+    ext2_read_inode(ata, 2);
 }
