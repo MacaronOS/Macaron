@@ -13,7 +13,7 @@ void kmalloc_init()
     first_block->size = get_kernel_heap_end() - get_kernel_heap_start() - sizeof(kmalloc_header_t);
 }
 
-uint32_t kmalloc(size_t size)
+void* kmalloc(size_t size)
 {
     kmalloc_header_t* block = reinterpret_cast<kmalloc_header_t*>(get_kernel_heap_start());
     kmalloc_header_t* first_fit_block = 0;
@@ -42,7 +42,7 @@ uint32_t kmalloc(size_t size)
     separeted_block->size = copy_size - first_fit_block->size - sizeof(kmalloc_header_t);
     separeted_block->next_block = copy_next_block;
 
-    return (uint32_t)first_fit_block + sizeof(kmalloc_header_t);
+    return (void*)((uint32_t)first_fit_block + sizeof(kmalloc_header_t));
 }
 
 void kfree(void* mem)

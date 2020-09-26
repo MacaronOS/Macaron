@@ -1,68 +1,72 @@
 #include "bitmap.hpp"
+
+#include "../types.hpp"
+
 #include "../memory/kmalloc.hpp"
-#include "monitor.hpp"
-#include "types.hpp"
 
 #define BITMAP_CHUNK_SIZE 32
 #define BITMAP_CHUNK_COUNT(sz) (sz / BITMAP_CHUNK_SIZE + ((sz % BITMAP_CHUNK_SIZE > 0) ? 1 : 0))
 
-bitmap_t bitmap_init(size_t sz)
+namespace kernel::algorithms {
+
+Bitmap::Bitmap(uint32_t location, size_t size)
+    : m_array((uint32_t*)location)
+    , m_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
 {
-    uint32_t location = kmalloc(BITMAP_CHUNK_COUNT(sz) * 4);
-
-    bitmap_t bitmap;
-    bitmap.size = sz;
-    bitmap.location = location;
-
-    bitmap_clear(&bitmap);
-
-    return bitmap;
-}
-/*
-put bitmap array at location, returns the size of array
-*/
-uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, uint32_t location)
-{
-    bitmap->size = sz;
-    bitmap->location = location;
-
-    return BITMAP_CHUNK_COUNT(bitmap->location) * BITMAP_CHUNK_SIZE;
 }
 
-void bitmap_set_true(bitmap_t* bitmap, size_t pos)
+Bitmap::Bitmap(size_t size)
+    : m_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
 {
-    *((uint32_t*)(bitmap->location + pos / BITMAP_CHUNK_SIZE * 4)) |= (1 << (BITMAP_CHUNK_SIZE - 1 - pos % BITMAP_CHUNK_SIZE));
+    m_array = new uint32_t[BITMAP_CHUNK_COUNT(size)];
+    clear();
 }
 
-void bitmap_set_false(bitmap_t* bitmap, size_t pos)
+Bitmap::~Bitmap()
 {
-    *((uint32_t*)(bitmap->location + pos / BITMAP_CHUNK_SIZE * 4)) &= ~(1 << (BITMAP_CHUNK_SIZE - 1 - pos % BITMAP_CHUNK_SIZE));
+    delete[] m_array;
 }
 
-bool bitmap_test(bitmap_t* bitmap, size_t pos)
+size_t Bitmap::size()
 {
-    return ((*((uint32_t*)(bitmap->location + pos / BITMAP_CHUNK_SIZE * 4))) >> (BITMAP_CHUNK_SIZE - 1 - pos % BITMAP_CHUNK_SIZE)) & 1;
+    return m_size;
 }
 
-void bitmap_clear(bitmap_t* bitmap)
+bool Bitmap::operator[](const size_t index)
 {
-    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(bitmap->size); chunk++) {
-        ((uint32_t*)bitmap->location)[chunk] = 0;
+    return m_array[index / BITMAP_CHUNK_SIZE] >> (BITMAP_CHUNK_SIZE - 1 - index % BITMAP_CHUNK_SIZE);
+}
+
+void Bitmap::set_true(const size_t index)
+{
+    m_array[index / BITMAP_CHUNK_SIZE] |= (1 << (BITMAP_CHUNK_SIZE - 1 - index % BITMAP_CHUNK_SIZE));
+}
+
+void Bitmap::set_false(const size_t index)
+{
+    m_array[index / BITMAP_CHUNK_SIZE] &= ~(1 << (BITMAP_CHUNK_SIZE - 1 - index % BITMAP_CHUNK_SIZE));
+}
+
+void Bitmap::clear()
+{
+    for (size_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
+        m_array[chunk] = 0;
     }
 }
 
-void bitmap_set_all(bitmap_t* bitmap, bool val) {
-    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(bitmap->size); chunk++) {
-        ((uint32_t*)bitmap->location)[chunk] = (val & 1);
+void Bitmap::fill()
+{
+    for (size_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
+        m_array[chunk] = 0xFFFFFFFF;
     }
 }
 
-uint32_t bitmap_find_first_zero(bitmap_t* bitmap)
+size_t Bitmap::find_first_zero()
 {
-    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(bitmap->size); chunk++) {
+    for (uint32_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
         if (chunk != 0xFFFFFFFF) {
-            for (uint32_t pos = 0; pos < 32; pos++) {
-                if (((((uint32_t)((uint32_t*)bitmap->location)[chunk]) >> (BITMAP_CHUNK_SIZE - 1 - pos)) & 1) == 0) {
+            for (uint32_t pos = 0; pos < BITMAP_CHUNK_SIZE; pos++) {
+                if (((m_array[chunk] >> (BITMAP_CHUNK_SIZE - 1 - pos)) & 1) == 0) {
                     return chunk * BITMAP_CHUNK_SIZE + pos;
                 }
             }
@@ -70,4 +74,6 @@ uint32_t bitmap_find_first_zero(bitmap_t* bitmap)
     }
 
     return BITMAP_NULL;
+}
+
 }

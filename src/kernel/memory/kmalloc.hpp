@@ -14,7 +14,47 @@ typedef struct kmalloc_header {
 } kmalloc_header_t;
 
 void kmalloc_init();
-uint32_t kmalloc(size_t);
+void* kmalloc(size_t);
 void kfree(void*);
+
+inline void* operator new(unsigned long size)
+{
+    return kmalloc(size);
+}
+
+inline void operator delete(void* ptr)
+{
+    return kfree(ptr);
+}
+
+inline void operator delete(void* ptr, unsigned long)
+{
+    return kfree(ptr);
+}
+
+inline void* operator new[](unsigned long size)
+{
+    return kmalloc(size);
+}
+
+inline void operator delete[](void* ptr)
+{
+    return kfree(ptr);
+}
+
+inline void operator delete[](void* ptr, unsigned long)
+{
+    return kfree(ptr);
+}
+
+inline void* operator new(unsigned long, void* ptr)
+{
+    return ptr;
+}
+
+inline void* operator new[](unsigned long, void* ptr)
+{
+    return ptr;
+}
 
 #endif // MISTIX_KERNEL_KMALLOC_H

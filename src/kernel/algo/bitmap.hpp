@@ -1,22 +1,30 @@
-#ifndef MISTIX_KERNEL_ALGO_BITMAP_H
-#define MISTIX_KERNEL_ALGO_BITMAP_H
+#pragma once
 
 #include "types.hpp"
 
 #define BITMAP_NULL -1
 
-typedef struct {
-    uint32_t size; // size of the bitset
-    uint32_t location; // location of the bitset
-} bitmap_t;
+namespace kernel::algorithms {
 
-bitmap_t bitmap_init(size_t sz);
-uint32_t bitmap_init_at_location(bitmap_t* bitmap, size_t sz, uint32_t location);
-void bitmap_set_true(bitmap_t* bitmap, size_t pos);
-void bitmap_set_false(bitmap_t* bitmap, size_t pos);
-bool bitmap_test(bitmap_t* bitmap, size_t pos);
-uint32_t bitmap_find_first_zero(bitmap_t* bitmap);
-void bitmap_set_all(bitmap_t* bitmap, bool val);
-void bitmap_clear(bitmap_t* bitmap);
+class Bitmap {
+private:
+    size_t m_size { 0 };
+    uint32_t* m_array { nullptr };
 
-#endif // MISTIX_KERNEL_ALGO_BITMAP_H
+public:
+    Bitmap() = default;
+    Bitmap(uint32_t location, size_t size);
+    Bitmap(size_t size);
+    ~Bitmap();
+
+    size_t size();
+
+    bool operator[](const size_t index);
+    void set_true(const size_t index);
+    void set_false(const size_t index);
+    size_t find_first_zero();
+    void fill();
+    void clear();
+};
+
+}
