@@ -40,6 +40,9 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     driver_manager.add_driver(ata);
     driver_manager.install_all();
 
-    ext2_init(ata);
-    ext2_read_inode(ata, 2);
+    kernel::fs::ext2::Ext2 ext2 = kernel::fs::ext2::Ext2(ata);
+
+    ext2.init();
+
+    ext2.read_inode(2);
 }

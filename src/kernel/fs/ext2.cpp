@@ -14,55 +14,66 @@
 #define SUPERBLOCK_SIZE 1024
 
 #define BGDT_LOCATION (SUPERBLOCK_LOCATION + SUPERBLOCK_SIZE)
-#define BGDT_SIZE 1024
 
-#define inode_size 128
+namespace kernel::fs::ext2 {
 
-ext2_superblock_t superblock;
-block_group_descriptor_t bgd_table[BGDT_SIZE / sizeof(block_group_descriptor_t)];
-uint32_t bgd_table_size;
-
-static uint32_t block_size;
-
-bool ext2_init(kernel::drivers::Ata::Ata& ata)
+Ext2::Ext2(drivers::DiscDriver& disc_driver)
+    : m_disc_driver(disc_driver)
 {
-    ata.read(SUPERBLOCK_LOCATION / BYTES_PER_SECTOR, SUPERBLOCK_SIZE / BYTES_PER_SECTOR, &superblock);
+}
 
-    if (superblock.magic != EXT2_MAGIC) {
+Ext2::~Ext2()
+{
+    if (m_bgd_table) {
+        delete[] m_bgd_table;
+    }
+}
+
+bool Ext2::init()
+{
+    m_disc_driver.read(SUPERBLOCK_LOCATION / BYTES_PER_SECTOR, SUPERBLOCK_SIZE / BYTES_PER_SECTOR, &m_superblock);
+
+    if (m_superblock.magic != EXT2_MAGIC) {
         return false;
     }
-    
-    block_size = (1024 << superblock.block_shift);
+    m_block_size = (1024 << m_superblock.block_shift);
 
-    bgd_table_size = (superblock.blocks_count + superblock.blocks_per_block_group - 1) / superblock.blocks_per_block_group;
+    m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
-    ata.read(BGDT_LOCATION / BYTES_PER_SECTOR, BGDT_SIZE / BYTES_PER_SECTOR, &bgd_table);
+    m_bgd_table = new block_group_descriptor_t[m_block_size / sizeof(block_group_descriptor_t)];
+
+    m_disc_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
     return true;
 }
 
-void ext2_read_from_block_pointers_table(kernel::drivers::Ata::Ata& ata, uint32_t bpt[], uint32_t bpt_size, void* mem)
+uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, uint8_t* buffer)
+{
+    return 0;
+}
+
+void Ext2::read_from_block_pointers_table(uint32_t bpt[], uint32_t bpt_size, void* mem)
 {
     size_t read_size = 0;
-    for (size_t bpt_index = 0; bpt_index < bpt_size; bpt_index++) {
-        ata.read(bpt[bpt_index] * 2, 2, reinterpret_cast<void*>((uint32_t)mem + read_size));
+    for (size_t bpt_index = 0; bpt_index < bpt_size && bpt[bpt_index] != 0; bpt_index++) {
+        m_disc_driver.read(bpt[bpt_index] * 2, 2, reinterpret_cast<void*>((uint32_t)mem + read_size));
         read_size += 1024;
     }
 }
 
-void ext2_read_inode_content(kernel::drivers::Ata::Ata& ata, inode_t* inode, void* mem)
+void Ext2::read_inode_content(inode_t* inode, void* mem)
 {
     uint32_t read_bytes = 0;
 
     // read from direct block pointers
-    ext2_read_from_block_pointers_table(ata, inode->direct_block_pointers, 12, (void*)((uint32_t)mem + read_bytes));
+    read_from_block_pointers_table(inode->direct_block_pointers, 12, (void*)((uint32_t)mem + read_bytes));
     read_bytes += 12 * 1024;
 
     // read from singly inderected
     if (inode->singly_inderect_block_pointer) {
         uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-        ata.read(inode->singly_inderect_block_pointer * 2, 2, &indirect_bpt);
-        ext2_read_from_block_pointers_table(ata, indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
+        m_disc_driver.read(inode->singly_inderect_block_pointer * 2, 2, &indirect_bpt);
+        read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
     }
 
     read_bytes += (1024 / sizeof(uint32_t)) * 1024;
@@ -70,12 +81,12 @@ void ext2_read_inode_content(kernel::drivers::Ata::Ata& ata, inode_t* inode, voi
     // read from doubly inderected
     if (inode->doubly_inderect_block_pointer) {
         uint32_t doubly_inderect_bpt[1024 / sizeof(uint32_t)];
-        ata.read(inode->doubly_inderect_block_pointer * 2, 2, &doubly_inderect_bpt);
+        m_disc_driver.read(inode->doubly_inderect_block_pointer * 2, 2, &doubly_inderect_bpt);
 
         for (size_t i = 0; i < 1024 / sizeof(uint32_t); i++) {
             uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-            ata.read(doubly_inderect_bpt[i] * 2, 2, &indirect_bpt);
-            ext2_read_from_block_pointers_table(ata, indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
+            m_disc_driver.read(doubly_inderect_bpt[i] * 2, 2, &indirect_bpt);
+            read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
         }
 
         read_bytes += (1024 / sizeof(uint32_t)) * 1024;
@@ -84,16 +95,16 @@ void ext2_read_inode_content(kernel::drivers::Ata::Ata& ata, inode_t* inode, voi
     // read from triply inderected
     if (inode->triply_inderect_block_pointer) {
         uint32_t triply_inderect_bpt[1024 / sizeof(uint32_t)];
-        ata.read(inode->triply_inderect_block_pointer * 2, 2, &triply_inderect_bpt);
+        m_disc_driver.read(inode->triply_inderect_block_pointer * 2, 2, &triply_inderect_bpt);
 
         for (size_t i = 0; i < 1024 / sizeof(uint32_t); i++) {
             uint32_t doubly_inderect_bpt[1024 / sizeof(uint32_t)];
-            ata.read(triply_inderect_bpt[i] * 2, 2, &doubly_inderect_bpt);
+            m_disc_driver.read(triply_inderect_bpt[i] * 2, 2, &doubly_inderect_bpt);
 
             for (size_t j = 0; j < 1024 / sizeof(uint32_t); j++) {
                 uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-                ata.read(doubly_inderect_bpt[j] * 2, 2, &indirect_bpt);
-                ext2_read_from_block_pointers_table(ata, indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
+                m_disc_driver.read(doubly_inderect_bpt[j] * 2, 2, &indirect_bpt);
+                read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
             }
 
             read_bytes += (1024 / sizeof(uint32_t)) * 1024;
@@ -101,31 +112,31 @@ void ext2_read_inode_content(kernel::drivers::Ata::Ata& ata, inode_t* inode, voi
     }
 }
 
-inode_t ext2_get_inode_structure(kernel::drivers::Ata::Ata& ata, uint32_t inode)
+inode_t Ext2::get_inode_structure(uint32_t inode)
 {
-    uint32_t block_group_index = (inode - 1) / superblock.inodes_per_block_group;
-    uint32_t inode_table_block = bgd_table[block_group_index].inode_table_addr;
-    uint32_t inode_table_index = (inode - 1) % superblock.inodes_per_block_group;
+    uint32_t block_group_index = (inode - 1) / m_superblock.inodes_per_block_group;
+    uint32_t inode_table_block = m_bgd_table[block_group_index].inode_table_addr;
+    uint32_t inode_table_index = (inode - 1) % m_superblock.inodes_per_block_group;
 
     // block, where inode structure is stored
-    uint32_t inode_block = inode_table_block + (inode_table_index * sizeof(inode_t)) / 1024;
+    uint32_t inode_block = inode_table_block + (inode_table_index * sizeof(inode_t)) / m_block_size;
 
     // (index) position of inode structure inside inode block
-    uint32_t inode_block_index = inode_table_index % (1024 / sizeof(inode_t));
+    uint32_t inode_block_index = inode_table_index % (m_block_size / sizeof(inode_t));
 
     // copying block, where inode structure is stored
-    inode_t inodes[1024 / sizeof(inode_t)];
-    ata.read(inode_block * 2, 2, &inodes);
+    inode_t inodes[m_block_size / sizeof(inode_t)];
+    m_disc_driver.read(inode_block * 2, 2, &inodes);
 
     return inodes[inode_block_index];
 }
 
-void ext2_read_inode(kernel::drivers::Ata::Ata& ata, uint32_t inode)
+void Ext2::read_inode(uint32_t inode)
 {
-    inode_t inode_struct = ext2_get_inode_structure(ata, inode);
+    inode_t inode_struct = get_inode_structure(inode);
     uint8_t* inode_content = (uint8_t*)kmalloc(inode_struct.size);
 
-    ext2_read_inode_content(ata, &inode_struct, inode_content);
+    read_inode_content(&inode_struct, inode_content);
 
     size_t entry_pointer = 0;
 
@@ -139,4 +150,6 @@ void ext2_read_inode(kernel::drivers::Ata::Ata& ata, uint32_t inode)
 
         entry_pointer += ((dir_entry_t*)(inode_content + entry_pointer))[0].size;
     }
+}
+
 }

@@ -1,15 +1,15 @@
-#ifndef MISTIX_KERNEL_FS_EXT2_H
-#define MISTIX_KERNEL_FS_EXT2_H
+#pragma once
 
-#include "../types.hpp"
 #include "../drivers/disc/Ata.hpp"
+#include "../types.hpp"
+#include "fs.hpp"
 
-#define EXT2_STATE_CLEAN     1
-#define EXT2_STATE_ERRORS    2
+#define EXT2_STATE_CLEAN 1
+#define EXT2_STATE_ERRORS 2
 
-#define EXT2_ERROR_HANDLING_IGNORE           1
-#define EXT2_ERROR_HANDLING_REMOUNT_R_ONLY   2
-#define EXT2_ERROR_HANDLING_KERNEL_PANIK     3
+#define EXT2_ERROR_HANDLING_IGNORE 1
+#define EXT2_ERROR_HANDLING_REMOUNT_R_ONLY 2
+#define EXT2_ERROR_HANDLING_KERNEL_PANIK 3
 
 typedef struct {
     uint32_t inodes_count; // Total number of inodes in file system
@@ -41,9 +41,7 @@ typedef struct {
     uint16_t reserved_blocks_user_id; // User ID that can use reserved blocks
     uint16_t reserved_blocks_group_id; // Group ID that can use reserved blocks
 
-    uint32_t unitialized[19999];
-
-} __attribute__((packed)) ext2_superblock_t;
+} __attribute__((packed)) __attribute__((aligned(1024))) ext2_superblock_t;
 
 typedef struct {
     uint32_t block_bitmap_addr; // Block address of block usage bitmap
@@ -57,26 +55,26 @@ typedef struct {
     uint16_t unused3;
 } __attribute__((packed)) block_group_descriptor_t;
 
-#define FIFO                0x1000
-#define CHARACTED_DEVICE    0x2000
-#define DIRECTORY           0x4000
-#define BLOCK_DEVICE        0x6000
-#define REGULAR_FILE        0x8000
-#define SYMBLOKIC_LINK      0xA000
-#define UNIX_SOCKET         0xC000
+#define FIFO 0x1000
+#define CHARACTED_DEVICE 0x2000
+#define DIRECTORY 0x4000
+#define BLOCK_DEVICE 0x6000
+#define REGULAR_FILE 0x8000
+#define SYMBLOKIC_LINK 0xA000
+#define UNIX_SOCKET 0xC000
 
-#define EXECUTE     0x001
-#define WRITE       0x002
-#define READ        0x004
-#define G_EXECUTE   0x008
-#define G_WRITE     0x010
-#define G_READ      0x020
-#define U_EXECUTE   0x040
-#define U_WRITE     0x080
-#define U_READ      0x100
-#define STICKY_BIT  0x200
-#define SET_G_ID    0x400
-#define SET_U_ID    0x800
+#define EXECUTE 0x001
+#define WRITE 0x002
+#define READ 0x004
+#define G_EXECUTE 0x008
+#define G_WRITE 0x010
+#define G_READ 0x020
+#define U_EXECUTE 0x040
+#define U_WRITE 0x080
+#define U_READ 0x100
+#define STICKY_BIT 0x200
+#define SET_G_ID 0x400
+#define SET_U_ID 0x800
 
 typedef struct {
     uint16_t type_and_permissions;
@@ -104,14 +102,14 @@ typedef struct {
     uint32_t os_val_2_high;
 } __attribute__((packed)) inode_t;
 
-#define DE_UNKNOWN              0
-#define DE_REGULAR              1
-#define DE_DIRECTORY            2
-#define DE_CHARACTED_DEVICE     3
-#define DE_BLOCK_DEVICE         4
-#define DE_FIFO                 5
-#define DE_SOCKET               6
-#define DE_SYMBOLIC_LINK        7
+#define DE_UNKNOWN 0
+#define DE_REGULAR 1
+#define DE_DIRECTORY 2
+#define DE_CHARACTED_DEVICE 3
+#define DE_BLOCK_DEVICE 4
+#define DE_FIFO 5
+#define DE_SOCKET 6
+#define DE_SYMBOLIC_LINK 7
 
 typedef struct
 {
@@ -125,4 +123,32 @@ typedef struct
 bool ext2_init(kernel::drivers::Ata::Ata&);
 void ext2_read_inode(kernel::drivers::Ata::Ata&, uint32_t);
 
-#endif // MISTIX_KERNEL_FS_EXT2_H
+namespace kernel::fs::ext2 {
+
+class Ext2 : public FS {
+public:
+    Ext2(drivers::DiscDriver&);
+    ~Ext2();
+
+    bool init();
+
+    uint32_t read(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) override;
+
+    void read_inode(uint32_t inode); // test func
+
+private:
+    drivers::DiscDriver& m_disc_driver;
+
+    ext2_superblock_t m_superblock;
+    block_group_descriptor_t* m_bgd_table;
+
+    uint32_t m_block_size;
+    uint32_t m_bgd_table_size;
+
+    inode_t get_inode_structure(uint32_t inode);
+    void read_inode_content(inode_t* inode, void* mem);
+
+    void read_from_block_pointers_table(uint32_t bpt[], uint32_t bpt_size, void* mem);
+};
+
+}
