@@ -44,5 +44,6 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 
     ext2.init();
 
-    ext2.read_inode(2);
+    ext2.read_directory(2);
+    ext2.read_inode(12);
 }

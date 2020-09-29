@@ -27,6 +27,18 @@ Ext2::~Ext2()
     if (m_bgd_table) {
         delete[] m_bgd_table;
     }
+    if (m_tails_buffer) {
+        delete[] m_tails_buffer;
+    }
+    if (m_table_buffer_1) {
+        delete[] m_table_buffer_1;
+    }
+    if (m_table_buffer_2) {
+        delete[] m_table_buffer_2;
+    }
+    if (m_table_buffer_3) {
+        delete[] m_table_buffer_3;
+    }
 }
 
 bool Ext2::init()
@@ -38,6 +50,12 @@ bool Ext2::init()
     }
     m_block_size = (1024 << m_superblock.block_shift);
 
+    // allocating space for buffers
+    m_tails_buffer = new char[m_block_size];
+    m_table_buffer_1 = new char[m_block_size / 4];
+    m_table_buffer_2 = new char[m_block_size / 4];
+    m_table_buffer_3 = new char[m_block_size / 4];
+
     m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
     m_bgd_table = new block_group_descriptor_t[m_block_size / sizeof(block_group_descriptor_t)];
@@ -47,69 +65,88 @@ bool Ext2::init()
     return true;
 }
 
-uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, uint8_t* buffer)
-{
-    return 0;
+uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, void* buffer) {
+    inode_t inode_struct = get_inode_structure(file.inode);
+    return read_inode_content(&inode_struct, offset, size, buffer);
 }
 
-void Ext2::read_from_block_pointers_table(uint32_t bpt[], uint32_t bpt_size, void* mem)
+bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
 {
-    size_t read_size = 0;
-    for (size_t bpt_index = 0; bpt_index < bpt_size && bpt[bpt_index] != 0; bpt_index++) {
-        m_disc_driver.read(bpt[bpt_index] * 2, 2, reinterpret_cast<void*>((uint32_t)mem + read_size));
-        read_size += 1024;
-    }
+    return m_disc_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
 }
 
-void Ext2::read_inode_content(inode_t* inode, void* mem)
+bool Ext2::read_block(uint32_t block, void* mem)
 {
-    uint32_t read_bytes = 0;
+    return read_blocks(block, 1, mem);
+}
 
-    // read from direct block pointers
-    read_from_block_pointers_table(inode->direct_block_pointers, 12, (void*)((uint32_t)mem + read_bytes));
-    read_bytes += 12 * 1024;
+uint32_t Ext2::resolve_inode_local_block(inode_t* inode, uint32_t block) {
+    const int table_size = m_block_size / 4;
 
-    // read from singly inderected
-    if (inode->singly_inderect_block_pointer) {
-        uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-        m_disc_driver.read(inode->singly_inderect_block_pointer * 2, 2, &indirect_bpt);
-        read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
+    if (block < 12) {
+        return inode->direct_block_pointers[block];
+    }
+    block -= 12;
+
+    if (block < table_size) {
+        uint8_t table[table_size];
+        read_block(inode->singly_inderect_block_pointer, &table);
+        return table[block];
+    }
+    block -= 256;
+
+    if (block < table_size * table_size) {
+        uint8_t double_table[table_size];
+        read_block(inode->doubly_inderect_block_pointer, &double_table);
+
+        uint8_t table[table_size];
+        read_block(double_table[block / table_size], &table);
+        
+        return table[block % table_size];
+    }
+    block -= 256 * 256;
+
+    if (block < table_size * table_size * table_size) {
+        uint8_t triple_table[table_size];
+        read_block(inode->triply_inderect_block_pointer, &triple_table);
+
+        uint8_t double_table[table_size];
+        read_block(triple_table[block / (table_size * table_size)], &double_table);
+
+        uint8_t table[table_size];
+        read_block(double_table[block / table_size], &table);
+
+        return table[block % table_size];
     }
 
-    read_bytes += (1024 / sizeof(uint32_t)) * 1024;
+    return -1;
+}
 
-    // read from doubly inderected
-    if (inode->doubly_inderect_block_pointer) {
-        uint32_t doubly_inderect_bpt[1024 / sizeof(uint32_t)];
-        m_disc_driver.read(inode->doubly_inderect_block_pointer * 2, 2, &doubly_inderect_bpt);
+uint32_t Ext2::read_inode_content(inode_t* inode, uint32_t offset, uint32_t size, void* mem) {
+    const uint32_t block_start = offset / m_block_size;
+    const uint32_t block_end = (offset + size) / m_block_size;
 
-        for (size_t i = 0; i < 1024 / sizeof(uint32_t); i++) {
-            uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-            m_disc_driver.read(doubly_inderect_bpt[i] * 2, 2, &indirect_bpt);
-            read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
+    // reading left part
+    read_block(resolve_inode_local_block(inode, block_start), m_tails_buffer);
+    memcpy(mem, m_tails_buffer + offset % m_block_size, min(size, m_block_size - (offset % m_block_size)));
+
+    uint32_t read_bytes = min(size, m_block_size - (offset % m_block_size));
+
+    // reading middle part
+    if (block_end > 0) {
+        for (size_t block = block_start + 1; block < block_end - 1; block++) {
+            read_block(resolve_inode_local_block(inode, block), mem + read_bytes);
+            read_bytes += m_block_size;
         }
-
-        read_bytes += (1024 / sizeof(uint32_t)) * 1024;
     }
 
-    // read from triply inderected
-    if (inode->triply_inderect_block_pointer) {
-        uint32_t triply_inderect_bpt[1024 / sizeof(uint32_t)];
-        m_disc_driver.read(inode->triply_inderect_block_pointer * 2, 2, &triply_inderect_bpt);
-
-        for (size_t i = 0; i < 1024 / sizeof(uint32_t); i++) {
-            uint32_t doubly_inderect_bpt[1024 / sizeof(uint32_t)];
-            m_disc_driver.read(triply_inderect_bpt[i] * 2, 2, &doubly_inderect_bpt);
-
-            for (size_t j = 0; j < 1024 / sizeof(uint32_t); j++) {
-                uint32_t indirect_bpt[1024 / sizeof(uint32_t)];
-                m_disc_driver.read(doubly_inderect_bpt[j] * 2, 2, &indirect_bpt);
-                read_from_block_pointers_table(indirect_bpt, 1024 / sizeof(uint32_t), (void*)((uint32_t)mem + read_bytes));
-            }
-
-            read_bytes += (1024 / sizeof(uint32_t)) * 1024;
-        }
+    // reading right part
+    if (block_start != block_end) {
+        read_block(resolve_inode_local_block(inode, block_end), m_tails_buffer);
+        memcpy(mem + read_bytes, m_tails_buffer, (offset + size) % m_block_size);
     }
+
+    return size;
 }
 
 inode_t Ext2::get_inode_structure(uint32_t inode)
@@ -131,12 +168,14 @@ inode_t Ext2::get_inode_structure(uint32_t inode)
     return inodes[inode_block_index];
 }
 
-void Ext2::read_inode(uint32_t inode)
+// test funcs
+void Ext2::read_directory(uint32_t inode)
 {
     inode_t inode_struct = get_inode_structure(inode);
     uint8_t* inode_content = (uint8_t*)kmalloc(inode_struct.size);
 
-    read_inode_content(&inode_struct, inode_content);
+    // read_inode_content(&inode_struct, inode_content);
+    read_inode_content(&inode_struct, 0, inode_struct.size, inode_content);
 
     size_t entry_pointer = 0;
 
@@ -146,10 +185,23 @@ void Ext2::read_inode(uint32_t inode)
         memcpy(name, &((dir_entry_t*)(inode_content + entry_pointer))[0].name_characters, name_size);
         name[name_size] = '\0';
         term_print(name);
+        term_print(" : ");
+        term_printd((((dir_entry_t*)(inode_content + entry_pointer))[0].inode));
         term_print("\n");
 
         entry_pointer += ((dir_entry_t*)(inode_content + entry_pointer))[0].size;
     }
+}
+
+void Ext2::read_inode(uint32_t inode) {
+    inode_t inode_struct = get_inode_structure(inode);
+    char* inode_content = (char*)kmalloc(inode_struct.size + 1);
+
+    read_inode_content(&inode_struct, 0, inode_struct.size, inode_content);
+
+    inode_content[inode_struct.size] = '\0';
+
+    term_print(inode_content);
 }
 
 }

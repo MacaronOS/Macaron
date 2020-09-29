@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../drivers/disc/Ata.hpp"
+#include "../drivers/disc/DiscDriver.hpp"
 #include "../types.hpp"
 #include "fs.hpp"
 
@@ -120,9 +121,6 @@ typedef struct
     char name_characters;
 } __attribute__((packed)) dir_entry_t;
 
-bool ext2_init(kernel::drivers::Ata::Ata&);
-void ext2_read_inode(kernel::drivers::Ata::Ata&, uint32_t);
-
 namespace kernel::fs::ext2 {
 
 class Ext2 : public FS {
@@ -132,23 +130,37 @@ public:
 
     bool init();
 
-    uint32_t read(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) override;
+    // file system api functions
+    uint32_t read(File& file, uint32_t offset, uint32_t size, void* buffer) override;
 
-    void read_inode(uint32_t inode); // test func
+    // test funcs
+    void read_directory(uint32_t inode);
+    void read_inode(uint32_t inode);
 
 private:
     drivers::DiscDriver& m_disc_driver;
 
+    // file system params
     ext2_superblock_t m_superblock;
-    block_group_descriptor_t* m_bgd_table;
-
+    block_group_descriptor_t* m_bgd_table {};
     uint32_t m_block_size;
     uint32_t m_bgd_table_size;
 
-    inode_t get_inode_structure(uint32_t inode);
-    void read_inode_content(inode_t* inode, void* mem);
+    // buffers
+    char* m_tails_buffer {};
+    char* m_table_buffer_1 {};
+    char* m_table_buffer_2 {};
+    char* m_table_buffer_3 {};
 
-    void read_from_block_pointers_table(uint32_t bpt[], uint32_t bpt_size, void* mem);
+    // driver based
+    bool read_blocks(uint32_t block, uint32_t block_size, void* mem);
+    bool read_block(uint32_t block, void* mem);
+
+    // inode helpers
+    inode_t get_inode_structure(uint32_t inode);
+    uint32_t resolve_inode_local_block(inode_t* inode, uint32_t block);
+    uint32_t read_inode_content(inode_t* inode, uint32_t offset, uint32_t size, void* mem);
+
 };
 
 }
