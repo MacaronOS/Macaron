@@ -1,6 +1,6 @@
 #include "assert.hpp"
 #include "descriptor_tables.hpp"
-#include "drivers/disc/Ata.hpp"
+#include "drivers/disk/Ata.hpp"
 #include "drivers/DriverManager.hpp"
 #include "fs/ext2.hpp"
 #include "memory/kmalloc.hpp"

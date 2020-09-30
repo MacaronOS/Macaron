@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../drivers/disc/Ata.hpp"
-#include "../drivers/disc/DiscDriver.hpp"
+#include "../drivers/disk/Ata.hpp"
+#include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
 #include "fs.hpp"
 
@@ -125,7 +125,7 @@ namespace kernel::fs::ext2 {
 
 class Ext2 : public FS {
 public:
-    Ext2(drivers::DiscDriver&);
+    Ext2(drivers::DiskDriver&);
     ~Ext2();
 
     bool init();
@@ -138,7 +138,7 @@ public:
     void read_inode(uint32_t inode);
 
 private:
-    drivers::DiscDriver& m_disc_driver;
+    drivers::DiskDriver& m_disk_driver;
 
     // file system params
     ext2_superblock_t m_superblock;

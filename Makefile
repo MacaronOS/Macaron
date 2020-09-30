@@ -15,8 +15,8 @@ CC=i686-elf-gcc
 ASFLAGS=-felf
 LDFLAGS=  -Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
 
-DISC=drive.img
-QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISC},if=none -device ide-drive,drive=disk,bus=ide.0
+DISK=drive.img
+QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0
 
 TARGET_EXEC ?= a.out
 
@@ -56,12 +56,12 @@ clean:
 	$(RM) -r $(BUILD_DIR)
 
 drive:
-	rm -f ${DISC}
-	qemu-img create -f raw ${DISC} 16M
-	sudo ${EXT2_FORMATTER} -t ext2 -r 0 -b 1024 ${DISC}
+	rm -f ${DISK}
+	qemu-img create -f raw ${DISK} 16M
+	sudo ${EXT2_FORMATTER} -t ext2 -r 0 -b 1024 ${DISK}
 
 	sudo mkdir -p mountpoint
-	sudo ${MOUNT_EXT2} ${DISC} mountpoint -o rw+
+	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
 	sudo touch mountpoint/file.txt
 	sudo bash -c 'echo "testing..." > mountpoint/file.txt'
 	sudo umount mountpoint

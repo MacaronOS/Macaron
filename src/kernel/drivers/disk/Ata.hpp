@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../types.hpp"
-#include "DiscDriver.hpp"
+#include "DiskDriver.hpp"
 
 #define WORDS_PER_SECTOR 256
 #define BYTES_PER_SECTOR 512
@@ -13,7 +13,18 @@ enum class AdressingMode {
     Mode48,
 };
 
-class Ata : public DiscDriver {
+class Ata : public DiskDriver {
+public:
+    Ata(uint16_t port_base, bool master);
+    bool install() override;
+    bool read(uint32_t, uint8_t, void*) override;
+    bool write(uint32_t, uint8_t, void*) override;
+
+    bool read28(uint32_t, uint8_t, uint8_t*);
+    bool write28(uint32_t, uint8_t, uint8_t*);
+
+    bool flush();
+
 private:
     uint32_t m_capacity {};
     bool m_master {};
@@ -30,17 +41,6 @@ private:
     uint16_t m_control_port {};
 
     static inline void handle_error(uint8_t);
-
-public:
-    Ata(uint16_t port_base, bool master);
-    bool install() override;
-    bool read(uint32_t, uint8_t, void*) override;
-    bool write(uint32_t, uint8_t, void*) override;
-
-    bool read28(uint32_t, uint8_t, uint8_t*);
-    bool write28(uint32_t, uint8_t, uint8_t*);
-
-    bool flush();
 };
 
 }

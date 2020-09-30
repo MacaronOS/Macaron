@@ -1,6 +1,6 @@
 #include "ext2.hpp"
 
-#include "../drivers/disc/Ata.hpp"
+#include "../drivers/disk/Ata.hpp"
 
 #include "../memory/kmalloc.hpp"
 
@@ -17,8 +17,8 @@
 
 namespace kernel::fs::ext2 {
 
-Ext2::Ext2(drivers::DiscDriver& disc_driver)
-    : m_disc_driver(disc_driver)
+Ext2::Ext2(drivers::DiskDriver& disk_driver)
+    : m_disk_driver(disk_driver)
 {
 }
 
@@ -43,7 +43,7 @@ Ext2::~Ext2()
 
 bool Ext2::init()
 {
-    m_disc_driver.read(SUPERBLOCK_LOCATION / BYTES_PER_SECTOR, SUPERBLOCK_SIZE / BYTES_PER_SECTOR, &m_superblock);
+    m_disk_driver.read(SUPERBLOCK_LOCATION / BYTES_PER_SECTOR, SUPERBLOCK_SIZE / BYTES_PER_SECTOR, &m_superblock);
 
     if (m_superblock.magic != EXT2_MAGIC) {
         return false;
@@ -60,7 +60,7 @@ bool Ext2::init()
 
     m_bgd_table = new block_group_descriptor_t[m_block_size / sizeof(block_group_descriptor_t)];
 
-    m_disc_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
+    m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
     return true;
 }
@@ -72,7 +72,7 @@ uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, void* buffer) {
 
 bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
 {
-    return m_disc_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
+    return m_disk_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
 }
 
 bool Ext2::read_block(uint32_t block, void* mem)
@@ -163,7 +163,7 @@ inode_t Ext2::get_inode_structure(uint32_t inode)
 
     // copying block, where inode structure is stored
     inode_t inodes[m_block_size / sizeof(inode_t)];
-    m_disc_driver.read(inode_block * 2, 2, &inodes);
+    m_disk_driver.read(inode_block * 2, 2, &inodes);
 
     return inodes[inode_block_index];
 }
