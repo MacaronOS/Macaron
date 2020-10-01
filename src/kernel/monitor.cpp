@@ -1,4 +1,5 @@
 #include "types.hpp"
+#include "algo/String.hpp"
 
 volatile uint16_t* vga_buffer = (uint16_t*)0xB8000;
 
@@ -55,6 +56,13 @@ void term_putc(char c)
 void term_print(const char* str)
 {
     for (size_t i = 0; str[i] != '\0'; i++) {
+        term_putc(str[i]);
+    }
+}
+
+using kernel::algorithms::String;
+void term_print(const String& str) {
+    for (size_t i = 0; i < str.size(); i++) {
         term_putc(str[i]);
     }
 }
