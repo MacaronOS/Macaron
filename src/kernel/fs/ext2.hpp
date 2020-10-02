@@ -1,9 +1,11 @@
 #pragma once
 
+#include "fs.hpp"
+
+#include "../algo/String.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
-#include "fs.hpp"
 
 #define EXT2_STATE_CLEAN 1
 #define EXT2_STATE_ERRORS 2
@@ -122,6 +124,7 @@ typedef struct
 } __attribute__((packed)) dir_entry_t;
 
 namespace kernel::fs::ext2 {
+using algorithms::String;
 
 class Ext2 : public FS {
 public:
@@ -132,8 +135,9 @@ public:
 
     // file system api functions
     uint32_t read(File& file, uint32_t offset, uint32_t size, void* buffer) override;
+    File finddir(const File& directory, const String& filename) override;
 
-    // test funcs
+    // test func
     void read_directory(uint32_t inode);
     void read_inode(uint32_t inode);
 
@@ -160,7 +164,5 @@ private:
     inode_t get_inode_structure(uint32_t inode);
     uint32_t resolve_inode_local_block(inode_t* inode, uint32_t block);
     uint32_t read_inode_content(inode_t* inode, uint32_t offset, uint32_t size, void* mem);
-
 };
-
 }

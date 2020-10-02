@@ -1,10 +1,10 @@
 #include "ext2.hpp"
+#include "File.hpp"
 
-#include "../drivers/disk/Ata.hpp"
-
-#include "../memory/kmalloc.hpp"
-
+#include "../algo/String.hpp"
 #include "../assert.hpp"
+#include "../drivers/disk/Ata.hpp"
+#include "../memory/kmalloc.hpp"
 #include "../memory/memory.hpp"
 #include "../monitor.hpp"
 
@@ -58,16 +58,44 @@ bool Ext2::init()
 
     m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
-    m_bgd_table = new block_group_descriptor_t[m_block_size / sizeof(block_group_descriptor_t)];
+    m_bgd_table = (block_group_descriptor_t*)kmalloc(m_block_size);
 
     m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
     return true;
 }
 
-uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, void* buffer) {
-    inode_t inode_struct = get_inode_structure(file.inode);
+uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, void* buffer)
+{
+    inode_t inode_struct = get_inode_structure(file.inode());
     return read_inode_content(&inode_struct, offset, size, buffer);
+}
+
+File Ext2::finddir(const File& directory, const String& filename)
+{
+    inode_t inode_struct = get_inode_structure(directory.inode());
+    uint8_t* inode_content = (uint8_t*)kmalloc(inode_struct.size);
+
+    read_inode_content(&inode_struct, 0, inode_struct.size, inode_content);
+
+    size_t entry_pointer = 0;
+
+    while (entry_pointer < inode_struct.size) {
+        dir_entry_t entry = ((dir_entry_t*)(inode_content + entry_pointer))[0];
+
+        char name[1024];
+
+        memcpy(name, &((dir_entry_t*)(inode_content + entry_pointer))[0].name_characters, entry.name_len_low);
+        name[entry.name_len_low] = '\0';
+
+        if (filename == name) {
+            return File(entry.inode, filename);
+        }
+
+        entry_pointer += entry.size;
+    }
+
+    return File(FileType::NOTAFILE);
 }
 
 bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
@@ -80,7 +108,8 @@ bool Ext2::read_block(uint32_t block, void* mem)
     return read_blocks(block, 1, mem);
 }
 
-uint32_t Ext2::resolve_inode_local_block(inode_t* inode, uint32_t block) {
+uint32_t Ext2::resolve_inode_local_block(inode_t* inode, uint32_t block)
+{
     const int table_size = m_block_size / 4;
 
     if (block < 12) {
@@ -101,7 +130,7 @@ uint32_t Ext2::resolve_inode_local_block(inode_t* inode, uint32_t block) {
 
         uint8_t table[table_size];
         read_block(double_table[block / table_size], &table);
-        
+
         return table[block % table_size];
     }
     block -= 256 * 256;
@@ -122,7 +151,8 @@ uint32_t Ext2::resolve_inode_local_block(inode_t* inode, uint32_t block) {
     return -1;
 }
 
-uint32_t Ext2::read_inode_content(inode_t* inode, uint32_t offset, uint32_t size, void* mem) {
+uint32_t Ext2::read_inode_content(inode_t* inode, uint32_t offset, uint32_t size, void* mem)
+{
     const uint32_t block_start = offset / m_block_size;
     const uint32_t block_end = (offset + size) / m_block_size;
 
@@ -193,7 +223,8 @@ void Ext2::read_directory(uint32_t inode)
     }
 }
 
-void Ext2::read_inode(uint32_t inode) {
+void Ext2::read_inode(uint32_t inode)
+{
     inode_t inode_struct = get_inode_structure(inode);
     char* inode_content = (char*)kmalloc(inode_struct.size + 1);
 
