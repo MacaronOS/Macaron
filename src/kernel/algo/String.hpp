@@ -31,6 +31,10 @@ public:
     String& operator+=(char c);
     void pop_back();
 
+    // Comapre operators
+    bool operator==(const String& str) const;
+    bool operator==(const char* s) const;
+
 private:
     void realloc(size_t);
 

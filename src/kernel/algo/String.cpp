@@ -75,7 +75,6 @@ void String::realloc(size_t new_capacity)
 {
     char* new_string = new char[new_capacity];
     memcpy(new_string, m_string, m_size);
-    delete[] m_string;
     m_string = new_string;
     m_capacity = new_capacity;
 }
@@ -130,6 +129,37 @@ String& String::operator+=(char c)
 void String::pop_back()
 {
     m_size = m_size > 0 ? m_size - 1 : 0;
+}
+
+bool String::operator==(const String& str) const
+{
+    if (str.size() != m_size) {
+        return false;
+    }
+
+    for (size_t i = 0; i < m_size; i++) {
+        if (m_string[i] != str[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool String::operator==(const char* s) const
+{
+    size_t i = 0;
+    for (; s[i] != 0; i++) {
+        if (m_string[i] != s[i]) {
+            return false;
+        }
+    }
+
+    if (i != m_size) {
+        return false;
+    }
+
+    return true;
 }
 
 }
