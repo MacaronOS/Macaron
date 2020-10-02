@@ -1,8 +1,7 @@
-#ifndef MISTIX_KERNEL_KMALLOC_H
-#define MISTIX_KERNEL_KMALLOC_H
+#pragma once
 
-#include "../types.hpp"
 #include "regions.hpp"
+#include "../types.hpp"
 
 #define HEAP_SIZE 4 * 1024 * 1024
 
@@ -16,6 +15,9 @@ typedef struct kmalloc_header {
 void kmalloc_init();
 void* kmalloc(size_t);
 void kfree(void*);
+#ifdef DEBUG
+void kmalloc_dump();
+#endif
 
 inline void* operator new(unsigned long size)
 {
@@ -56,5 +58,3 @@ inline void* operator new[](unsigned long, void* ptr)
 {
     return ptr;
 }
-
-#endif // MISTIX_KERNEL_KMALLOC_H
