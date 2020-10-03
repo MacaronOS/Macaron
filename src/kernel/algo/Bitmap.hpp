@@ -8,6 +8,7 @@ namespace kernel::algorithms {
 
 class Bitmap {
 private:
+    bool m_self_created {}; // indecates if bitmap was created or wraped
     size_t m_size { 0 };
     uint32_t* m_array { nullptr };
 
@@ -15,7 +16,10 @@ public:
     Bitmap() = default;
     Bitmap(uint32_t location, size_t size);
     Bitmap(size_t size);
+
     ~Bitmap();
+
+    static Bitmap wrap(uint32_t location, size_t size);
 
     size_t size();
 

@@ -6,7 +6,7 @@
 #include "../types.hpp"
 #include "../multiboot.hpp"
 
-#include "../algo/bitmap.hpp"
+#include "../algo/Bitmap.hpp"
 
 #define KB_TO_BLOCKS(x) (x * KB / BLOCK_SIZE)
 
@@ -62,7 +62,7 @@ void pmm_init(multiboot_info_t* mb_structure)
     const uint32_t blocks_size = mem_size / BLOCK_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
-    pmmap = kernel::algorithms::Bitmap(get_kernel_pmm_bitmap_start(), blocks_size);
+    pmmap = kernel::algorithms::Bitmap::wrap(get_kernel_pmm_bitmap_start(), blocks_size);
     const uint32_t bitmap_memory_size = pmmap.size();
 
     pmmap.fill();

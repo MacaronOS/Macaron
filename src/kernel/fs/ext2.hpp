@@ -3,6 +3,7 @@
 #include "fs.hpp"
 
 #include "../algo/String.hpp"
+#include "../algo/Bitmap.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
@@ -124,7 +125,9 @@ typedef struct
 } __attribute__((packed)) dir_entry_t;
 
 namespace kernel::fs::ext2 {
+using algorithms::Bitmap;
 using algorithms::String;
+
 
 class Ext2 : public FS {
 public:

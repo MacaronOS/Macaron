@@ -2,6 +2,7 @@
 #include "File.hpp"
 
 #include "../algo/String.hpp"
+#include "../algo/Bitmap.hpp"
 #include "../assert.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../memory/kmalloc.hpp"

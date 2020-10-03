@@ -1,5 +1,5 @@
 #include "algo/String.hpp"
-#include "algo/bitmap.hpp"
+#include "algo/Bitmap.hpp"
 #include "assert.hpp"
 #include "descriptor_tables.hpp"
 #include "drivers/DriverManager.hpp"
