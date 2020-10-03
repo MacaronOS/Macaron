@@ -48,7 +48,12 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 
     ext2.read_directory(2);
 
-    term_print("\nfile: ");
-    term_print(ext2.finddir(File(2), "file.txt").name());
-    term_print("\n");
+    char* lol = (char*)kmalloc(12);
+    ext2.read(File(12), 0, 11, lol);
+    lol[11] = 0;
+    term_print("here:");
+    term_print(lol);
+
+    lol[0] = 'd';
+    ext2.write(File(12), 0, 11, lol);
 }

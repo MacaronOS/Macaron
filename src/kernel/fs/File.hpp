@@ -39,8 +39,8 @@ public:
     FileType type() const { return m_type; }
     size_t size() const { return m_size; }
 
-    uint32_t (*read)(File& file, uint32_t offset, uint32_t size, void* buffer) {};
-    uint32_t (*write)(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
+    uint32_t (*read)(const File& file, uint32_t offset, uint32_t size, void* buffer) {};
+    uint32_t (*write)(const File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
     void (*open)(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
     void (*close)(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
     File (*finddir)(const File& directory, const String& filename) {};
