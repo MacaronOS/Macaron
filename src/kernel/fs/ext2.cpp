@@ -141,6 +141,34 @@ File& Ext2::create(const File& directory, File& file)
     return file;
 }
 
+bool Ext2::erase(const File& directory, const File& file)
+{
+    inode_cache_t inode_cache = { directory.inode(), get_inode_structure(directory.inode()) };
+    uint8_t* inode_content = (uint8_t*)kmalloc(inode_cache.inode_struct.size);
+
+    read_inode_content(&inode_cache, 0, inode_cache.inode_struct.size, inode_content);
+
+    size_t entry_pointer = 0;
+
+    while (entry_pointer < inode_cache.inode_struct.size) {
+        dir_entry_t entry = ((dir_entry_t*)(inode_content + entry_pointer))[0];
+
+        if (file.inode() == entry.inode) {
+            free_inode(file.inode());
+            inode_cache.inode_struct.size -= entry.size;
+            save_inode_structure(&inode_cache);
+            write_inode_content(&inode_cache, entry_pointer, inode_cache.inode_struct.size - entry_pointer - entry.size, (void*)(entry_pointer + entry.size));
+            kfree(inode_content);
+            return true;
+        }
+
+        entry_pointer += entry.size;
+    }
+
+    kfree(inode_content);
+    return false;
+}
+
 bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
 {
     return m_disk_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
@@ -429,7 +457,8 @@ uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
     return 0;
 }
 
-uint32_t Ext2::occypy_inode(uint32_t preferd_block_group) {
+uint32_t Ext2::occypy_inode(uint32_t preferd_block_group)
+{
     for (size_t i = preferd_block_group; i < m_bgd_table_size; i++) {
         if (m_bgd_table[i].unallocated_inodes_count) {
             // read bitmap
@@ -449,6 +478,15 @@ uint32_t Ext2::occypy_inode(uint32_t preferd_block_group) {
     }
 
     return 0;
+}
+
+bool Ext2::free_inode(uint32_t inode)
+{
+    uint32_t* inode_bitmap = (uint32_t*)kmalloc(m_block_size);
+    read_block(m_bgd_table[(inode - 1) / m_superblock.inodes_per_block_group].inode_bitmap_addr, inode_bitmap);
+    Bitmap bit = Bitmap::wrap((uint32_t)inode_bitmap, m_superblock.inodes_per_block_group);
+    bit.set_false((inode - 1) % m_superblock.inodes_per_block_group);
+    return write_block(m_bgd_table[(inode - 1) / m_superblock.inodes_per_block_group].inode_bitmap_addr, inode_bitmap);
 }
 
 // test funcs

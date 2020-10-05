@@ -1,8 +1,8 @@
 #pragma once
 #include "File.hpp"
 
-#include "../types.hpp"
 #include "../algo/String.hpp"
+#include "../types.hpp"
 
 namespace kernel::fs {
 using algorithms::String;
@@ -18,6 +18,7 @@ public:
     virtual void close(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
     virtual File finddir(const File& directory, const String& filename) { }
     virtual File& create(const File& directory, File& file) { }
+    virtual bool erase(const File& directory, const File& file) { }
 };
 
 }
