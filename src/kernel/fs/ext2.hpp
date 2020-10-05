@@ -2,8 +2,8 @@
 
 #include "fs.hpp"
 
-#include "../algo/String.hpp"
 #include "../algo/Bitmap.hpp"
+#include "../algo/String.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
@@ -60,12 +60,12 @@ typedef struct {
 } __attribute__((packed)) block_group_descriptor_t;
 
 #define FIFO 0x1000
-#define CHARACTED_DEVICE 0x2000
+#define CHAR_DEVICE 0x2000
 #define DIRECTORY 0x4000
 #define BLOCK_DEVICE 0x6000
-#define REGULAR_FILE 0x8000
-#define SYMBLOKIC_LINK 0xA000
-#define UNIX_SOCKET 0xC000
+#define FILE 0x8000 // 81A4
+#define SYMLINK 0xA000
+#define SOCKET 0xC000
 
 #define EXECUTE 0x001
 #define WRITE 0x002
@@ -128,8 +128,7 @@ namespace kernel::fs::ext2 {
 using algorithms::Bitmap;
 using algorithms::String;
 
-struct inode_cache_t
-{
+struct inode_cache_t {
     uint32_t inode;
     inode_t inode_struct;
 };
@@ -145,6 +144,7 @@ public:
     uint32_t read(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
     File finddir(const File& directory, const String& filename) override;
+    File& create(const File& directory, File& file) override;
 
     // test func
     void read_directory(uint32_t inode);
@@ -177,6 +177,7 @@ private:
     uint32_t resolve_inode_local_block(inode_cache_t* inode, uint32_t block, bool need_create = false);
     uint32_t read_inode_content(inode_cache_t* inode, uint32_t offset, uint32_t size, void* mem);
     uint32_t write_inode_content(inode_cache_t* inode, uint32_t offset, uint32_t size, void* mem);
+    uint32_t occypy_inode(uint32_t preferd_block_group = 0);
 
     // block helpers
     uint32_t occypy_block(uint32_t preferd_block_group = 0, bool fill_zeroes = false);

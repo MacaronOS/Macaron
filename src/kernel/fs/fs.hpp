@@ -17,6 +17,7 @@ public:
     virtual void open(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
     virtual void close(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
     virtual File finddir(const File& directory, const String& filename) { }
+    virtual File& create(const File& directory, File& file) { }
 };
 
 }

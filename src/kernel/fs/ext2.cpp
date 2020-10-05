@@ -107,6 +107,40 @@ File Ext2::finddir(const File& directory, const String& filename)
     return File(FileType::NOTAFILE);
 }
 
+File& Ext2::create(const File& directory, File& file)
+{
+    // get inode content of the directory
+    inode_cache_t directory_inode_cache = { directory.inode(), get_inode_structure(directory.inode()) };
+
+    // init file inode structure, then save it
+    inode_cache_t file_inode_cache;
+    file_inode_cache.inode = occypy_inode();
+    file_inode_cache.inode_struct.type_and_permissions = file.get_permissions() | static_cast<uint16_t>(file.type());
+    file_inode_cache.inode_struct.user_id = 1;
+    file_inode_cache.inode_struct.size = file.size();
+    file_inode_cache.inode_struct.c_time = 116;
+    save_inode_structure(&file_inode_cache);
+
+    // init directory entry, then append it
+    uint32_t file_entry_size = sizeof(dir_entry_t) - 1 + file.name().size();
+    dir_entry_t* file_entry = (dir_entry_t*)kmalloc(file_entry_size);
+    file_entry[0].inode = file_inode_cache.inode;
+    file_entry[0].size = file_entry_size;
+    file_entry[0].name_len_low = file.name().size();
+
+    for (size_t i = 0; i < file.name().size(); i++) {
+        *(&file_entry[0].name_characters + i) = file.name()[i];
+    }
+
+    write_inode_content(&directory_inode_cache, directory_inode_cache.inode_struct.size, file_entry_size, file_entry);
+    directory_inode_cache.inode_struct.size += file_entry_size;
+    save_inode_structure(&directory_inode_cache);
+
+    file.set_inode(file_inode_cache.inode);
+
+    return file;
+}
+
 bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
 {
     return m_disk_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
@@ -389,6 +423,28 @@ uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
             }
 
             return free_block;
+        }
+    }
+
+    return 0;
+}
+
+uint32_t Ext2::occypy_inode(uint32_t preferd_block_group) {
+    for (size_t i = preferd_block_group; i < m_bgd_table_size; i++) {
+        if (m_bgd_table[i].unallocated_inodes_count) {
+            // read bitmap
+            uint32_t* inode_bitmap = (uint32_t*)kmalloc(m_block_size);
+            read_block(m_bgd_table[i].inode_bitmap_addr, inode_bitmap);
+
+            // find first free inode in bitmap
+            Bitmap bit = Bitmap::wrap((uint32_t)inode_bitmap, m_superblock.inodes_per_block_group);
+            uint32_t free_inode = bit.find_first_zero();
+
+            // occupy inode
+            bit.set_true(free_inode);
+            write_block(m_bgd_table[i].inode_bitmap_addr, inode_bitmap);
+
+            return free_inode + 1; // inodes starts from 1
         }
     }
 
