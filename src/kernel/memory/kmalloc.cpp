@@ -48,10 +48,10 @@ void* kmalloc(size_t size)
 
 void kfree(void* mem)
 {
-    kmalloc_header_t* block = (kmalloc_header_t*)((uint32_t)mem - sizeof(kmalloc_header_t));
-    if ((uint32_t)block < get_kernel_heap_start() || (uint32_t)mem >= get_kernel_heap_end()) {
+    if ((uint32_t)mem + sizeof(kmalloc_header_t) >= get_kernel_heap_end() || (uint32_t)mem < get_kernel_heap_start()) {
         return;
     }
+    kmalloc_header_t* block = (kmalloc_header_t*)((uint32_t)mem - sizeof(kmalloc_header_t));
 
     if (block->prev_block != 0 && block->prev_block->free == 1) {
         block->prev_block->size += block->size + sizeof(kmalloc_header_t);
@@ -70,7 +70,8 @@ void kfree(void* mem)
 }
 
 #ifdef DEBUG
-void kmalloc_dump() {
+void kmalloc_dump()
+{
     kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start());
     while (block) {
         term_print("block_size: ");
