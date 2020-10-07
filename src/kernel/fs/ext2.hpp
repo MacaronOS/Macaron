@@ -4,6 +4,7 @@
 
 #include "../algo/Bitmap.hpp"
 #include "../algo/String.hpp"
+#include "../algo/Vector.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
@@ -127,6 +128,7 @@ typedef struct
 namespace kernel::fs::ext2 {
 using algorithms::Bitmap;
 using algorithms::String;
+using algorithms::Vector;
 
 struct inode_cache_t {
     uint32_t inode;
@@ -140,10 +142,13 @@ public:
 
     bool init();
 
+    File& root() override { return m_root; }
+
     // file system api functions
     uint32_t read(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
-    File finddir(const File& directory, const String& filename) override;
+    File* finddir(const File& directory, const String& filename) override;
+    Vector<File*> listdir(const File& directory) override;
     File& create(const File& directory, File& file) override;
     bool erase(const File& directory, const File& file) override;
 
@@ -153,6 +158,9 @@ public:
 
 private:
     drivers::DiskDriver& m_disk_driver;
+
+    // root
+    File m_root;
 
     // file system params
     ext2_superblock_t m_superblock;
@@ -165,6 +173,11 @@ private:
     char* m_table_buffer_1 {};
     char* m_table_buffer_2 {};
     char* m_table_buffer_3 {};
+
+    void bind_fs(File& file)
+    {
+        file.bind_fs(this);
+    }
 
     // driver based
     bool read_blocks(uint32_t block, uint32_t block_size, void* mem);

@@ -3,6 +3,7 @@
 
 #include "../algo/Bitmap.hpp"
 #include "../algo/String.hpp"
+#include "../algo/Vector.hpp"
 #include "../assert.hpp"
 #include "../drivers/disk/Ata.hpp"
 #include "../memory/kmalloc.hpp"
@@ -25,21 +26,11 @@ Ext2::Ext2(drivers::DiskDriver& disk_driver)
 
 Ext2::~Ext2()
 {
-    if (m_bgd_table) {
-        delete[] m_bgd_table;
-    }
-    if (m_block_buffer) {
-        delete[] m_block_buffer;
-    }
-    if (m_table_buffer_1) {
-        delete[] m_table_buffer_1;
-    }
-    if (m_table_buffer_2) {
-        delete[] m_table_buffer_2;
-    }
-    if (m_table_buffer_3) {
-        delete[] m_table_buffer_3;
-    }
+    delete[] m_bgd_table;
+    delete[] m_block_buffer;
+    delete[] m_table_buffer_1;
+    delete[] m_table_buffer_2;
+    delete[] m_table_buffer_3;
 }
 
 bool Ext2::init()
@@ -63,6 +54,12 @@ bool Ext2::init()
 
     m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
+    // initialising the root
+    m_root = File(2, "ext2");
+    m_root.set_type(FileType::Directory);
+    m_root.set_permission(FilePermission::Read);
+    m_root.bind_fs(this);
+
     return true;
 }
 
@@ -78,7 +75,7 @@ uint32_t Ext2::write(const File& file, uint32_t offset, uint32_t size, void* buf
     return write_inode_content(&inode_cache, offset, size, buffer);
 }
 
-File Ext2::finddir(const File& directory, const String& filename)
+File* Ext2::finddir(const File& directory, const String& filename)
 {
     inode_cache_t inode_cache = { directory.inode(), get_inode_structure(directory.inode()) };
     uint8_t* inode_content = (uint8_t*)kmalloc(inode_cache.inode_struct.size);
@@ -96,15 +93,51 @@ File Ext2::finddir(const File& directory, const String& filename)
         name[entry.name_len_low] = '\0';
 
         if (filename == name) {
+            inode_t file_inode_struct = get_inode_structure(entry.inode);
+            File* file = new File(entry.inode, filename);
+            file->set_type(static_cast<FileType>(file_inode_struct.type_and_permissions & 0xF000));
+            file->bind_fs(this);
+
             kfree(inode_content);
-            return File(entry.inode, filename);
+            return file;
         }
 
         entry_pointer += entry.size;
     }
 
     kfree(inode_content);
-    return File(FileType::NOTAFILE);
+    return nullptr;
+}
+
+Vector<File*> Ext2::listdir(const File& directory)
+{
+    inode_cache_t inode_cache = { directory.inode(), get_inode_structure(directory.inode()) };
+    uint8_t* inode_content = (uint8_t*)kmalloc(inode_cache.inode_struct.size);
+
+    read_inode_content(&inode_cache, 0, inode_cache.inode_struct.size, inode_content);
+
+    Vector<File*> files;
+    size_t entry_pointer = 0;
+
+    while (entry_pointer < inode_cache.inode_struct.size) {
+        dir_entry_t entry = ((dir_entry_t*)(inode_content + entry_pointer))[0];
+
+        char name[1024];
+
+        memcpy(name, &((dir_entry_t*)(inode_content + entry_pointer))[0].name_characters, entry.name_len_low);
+        name[entry.name_len_low] = '\0';
+
+        inode_t file_inode_struct = get_inode_structure(entry.inode);
+        File* file = new File(entry.inode, name);
+        file->set_type(static_cast<FileType>(file_inode_struct.type_and_permissions & 0xF000));
+        file->bind_fs(this);
+        files.push_back(file);
+
+        entry_pointer += entry.size;
+    }
+
+    kfree(inode_content);
+    return files;
 }
 
 File& Ext2::create(const File& directory, File& file)
