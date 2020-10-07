@@ -1,9 +1,13 @@
 #pragma once
 #include "../algo/String.hpp"
+#include "../algo/Vector.hpp"
 #include "../types.hpp"
 
 namespace kernel::fs {
 using algorithms::String;
+using algorithms::Vector;
+
+class FS;
 
 enum class FileType {
     FIFO = 0x1000,
@@ -55,18 +59,26 @@ public:
     void set_inode(uint32_t inode) { m_inode = inode; }
 
     FileType type() const { return m_type; }
-    void set_type(FileType& type) { m_type = type; }
+    void set_type(const FileType& type) { m_type = type; }
 
     size_t size() const { return m_size; }
+
     void set_permission(const FilePermission& permission) { m_permissions_holder |= static_cast<uint32_t>(permission); }
     bool check_permission(const FilePermission& permission) { return m_permissions_holder &= static_cast<uint32_t>(permission); }
     uint16_t get_permissions() { return m_permissions_holder; }
 
-    uint32_t (*read)(const File& file, uint32_t offset, uint32_t size, void* buffer) {};
-    uint32_t (*write)(const File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
-    void (*open)(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
-    void (*close)(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) {};
-    File (*finddir)(const File& directory, const String& filename) {};
+    void mount(File* file)
+    {
+        m_mounted_dirs.push_back(file);
+    }
+
+    const Vector<File*> mounted_dirs() const { return m_mounted_dirs; }
+
+    void bind_fs(FS* fs) {
+        m_fs = fs;
+    }
+
+    FS* fs() const { return m_fs; }
 
 private:
     String m_name {};
@@ -74,6 +86,10 @@ private:
     FileType m_type {};
     uint16_t m_permissions_holder {};
     size_t m_size {};
+
+    Vector<File*> m_mounted_dirs {};
+
+    FS* m_fs {};
 };
 
 }
