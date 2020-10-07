@@ -81,7 +81,7 @@ public:
     void push_back(const T& val)
     {
         if (m_size >= m_capacity) {
-            realloc(m_capacity * 2);
+            realloc(m_capacity * 2 + 1);
         }
         m_data[m_size++] = val;
     }
@@ -89,7 +89,7 @@ public:
     void push_back(T&& val)
     {
         if (m_size >= m_capacity) {
-            realloc(m_capacity * 2);
+            realloc(m_capacity * 2 + 1);
         }
         m_data[m_size++] = move(val);
     }

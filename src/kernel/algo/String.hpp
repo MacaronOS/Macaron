@@ -39,10 +39,10 @@ private:
     void realloc(size_t);
 
 private:
-    char* m_string;
+    char* m_string {};
 
-    size_t m_size;
-    size_t m_capacity;
+    size_t m_size {};
+    size_t m_capacity{};
 };
 
 }

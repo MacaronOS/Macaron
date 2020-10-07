@@ -82,7 +82,7 @@ void String::realloc(size_t new_capacity)
 void String::push_back(const char& c)
 {
     if (m_size >= m_capacity) {
-        realloc(m_capacity * 2);
+        realloc(m_capacity * 2 + 1);
     }
 
     m_string[m_size++] = c;
