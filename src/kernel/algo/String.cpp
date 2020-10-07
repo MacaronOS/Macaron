@@ -1,4 +1,5 @@
 #include "String.hpp"
+#include "Vector.hpp"
 #include "../memory/memory.hpp"
 
 namespace kernel::algorithms {
@@ -162,4 +163,32 @@ bool String::operator==(const char* s) const
     return true;
 }
 
+Vector<String> String::split(const String& del)
+{
+    Vector<String> result;
+    size_t next_string_start = 0;
+    for (size_t i = 0; i < m_size; i++) {
+        size_t j = i;
+        while (j < m_size && j - i < del.size() && m_string[j] == del[j-i]) {
+            j++;
+        }
+        if (j - i == del.size()) {
+            String res;
+            for (int k = next_string_start; k < i; k++) {
+                res.push_back(m_string[k]);
+            }
+            result.push_back(move(res));
+            i = j - 1;
+            next_string_start = j;
+        }
+    }
+
+    String res;
+    for (int k = next_string_start; k < m_size; k++) {
+        res.push_back(m_string[k]);
+    }
+    result.push_back(move(res));
+
+    return result;
+}
 }

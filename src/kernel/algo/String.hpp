@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.hpp"
+#include "Vector.hpp"
 
 namespace kernel::algorithms {
 
@@ -34,6 +35,9 @@ public:
     // Comapre operators
     bool operator==(const String& str) const;
     bool operator==(const char* s) const;
+
+    // Other
+    Vector<String> split(const String& del);
 
 private:
     void realloc(size_t);
