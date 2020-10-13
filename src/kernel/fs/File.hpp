@@ -1,7 +1,13 @@
 #pragma once
 #include "../algo/String.hpp"
 #include "../algo/Vector.hpp"
+#include "../algo/extras.hpp"
+#include "../assert.hpp"
+#include "../memory/kmalloc.hpp"
+#include "../monitor.hpp"
+
 #include "../types.hpp"
+#include "ext2.hpp"
 
 namespace kernel::fs {
 using algorithms::String;
@@ -30,66 +36,147 @@ enum class FilePermission {
     GroupRead = 0x020,
     UserExecute = 0x040,
     UserWrite = 0x080,
-    UserRead = 0x100,
+    UserRead = 0x100
+};
+
+typedef uint16_t file_permissions_t;
+
+class File;
+class Mountpoint {
+public:
+    Mountpoint(const String& name, File* file)
+        : m_name(name)
+        , m_file(file)
+    {
+    }
+    Mountpoint(const Mountpoint& mp)
+        : m_name(mp.m_name)
+        , m_file(mp.m_file)
+    {
+    }
+    Mountpoint(Mountpoint&& mp)
+        : m_name(move(mp.m_name))
+        , m_file(mp.m_file)
+    {
+    }
+    Mountpoint operator=(const Mountpoint& mp)
+    {
+        m_name = mp.m_name;
+        m_file = mp.m_file;
+    }
+    Mountpoint operator=(Mountpoint&& mp)
+    {
+        m_name = move(mp.m_name);
+        m_file = mp.m_file;
+    }
+
+    String& name()
+    {
+        return m_name;
+    }
+    File& file()
+    {
+        return *m_file;
+    }
+
+private:
+    String m_name;
+    File* m_file;
 };
 
 class File {
 public:
-    File() = default;
-    File(const FileType& type)
-        : m_type(type)
-    {
-    }
-    File(uint32_t inode)
+    File(FS* fs, inode_t* inode_struct, uint32_t inode)
         : m_inode(inode)
-    {
-    }
-    File(uint32_t inode, const String& name)
-        : m_inode(inode)
-        , m_name(name)
+        , m_inode_struct(inode_struct)
+        , m_fs(fs)
     {
     }
 
-    ~File() = default;
-
-    String name() const { return m_name; }
-    void set_name(const String& s) { m_name = s; }
-
-    uint32_t inode() const { return m_inode; }
-    void set_inode(uint32_t inode) { m_inode = inode; }
-
-    FileType type() const { return m_type; }
-    void set_type(const FileType& type) { m_type = type; }
-
-    size_t size() const { return m_size; }
-
-    void set_permission(const FilePermission& permission) { m_permissions_holder |= static_cast<uint32_t>(permission); }
-    bool check_permission(const FilePermission& permission) { return m_permissions_holder &= static_cast<uint32_t>(permission); }
-    uint16_t get_permissions() { return m_permissions_holder; }
-
-    void mount(File* file)
+    File(const File& file)
+        : m_inode(file.m_inode)
+        , m_inode_struct(file.m_inode_struct)
+        , m_fs(file.m_fs)
+        , m_mountpoints(file.m_mountpoints)
+        , m_dirty(file.m_dirty)
+        , m_ref_count(file.m_ref_count)
     {
-        m_mounted_dirs.push_back(file);
     }
 
-    const Vector<File*> mounted_dirs() const { return m_mounted_dirs; }
-
-    void bind_fs(FS* fs) {
-        m_fs = fs;
+    File(File&& file)
+        : m_inode(file.m_inode)
+        , m_inode_struct(file.m_inode_struct)
+        , m_fs(file.m_fs)
+        , m_mountpoints(move(file.m_mountpoints))
+        , m_dirty(file.m_dirty)
+        , m_ref_count(file.m_ref_count)
+    {
+    }
+    File operator=(const File& file)
+    {
+        m_inode = file.m_inode;
+        m_inode_struct = file.m_inode_struct;
+        m_fs = file.m_fs;
+        m_mountpoints = file.m_mountpoints;
+        m_dirty = file.m_dirty;
+        m_ref_count = file.m_ref_count;
     }
 
+    File operator=(File&& file)
+    {
+        m_inode = file.m_inode;
+        m_inode_struct = file.m_inode_struct;
+        m_fs = file.m_fs;
+        m_mountpoints = move(file.m_mountpoints);
+        m_dirty = file.m_dirty;
+        m_ref_count = file.m_ref_count;
+    }
+
+    // Mount funcs
+    void mount(Mountpoint& mountpoint)
+    {
+        m_mountpoints.push_back(mountpoint);
+    }
+    void mount(Mountpoint&& mountpoint)
+    {
+        m_mountpoints.push_back(move(mountpoint));
+    }
+
+    Vector<Mountpoint>& mounted_dirs() { return m_mountpoints; }
+
+    // File System funcs
     FS* fs() const { return m_fs; }
+    uint32_t inode() const { return m_inode; }
+    inode_t* inode_struct() { return m_inode_struct; }
 
 private:
-    String m_name {};
-    uint32_t m_inode {};
-    FileType m_type {};
-    uint16_t m_permissions_holder {};
-    size_t m_size {};
+    FS* m_fs { nullptr };
+    inode_t* m_inode_struct { nullptr };
+    uint32_t m_inode { 0 };
 
-    Vector<File*> m_mounted_dirs {};
+    Vector<Mountpoint> m_mountpoints {};
 
-    FS* m_fs {};
+    bool m_dirty { false };
+    size_t m_ref_count { 0 };
+};
+
+class FileStorage {
+public:
+    FileStorage() = default;
+
+    File& get(uint32_t inode, FS* fs, bool debug = false)
+    {
+        for (size_t i = 0; i < files.size(); i++) {
+            if (files[i]->inode() == inode && files[i]->fs() == fs) {
+                return *files[i];
+            }
+        }
+        files.push_back(new File(fs, (inode_t*)kmalloc(sizeof(inode_t)), inode));
+        return *files.back();
+    };
+
+private:
+    Vector<File*> files {};
 };
 
 }
