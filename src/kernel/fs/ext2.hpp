@@ -1,12 +1,4 @@
 #pragma once
-
-#include "fs.hpp"
-
-#include "../algo/Bitmap.hpp"
-#include "../algo/String.hpp"
-#include "../algo/Vector.hpp"
-#include "../drivers/disk/Ata.hpp"
-#include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
 
 #define EXT2_STATE_CLEAN 1
@@ -60,26 +52,26 @@ typedef struct {
     uint16_t unused3;
 } __attribute__((packed)) block_group_descriptor_t;
 
-#define FIFO 0x1000
-#define CHAR_DEVICE 0x2000
-#define DIRECTORY 0x4000
-#define BLOCK_DEVICE 0x6000
-#define FILE 0x8000 // 81A4
-#define SYMLINK 0xA000
-#define SOCKET 0xC000
+#define I_FIFO 0x1000
+#define I_CHAR_DEVICE 0x2000
+#define I_DIRECTORY 0x4000
+#define I_BLOCK_DEVICE 0x6000
+#define I_FILE 0x8000 // 81A4
+#define I_SYMLINK 0xA000
+#define I_SOCKET 0xC000
 
-#define EXECUTE 0x001
-#define WRITE 0x002
-#define READ 0x004
-#define G_EXECUTE 0x008
-#define G_WRITE 0x010
-#define G_READ 0x020
-#define U_EXECUTE 0x040
-#define U_WRITE 0x080
-#define U_READ 0x100
-#define STICKY_BIT 0x200
-#define SET_G_ID 0x400
-#define SET_U_ID 0x800
+#define I_EXECUTE 0x001
+#define I_WRITE 0x002
+#define I_READ 0x004
+#define I_G_EXECUTE 0x008
+#define I_G_WRITE 0x010
+#define I_G_READ 0x020
+#define I_U_EXECUTE 0x040
+#define I_U_WRITE 0x080
+#define I_U_READ 0x100
+#define I_STICKY_BIT 0x200
+#define I_SET_G_ID 0x400
+#define I_SET_U_ID 0x800
 
 typedef struct {
     uint16_t type_and_permissions;
@@ -124,77 +116,3 @@ typedef struct
     uint8_t type_indicator;
     char name_characters;
 } __attribute__((packed)) dir_entry_t;
-
-namespace kernel::fs::ext2 {
-using algorithms::Bitmap;
-using algorithms::String;
-using algorithms::Vector;
-
-struct inode_cache_t {
-    uint32_t inode;
-    inode_t inode_struct;
-};
-
-class Ext2 : public FS {
-public:
-    Ext2(drivers::DiskDriver&);
-    ~Ext2();
-
-    bool init();
-
-    File& root() override { return m_root; }
-
-    // file system api functions
-    uint32_t read(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
-    uint32_t write(const File& file, uint32_t offset, uint32_t size, void* buffer) override;
-    File* finddir(const File& directory, const String& filename) override;
-    Vector<File*> listdir(const File& directory) override;
-    File& create(const File& directory, File& file) override;
-    bool erase(const File& directory, const File& file) override;
-
-    // test func
-    void read_directory(uint32_t inode);
-    void read_inode(uint32_t inode);
-
-private:
-    drivers::DiskDriver& m_disk_driver;
-
-    // root
-    File m_root;
-
-    // file system params
-    ext2_superblock_t m_superblock;
-    block_group_descriptor_t* m_bgd_table {};
-    uint32_t m_block_size;
-    uint32_t m_bgd_table_size;
-
-    // buffers
-    char* m_block_buffer {};
-    char* m_table_buffer_1 {};
-    char* m_table_buffer_2 {};
-    char* m_table_buffer_3 {};
-
-    void bind_fs(File& file)
-    {
-        file.bind_fs(this);
-    }
-
-    // driver based
-    bool read_blocks(uint32_t block, uint32_t block_size, void* mem);
-    bool read_block(uint32_t block, void* mem);
-    bool write_blocks(uint32_t block, uint32_t block_size, void* mem);
-    bool write_block(uint32_t block, void* mem);
-
-    // inode helpers
-    inode_t get_inode_structure(uint32_t inode);
-    bool save_inode_structure(inode_cache_t* inode);
-    uint32_t resolve_inode_local_block(inode_cache_t* inode, uint32_t block, bool need_create = false);
-    uint32_t read_inode_content(inode_cache_t* inode, uint32_t offset, uint32_t size, void* mem);
-    uint32_t write_inode_content(inode_cache_t* inode, uint32_t offset, uint32_t size, void* mem);
-    uint32_t occypy_inode(uint32_t preferd_block_group = 0);
-    bool free_inode(uint32_t inode);
-
-    // block helpers
-    uint32_t occypy_block(uint32_t preferd_block_group = 0, bool fill_zeroes = false);
-};
-}
