@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fs.hpp"
-#include "ext2.hpp"
+#include "ext2fs.hpp"
 
 #include "../algo/Bitmap.hpp"
 #include "../algo/String.hpp"

@@ -7,7 +7,7 @@
 #include "../monitor.hpp"
 
 #include "../types.hpp"
-#include "ext2.hpp"
+#include "ext2fs.hpp"
 
 namespace kernel::fs {
 using algorithms::String;
