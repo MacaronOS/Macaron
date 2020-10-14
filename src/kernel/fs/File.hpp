@@ -150,6 +150,10 @@ public:
     FS* fs() const { return m_fs; }
     uint32_t inode() const { return m_inode; }
     inode_t* inode_struct() { return m_inode_struct; }
+    inode_t* allocate_inode_struct() { m_inode_struct = new inode_t; return m_inode_struct; }
+    size_t ref_count() { return m_ref_count; }
+
+    void inc_ref_count() { m_ref_count++; }
 
 private:
     FS* m_fs { nullptr };
@@ -173,7 +177,7 @@ public:
                 return *files[i];
             }
         }
-        files.push_back(new File(fs, (inode_t*)kmalloc(sizeof(inode_t)), inode));
+        files.push_back(new File(fs, nullptr, inode));
         return *files.back();
     };
 
@@ -194,16 +198,20 @@ public:
     
     int flags() const { return m_flags; }
     size_t offset() const { return m_offset; }
+    File* file() { return m_file; }
 
-    void add_flags(int flags) { m_flags |= flags; }
+    void set_flags(int flags) { m_flags |= flags; }
 
     void inc_offset(size_t offset) { m_offset += offset; }
     void dec_offset(size_t offset) { m_offset -= offset; }
     void set_offset(size_t offset) { m_offset = offset; }
 
+    void set_file(File* file) { m_file = file; }
+
 private:
-    size_t m_offset {};
-    int m_flags {};
+    File* m_file { nullptr };
+    size_t m_offset { 0 };
+    int m_flags { 0 };
 };
 
 }

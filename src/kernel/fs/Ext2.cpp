@@ -90,10 +90,10 @@ File* Ext2::finddir(File& directory, const String& filename)
         name[entry.name_len_low] = '\0';
 
         if (filename == name) {
-
             File& file = m_file_storage.get(entry.inode, this);
+
             if (!file.inode_struct()) {
-                *file.inode_struct() = get_inode_structure(entry.inode);
+                *file.allocate_inode_struct() = get_inode_structure(entry.inode);
             }
             kfree(directory_content);
             return &file;
@@ -341,14 +341,20 @@ uint32_t Ext2::resolve_inode_local_block(File& file, uint32_t block, bool need_c
 
 uint32_t Ext2::read_inode_content(File& file, uint32_t offset, uint32_t size, void* mem)
 {
+    if (offset >= file.inode_struct()->size) {
+        return 0;
+    }
+    
     const uint32_t block_start = offset / m_block_size;
-    const uint32_t block_end = (offset + size) / m_block_size;
+    const uint32_t block_end = min(file.inode_struct()->size, offset + size) / m_block_size;
+
+    uint32_t read_bytes = 0;
 
     // reading left part
     read_block(resolve_inode_local_block(file, block_start), m_block_buffer);
     memcpy(mem, m_block_buffer + offset % m_block_size, min(size, m_block_size - (offset % m_block_size)));
 
-    uint32_t read_bytes = min(size, m_block_size - (offset % m_block_size));
+    read_bytes += min(size, m_block_size - (offset % m_block_size));
 
     // reading middle part
     if (block_end > 0) {
@@ -362,9 +368,10 @@ uint32_t Ext2::read_inode_content(File& file, uint32_t offset, uint32_t size, vo
     if (block_start != block_end) {
         read_block(resolve_inode_local_block(file, block_end), m_block_buffer);
         memcpy(mem + read_bytes, m_block_buffer, (offset + size) % m_block_size);
+        read_bytes += (offset + size) % m_block_size;
     }
 
-    return size;
+    return read_bytes;
 }
 
 uint32_t Ext2::write_inode_content(File& file, uint32_t offset, uint32_t size, void* mem)

@@ -37,7 +37,7 @@ public:
     bool operator==(const char* s) const;
 
     // Other
-    Vector<String> split(const String& del);
+    Vector<String> split(const String& del) const;
 
 private:
     void realloc(size_t);

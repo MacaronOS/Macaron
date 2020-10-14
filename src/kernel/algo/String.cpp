@@ -163,7 +163,7 @@ bool String::operator==(const char* s) const
     return true;
 }
 
-Vector<String> String::split(const String& del)
+Vector<String> String::split(const String& del) const
 {
     Vector<String> result;
     size_t next_string_start = 0;
