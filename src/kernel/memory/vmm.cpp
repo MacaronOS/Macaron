@@ -2,6 +2,7 @@
 #include "../assert.hpp"
 #include "../monitor.hpp"
 #include "../types.hpp"
+#include "regions.hpp"
 #include "memory.hpp"
 #include "pmm.hpp"
 
@@ -53,27 +54,28 @@ void vmm_map_page(uint32_t phys, uint32_t virt)
 
     if (!pd_entry->present) {
         // allocating page table
-        page_table_t* pt = reinterpret_cast<page_table_t*>(pmm_allocate_block());
-        memset(pt, 0, sizeof(page_table_t));
+        page_table_t* pt = reinterpret_cast<page_table_t*>(pmm_allocate_block(ShouldZeroFill::Yes, false));
+        // memset(pt, 0, sizeof(page_table_t));
 
         pd_entry->present = 1;
         pd_entry->rw = 1;
-        pd_entry->page_table_base_adress = (uint32_t)pt / PAGE_SIZE;
+        pd_entry->page_table_base_adress = ((uint32_t)pt - HIGHER_HALF_OFFSET) / PAGE_SIZE;
     }
 
-    page_table_t* pt = reinterpret_cast<page_table_t*>(pd_entry->page_table_base_adress * PAGE_SIZE);
+    page_table_t* pt = reinterpret_cast<page_table_t*>(pd_entry->page_table_base_adress  * PAGE_SIZE + HIGHER_HALF_OFFSET);
     page_table_entry_t* pt_entry = &pt->entries[virt_index % 1024];
 
     pt_entry->__bits = 0;
     pt_entry->present = 1;
     pt_entry->rw = 1;
     pt_entry->frame_adress = (uint32_t)phys / PAGE_SIZE;
+
 }
 
 void vmm_init()
 {
     // create kernel page directory
-    page_directory_t* p_directory = reinterpret_cast<page_directory_t*>(pmm_allocate_block());
+    page_directory_t* p_directory = reinterpret_cast<page_directory_t*>(pmm_allocate_block(ShouldZeroFill::Yes, false));
     
     for (size_t i = 0; i < 1024; i++) {
         p_directory->entries[i].present = 0;
@@ -81,12 +83,12 @@ void vmm_init()
 
     cur_directory = p_directory;
 
-    // identity map 8 mb
-    for (uint32_t phys = 0, virt = 0; phys < 8 * 1024 * 1024; phys += PAGE_SIZE, virt += PAGE_SIZE) {
+    // map 8 mb
+    for (uint32_t phys = 0, virt = HIGHER_HALF_OFFSET; phys < 8 * 1024 * 1024; phys += PAGE_SIZE, virt += PAGE_SIZE) {
         vmm_map_page(phys, virt);
     }
+    
 
     vmm_switch_directory(cur_directory);
-
     enable_paging();
 }

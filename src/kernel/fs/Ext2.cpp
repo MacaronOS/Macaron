@@ -50,14 +50,18 @@ bool Ext2::init()
     m_table_buffer_2 = new char[m_block_size / 4];
     m_table_buffer_3 = new char[m_block_size / 4];
 
+
     m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
     m_bgd_table = (block_group_descriptor_t*)kmalloc(m_block_size);
 
     m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
+
     File& root = m_file_storage.get(2, this, true);
-    *root.inode_struct() = get_inode_structure(2);
+
+    *root.allocate_inode_struct() = get_inode_structure(2);
+    
     m_root = &root;
 
     return true;

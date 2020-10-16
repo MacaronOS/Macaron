@@ -17,37 +17,27 @@ extern uint32_t _kernel_bss_end;
 
 extern uint32_t _kernel_end;
 
-uint32_t get_kernel_stack_start()
+uint32_t get_kernel_start(bool phys)
 {
-    return 0;
+    return reinterpret_cast<uint32_t>(&_kernel_start) - ((phys) ? HIGHER_HALF_OFFSET : 0);
 }
 
-uint32_t get_kernel_stack_end()
+uint32_t get_kernel_end(bool phys)
 {
-    return get_kernel_stack_start() + KERNEL_STACK_SIZE;
+    return reinterpret_cast<uint32_t>(&_kernel_end) - ((phys) ? HIGHER_HALF_OFFSET : 0);
 }
 
-uint32_t get_kernel_start()
+uint32_t get_kernel_heap_start(bool phys)
 {
-    return reinterpret_cast<uint32_t>(&_kernel_start);
+    return get_kernel_end(phys);
 }
 
-uint32_t get_kernel_end()
+uint32_t get_kernel_heap_end(bool phys)
 {
-    return reinterpret_cast<uint32_t>(&_kernel_end);
+    return get_kernel_heap_start(phys) + KERNEL_HEAP_SIZE;
 }
 
-uint32_t get_kernel_heap_start()
+uint32_t get_kernel_pmm_bitmap_start(bool phys)
 {
-    return get_kernel_end();
-}
-
-uint32_t get_kernel_heap_end()
-{
-    return get_kernel_heap_start() + KERNEL_HEAP_SIZE;
-}
-
-uint32_t get_kernel_pmm_bitmap_start()
-{
-    return get_kernel_heap_end();
+    return get_kernel_heap_end(phys);
 }

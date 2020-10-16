@@ -5,6 +5,8 @@
 
 #include "../types.hpp"
 #include "../multiboot.hpp"
+#include "../monitor.hpp"
+#include "../assert.hpp"
 
 #include "../algo/Bitmap.hpp"
 
@@ -22,8 +24,8 @@ void pmm_init_region(uint32_t base, size_t size)
 void pmm_init_available_regions(multiboot_info_t* multiboot_structure)
 {
     for (
-        multiboot_memory_map_t* mmap = reinterpret_cast<multiboot_memory_map_t*>(multiboot_structure->mmap_addr);
-        mmap < (multiboot_memory_map_t*)(multiboot_structure->mmap_addr + multiboot_structure->mmap_length);
+        multiboot_memory_map_t* mmap = reinterpret_cast<multiboot_memory_map_t*>(multiboot_structure->mmap_addr + HIGHER_HALF_OFFSET);
+        mmap < (multiboot_memory_map_t*)(multiboot_structure->mmap_addr + HIGHER_HALF_OFFSET + multiboot_structure->mmap_length);
         mmap++
     ) {
         if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
@@ -38,17 +40,19 @@ void pmm_deinit_region(uint32_t base, size_t size) {
     }
 }
 
-void* pmm_allocate_block(ShouldZeroFill s)
+void* pmm_allocate_block(ShouldZeroFill s, bool phys)
 {
     uint32_t block = pmmap.find_first_zero();
 
     if (block == BITMAP_NULL) {
         return 0;
     }
-    memset((void*)(block * BLOCK_SIZE), 0, 4096);
+    if (s == ShouldZeroFill::Yes) {
+        memset((void*)(block * BLOCK_SIZE + HIGHER_HALF_OFFSET), 0, 4096);
+    }
     pmmap.set_true(block);
 
-    return reinterpret_cast<void*>(block * BLOCK_SIZE); // return the physical locatiin of the available block
+    return reinterpret_cast<void*>(block * BLOCK_SIZE + ((phys) ? 0 : HIGHER_HALF_OFFSET)); // return the physical locatiin of the available block
 }
 
 void pmm_free_block(void* block_address)
@@ -62,7 +66,7 @@ void pmm_init(multiboot_info_t* mb_structure)
     const uint32_t blocks_size = mem_size / BLOCK_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
-    pmmap = kernel::algorithms::Bitmap::wrap(get_kernel_pmm_bitmap_start(), blocks_size);
+    pmmap = kernel::algorithms::Bitmap::wrap(get_kernel_pmm_bitmap_start(false), blocks_size);
     const uint32_t bitmap_memory_size = pmmap.size();
 
     pmmap.fill();
@@ -76,15 +80,6 @@ void pmm_init(multiboot_info_t* mb_structure)
         kernel_block_address += BLOCK_SIZE
     ) {
         pmmap.set_true(kernel_block_address / BLOCK_SIZE);
-    }
-
-    // same for the kernel stack
-    for (
-        uint32_t kernel_stack_block_address = get_kernel_stack_start();
-        kernel_stack_block_address < get_kernel_stack_end();
-        kernel_stack_block_address += BLOCK_SIZE
-    ) {
-        pmmap.set_true(kernel_stack_block_address / BLOCK_SIZE);
     }
 
     // and the same for the pmmap location

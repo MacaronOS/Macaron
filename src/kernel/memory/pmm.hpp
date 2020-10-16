@@ -12,7 +12,7 @@ enum class ShouldZeroFill {
 };
 
 void pmm_init(multiboot_info_t*);
-void* pmm_allocate_block(ShouldZeroFill = ShouldZeroFill::Yes);
+void* pmm_allocate_block(ShouldZeroFill = ShouldZeroFill::Yes, bool phys = true);
 void pmm_free_block(void*);
 
 #endif // MISTIX_KERNEL_MEMORY_PMM_H

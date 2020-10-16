@@ -47,7 +47,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     term_print("Hello, World!\n");
 
     pmm_init(multiboot_structure);
-    vmm_init();
+    // vmm_init();
     kmalloc_init();
 
     kernel::drivers::DriverManager driver_manager = kernel::drivers::DriverManager();

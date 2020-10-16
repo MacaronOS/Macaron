@@ -1,7 +1,7 @@
 #include "types.hpp"
 #include "algo/String.hpp"
 
-volatile uint16_t* vga_buffer = (uint16_t*)0xB8000;
+volatile uint16_t* vga_buffer = (uint16_t*)0xC00B8000;
 
 const int VGA_COLS = 80;
 const int VGA_ROWS = 25;

@@ -2,20 +2,21 @@
 #include "regions.hpp"
 
 #include "../types.hpp"
+#include "../assert.hpp"
 
 void kmalloc_init()
 {
-    kmalloc_header_t* first_block = (kmalloc_header_t*)(get_kernel_heap_start());
+    kmalloc_header_t* first_block = (kmalloc_header_t*)(get_kernel_heap_start(false));
 
     first_block->free = 1;
     first_block->next_block = 0;
     first_block->prev_block = 0;
-    first_block->size = get_kernel_heap_end() - get_kernel_heap_start() - sizeof(kmalloc_header_t);
+    first_block->size = get_kernel_heap_end(false) - get_kernel_heap_start(false) - sizeof(kmalloc_header_t);
 }
 
 void* kmalloc(size_t size)
 {
-    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start());
+    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start(false));
     kmalloc_header_t* first_fit_block = 0;
 
     while (!first_fit_block && block) {
@@ -48,7 +49,7 @@ void* kmalloc(size_t size)
 
 void kfree(void* mem)
 {
-    if ((uint32_t)mem + sizeof(kmalloc_header_t) >= get_kernel_heap_end() || (uint32_t)mem < get_kernel_heap_start()) {
+    if ((uint32_t)mem + sizeof(kmalloc_header_t) >= get_kernel_heap_end(false) || (uint32_t)mem < get_kernel_heap_start(false)) {
         return;
     }
     kmalloc_header_t* block = (kmalloc_header_t*)((uint32_t)mem - sizeof(kmalloc_header_t));
@@ -72,7 +73,7 @@ void kfree(void* mem)
 #ifdef DEBUG
 void kmalloc_dump()
 {
-    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start());
+    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start(false));
     while (block) {
         term_print("block_size: ");
         term_printd(block->size);

@@ -1,69 +1,63 @@
-/* The bootloader will look at this image and start execution at the symbol
-   designated as the entry point. */
 ENTRY(start)
  
-/* Tell where the various sections of the object files will be put in the final
-   kernel image. */
 SECTIONS
 {
-	/* Begin putting sections at 1 MiB, a conventional place for kernels to be
-	   loaded at by the bootloader. */
-	. = 1M;
+ . = 0x00100000;
+
+ .multiboot ALIGN(4K): {
+  *(.multiboot)
+ }
+
+ . += 0xC0000000;
+
+ _kernel_start = .;
+ _kernel_text_start = .;
+
+ .text ALIGN(4K) : AT(ADDR(.text)-0xC0000000)
+ {
+  *(.text)
+ }
+
+ _kernel_text_end = .;
+ _kernel_rodata_start = .;
  
-	/* First put the multiboot header, as it is required to be put very early
-	   early in the image or the bootloader won't recognize the file format.
-	   Next we'll put the .text section. */
+ /* Read-only data. */
+ .rodata ALIGN(4K) : AT(ADDR(.rodata)-0xC0000000)
+ {
+  *(.rodata)
+ }
 
-	_kernel_start = .;
-	_kernel_text_start = .;
-
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.multiboot)
-		*(.text)
-	}
-
-	_kernel_text_end = .;
-	_kernel_rodata_start = .;
+ _kernel_rodata_end = .;
+ _kernel_data_start = .;
  
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
-	}
+ /* Read-write data (initialized) */
+ .data ALIGN(4K) : AT(ADDR(.data)-0xC0000000)
+ {
+  start_ctors = .;
+  KEEP(*( .init_array ));
+  KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
+  end_ctors = .;
 
-	_kernel_rodata_end = .;
-	_kernel_data_start = .;
+  data = .;
+  *(.data)
+ }
+
+ _kernel_data_end = .;
+ _kernel_bss_start = .;
  
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
-		start_ctors = .;
-		KEEP(*( .init_array ));
-		KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
-		end_ctors = .;
+ /* Read-write data (uninitialized) and stack */
+ .bss ALIGN(4K) : AT(ADDR(.bss)-0xC0000000)
+ {
+  bss = .;
+  *(COMMON)
+  *(.bss)
+  *(.bootstrap_stack)
+ }
 
-		data = .;
-		*(.data)
-	}
+ _kernel_bss_end = .;
+ . = ALIGN(4K);
+ _kernel_end = .;
 
-	_kernel_data_end = .;
-	_kernel_bss_start = .;
- 
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
-		bss = .;
-		*(COMMON)
-		*(.bss)
-	}
+ end = .;
 
-	_kernel_bss_end = .;
-	. = ALIGN(4K);
-	_kernel_end = .;
-
-	end = .;
- 
-	/* The compiler may produce other sections, by default it will put them in
-	   a segment with the same name. Simply add stuff here as needed. */
 }
