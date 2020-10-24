@@ -13,7 +13,7 @@ AS=nasm
 CPPC=i686-elf-g++
 CC=i686-elf-gcc
 ASFLAGS=-felf
-LDFLAGS=  -Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
+LDFLAGS=-Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
 
 DISK=drive.img
 QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0
@@ -23,27 +23,24 @@ TARGET_EXEC ?= a.out
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 
-SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
-OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
-DEPS := $(OBJS:.o=.d)
+SRCS_KERNEL:=$(shell find ./src -type f -name "*.s" ! -path "./src/userspace/*")
+SRCS_KERNEL+=$(shell find ./src -type f -name "*.cpp" ! -path "./src/userspace/*")
+OBJS_KERNEL:=$(SRCS_KERNEL:%=$(BUILD_DIR)/%.o)
+
+DEPS := $(OBJS_KERNEL:.o=.d)
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 CFLAGS ?= $(INC_FLAGS)-nostdlib -nostdinc -fno-builtin -fno-stack-protector -ffreestanding -fno-exceptions -m32 -Iinclude -fno-use-cxa-atexit -fno-rtti -fno-leading-underscore -Wno-write-strings
 
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ -lgcc
+$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS_KERNEL)
+	$(CC) $(LDFLAGS) $(OBJS_KERNEL) -o $@ -lgcc
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
 	$(MKDIR_P) $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
-
-# c source
-$(BUILD_DIR)/%.c.o: %.c
-	$(MKDIR_P) $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 # cpp source
 $(BUILD_DIR)/%.cpp.o: %.cpp
@@ -54,6 +51,7 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 
 clean:
 	$(RM) -r $(BUILD_DIR)
+	$(MAKE) clean -C src/userspace
 
 drive:
 	rm -f ${DISK}
@@ -64,6 +62,9 @@ drive:
 	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
 	sudo touch mountpoint/file.txt
 	sudo bash -c 'echo "testing..." > mountpoint/file.txt'
+	$(MAKE) apps -C src/userspace
+	sudo mkdir -p mountpoint/apps/
+	sudo find ./src/userspace -type f -name "*.mapp" -exec cp {} ./mountpoint/apps \;
 	sudo umount mountpoint
 
 run:
