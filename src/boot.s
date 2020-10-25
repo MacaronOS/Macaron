@@ -39,7 +39,7 @@ start:
 
 L1:
   mov edx, esi
-  or edx, 0x003 ; present, writable
+  or edx, 0x007 ; present, writable
   mov DWORD[edi], edx
 
 L2: 
@@ -50,7 +50,7 @@ L2:
 L3:
   ; page table 1
   mov ecx, boot_page_table1 - 0xC0000000
-  or ecx, 0x003
+  or ecx, 0x007
 
   mov edx, boot_page_directory - 0xC0000000 + 0
   mov DWORD[edx], ecx ; identity
@@ -60,7 +60,7 @@ L3:
 
   ; page table 2
   mov ecx, boot_page_table2 - 0xC0000000
-  or ecx, 0x003
+  or ecx, 0x007
   
   add edx, 4
   mov DWORD[edx], ecx ; higher half
