@@ -1,5 +1,6 @@
-[GLOBAL gdt_flush]    ; Allows the C code to call gdt_flush().
+[GLOBAL gdt_flush]
 [GLOBAL idt_flush]
+[GLOBAL tss_flush]
 
 idt_flush:
    mov eax, [esp+4]
@@ -7,15 +8,20 @@ idt_flush:
    ret
 
 gdt_flush:
-   mov eax, [esp+4]  ; Get the pointer to the GDT, passed as a parameter.
-   lgdt [eax]        ; Load the new GDT pointer
+   mov eax, [esp+4]
+   lgdt [eax]
 
-   mov ax, 0x10      ; 0x10 is the offset in the GDT to our data segment
-   mov ds, ax        ; Load all data segment selectors
+   mov ax, 0x10
+   mov ds, ax
    mov es, ax
    mov fs, ax
    mov gs, ax
    mov ss, ax
-   jmp 0x08:.flush   ; 0x08 is the offset to our code segment: Far jump!
+   jmp 0x08:.flush
 .flush:
+   ret
+
+tss_flush:
+   mov ax, 0x2b
+   ltr ax
    ret

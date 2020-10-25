@@ -51,7 +51,9 @@ SECTIONS
   bss = .;
   *(COMMON)
   *(.bss)
+  _kernel_stack_start = .;
   *(.bootstrap_stack)
+  _kernel_stack_end = .;
  }
 
  _kernel_bss_end = .;

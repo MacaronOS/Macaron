@@ -18,6 +18,7 @@
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
 #include "multiboot.hpp"
+#include "syscalls.hpp"
 
 using kernel::algorithms::Array;
 using kernel::algorithms::StaticStack;
@@ -66,4 +67,10 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
         term_print(dir[i]);
         term_print("\n");
     }
+
+    syscalls_init();
+    switch_to_user_mode();
+    sys_printd(22);
+    sys_printd(22);
+    sys_printd(22);
 }

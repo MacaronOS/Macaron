@@ -15,6 +15,9 @@ extern uint32_t _kernel_data_end;
 extern uint32_t _kernel_bss_start;
 extern uint32_t _kernel_bss_end;
 
+extern uint32_t _kernel_stack_start;
+extern uint32_t _kernel_stack_end;
+
 extern uint32_t _kernel_end;
 
 uint32_t get_kernel_start(bool phys)
@@ -25,6 +28,13 @@ uint32_t get_kernel_start(bool phys)
 uint32_t get_kernel_end(bool phys)
 {
     return reinterpret_cast<uint32_t>(&_kernel_end) - ((phys) ? HIGHER_HALF_OFFSET : 0);
+}
+
+uint32_t get_kernel_stack_start(bool phys) {
+    return reinterpret_cast<uint32_t>(&_kernel_stack_start) - ((phys) ? HIGHER_HALF_OFFSET : 0);
+}
+uint32_t get_kernel_stack_end(bool phys) {
+    return reinterpret_cast<uint32_t>(&_kernel_stack_end) - ((phys) ? HIGHER_HALF_OFFSET : 0);
 }
 
 uint32_t get_kernel_heap_start(bool phys)

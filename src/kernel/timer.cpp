@@ -6,7 +6,7 @@
 
 static uint32_t tick;
 
-static void timer_callback(registers_t regs)
+static void timer_callback(registers_t* regs)
 {
     term_print("Tick: ");
     term_printd(tick++);

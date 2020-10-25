@@ -9,6 +9,9 @@
 uint32_t get_kernel_start(bool phys = true);
 uint32_t get_kernel_end(bool phys = true);
 
+uint32_t get_kernel_stack_start(bool phys = true);
+uint32_t get_kernel_stack_end(bool phys = true);
+
 uint32_t get_kernel_heap_start(bool phys = true);
 uint32_t get_kernel_heap_end(bool phys = true);
 

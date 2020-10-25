@@ -1,5 +1,4 @@
-#ifndef MISTIX_KERNEL_DESCRIPTOR_TABLES_H
-#define MISTIX_KERNEL_DESCRIPTOR_TABLES _H
+#pragma once
 
 #include "types.hpp"
 
@@ -81,6 +80,35 @@ extern "C" void irq12();
 extern "C" void irq13();
 extern "C" void irq14();
 extern "C" void irq15();
+extern "C" void isr128();
 
-
-#endif // MISTIX_KERNEL_DESCRIPTOR_TABLES_H
+struct [[gnu::packed]] tss_entry_t
+{
+   uint32_t prev_tss { 0 };
+   uint32_t esp0 { 0 };
+   uint32_t ss0 { 0 };
+   uint32_t esp1 { 0 };
+   uint32_t ss1 { 0 };
+   uint32_t esp2 { 0 };
+   uint32_t ss2 { 0 };
+   uint32_t cr3 { 0 };
+   uint32_t eip { 0 };
+   uint32_t eflags { 0 };
+   uint32_t eax { 0 };
+   uint32_t ecx { 0 };
+   uint32_t edx { 0 };
+   uint32_t ebx { 0 };
+   uint32_t esp { 0 };
+   uint32_t ebp { 0 };
+   uint32_t esi { 0 };
+   uint32_t edi { 0 };
+   uint32_t es { 0 };
+   uint32_t cs { 0 };
+   uint32_t ss { 0 };
+   uint32_t ds { 0 };
+   uint32_t fs { 0 };
+   uint32_t gs { 0 };
+   uint32_t ldt { 0 };
+   uint16_t trap { 0 };
+   uint16_t iomap_base { 0 };
+};
