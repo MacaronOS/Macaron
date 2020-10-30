@@ -2,93 +2,172 @@
 #include "../assert.hpp"
 #include "../monitor.hpp"
 #include "../types.hpp"
-#include "regions.hpp"
 #include "memory.hpp"
 #include "pmm.hpp"
-
-// int paging.s
-extern "C" void set_cr3(void* page_directory_base_adress);
-extern "C" void enable_paging();
-
-page_directory_t* cur_directory = 0; // keeps a pointer to the current active page directory
-
-#define PAGE_DIRECTORY_INDEX(x) (((x) >> 22) & 0x3ff)
-#define PAGE_TABLE_INDEX(x) (((x) >> 12) & 0x3ff)
+#include "regions.hpp"
 
 #define PAGE_SIZE 4096
 
-bool vmm_allocate_page(page_table_entry_t* pt)
+// int paging.s
+extern "C" void set_cr3(uint32_t page_directory_phys);
+extern "C" void enable_paging();
+extern "C" void flush_cr3();
+
+extern "C" uint32_t boot_page_directory;
+extern "C" uint32_t boot_page_table2;
+
+void VMM::set_page_directory(uint32_t page_directory_phys)
 {
-    uint32_t frame = (uint32_t)pmm_allocate_block();
-    if (!frame) {
-        return false;
+    set_cr3(page_directory_phys);
+}
+
+void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
+{
+    map_to_buffer(page_directory_phys, m_buffer_1);
+
+    page_directory_t* page_directory_virt = (page_directory_t*)m_buffer_1;
+
+    if (!page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].__bits) {
+        page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].page_table_base_adress = create_page_table() / PAGE_SIZE;
+        page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].present = true;
+        page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].rw = true;
+        page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].user_mode = true;
     }
 
-    pt->present = true;
-    pt->frame_adress = (uint32_t)frame / PAGE_SIZE;
+    uint32_t page_table_phys = page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].page_table_base_adress * PAGE_SIZE;
 
-    return true;
-}
+    map_to_buffer(page_table_phys, m_buffer_1);
+    page_table_t* page_table_virt = (page_table_t*)m_buffer_1;
 
-void vmm_free_page(page_table_entry_t* pt)
-{
-    pmm_free_block((void*)(pt->frame_adress * PAGE_SIZE));
-    pt->present = false;
-}
-
-bool vmm_switch_directory(page_directory_t* dir)
-{
-    if (dir == 0) {
-        return false;
-    }
-    cur_directory = dir;
-    set_cr3(cur_directory->entries);
-
-    return true;
-}
-
-void vmm_map_page(uint32_t phys, uint32_t virt)
-{
-    uint32_t virt_index = virt / PAGE_SIZE;
-    page_directory_entry_t* pd_entry = &cur_directory->entries[virt_index / 1024];
-
-    if (!pd_entry->present) {
-        // allocating page table
-        page_table_t* pt = reinterpret_cast<page_table_t*>(pmm_allocate_block(ShouldZeroFill::Yes, false));
-        // memset(pt, 0, sizeof(page_table_t));
-
-        pd_entry->present = 1;
-        pd_entry->rw = 1;
-        pd_entry->page_table_base_adress = ((uint32_t)pt - HIGHER_HALF_OFFSET) / PAGE_SIZE;
+    if (page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].__bits) {
+        return;
     }
 
-    page_table_t* pt = reinterpret_cast<page_table_t*>(pd_entry->page_table_base_adress  * PAGE_SIZE + HIGHER_HALF_OFFSET);
-    page_table_entry_t* pt_entry = &pt->entries[virt_index % 1024];
+    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].frame_adress = (uint32_t)pmm_allocate_block(ShouldZeroFill::No) / PAGE_SIZE;
+    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].present = true;
+    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].rw = true;
+    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].user_mode = true;
 
-    pt_entry->__bits = 0;
-    pt_entry->present = 1;
-    pt_entry->rw = 1;
-    pt_entry->frame_adress = (uint32_t)phys / PAGE_SIZE;
-
+    unmap_from_buffer(m_buffer_1);
 }
 
-void vmm_init()
+uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
 {
-    // create kernel page directory
-    page_directory_t* p_directory = reinterpret_cast<page_directory_t*>(pmm_allocate_block(ShouldZeroFill::Yes, false));
-    
+    if (!src_page_directory_phys) {
+        src_page_directory_phys = (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET;
+    }
+
+    uint32_t dest_page_dir_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    map_to_buffer(dest_page_dir_phys, m_buffer_1);
+    map_to_buffer(src_page_directory_phys, m_buffer_2);
+
+    page_directory_t* dest_page_dir_virt = (page_directory_t*)m_buffer_1;
+    page_directory_t* src_page_dir_virt = (page_directory_t*)m_buffer_2;
+
+    memset(dest_page_dir_virt, 0, sizeof(page_directory_t));
+
+    // map kernel tables to the same location
+    dest_page_dir_virt->entries[768] = src_page_dir_virt->entries[768];
+    dest_page_dir_virt->entries[769] = src_page_dir_virt->entries[769];
+
+    for (size_t i = 0; i < 768; i++) {
+        if (src_page_dir_virt->entries[i].__bits) {
+            dest_page_dir_virt->entries[i].page_table_base_adress = clone_page_table(src_page_dir_virt->entries[i].page_table_base_adress * PAGE_SIZE) / PAGE_SIZE;
+        }
+    }
+
+    unmap_from_buffer(m_buffer_1);
+    unmap_from_buffer(m_buffer_2);
+
+    return dest_page_dir_phys;
+}
+
+uint32_t VMM::create_page_table()
+{
+    uint32_t buffer_1_cp = get_buffered_phys_address(m_buffer_1);
+
+    uint32_t page_table_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    map_to_buffer(page_table_phys, m_buffer_1);
+    page_table_t* page_table_virt = (page_table_t*)m_buffer_1;
+    memset(page_table_virt, 0, sizeof(page_table_t));
+
+    map_to_buffer(buffer_1_cp, m_buffer_1);
+
+    return page_table_phys;
+}
+
+uint32_t VMM::clone_page_table(uint32_t src_page_table_phys)
+{
+    uint32_t buffer_1_cp = get_buffered_phys_address(m_buffer_1);
+    uint32_t buffer_2_cp = get_buffered_phys_address(m_buffer_2);
+
+    // allocate space for the new page table
+    uint32_t dest_page_table_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+
+    // map page tables
+    map_to_buffer(dest_page_table_phys, m_buffer_1);
+    map_to_buffer(src_page_table_phys, m_buffer_2);
+
+    page_table_t* dest_page_table_virt = (page_table_t*)m_buffer_1;
+    page_table_t* src_page_table_virt = (page_table_t*)m_buffer_2;
+
+    memset(dest_page_table_virt, 0, sizeof(page_table_t));
     for (size_t i = 0; i < 1024; i++) {
-        p_directory->entries[i].present = 0;
+        if (src_page_table_virt->entries[i].__bits) {
+            dest_page_table_virt->entries[i] = src_page_table_virt->entries[i];
+            dest_page_table_virt->entries[i].frame_adress = clone_frame(src_page_table_virt->entries[i].frame_adress * PAGE_SIZE) / PAGE_SIZE;
+        }
     }
 
-    cur_directory = p_directory;
+    map_to_buffer(buffer_1_cp, m_buffer_1);
+    map_to_buffer(buffer_2_cp, m_buffer_2);
 
-    // map 8 mb
-    for (uint32_t phys = 0, virt = HIGHER_HALF_OFFSET; phys < 8 * 1024 * 1024; phys += PAGE_SIZE, virt += PAGE_SIZE) {
-        vmm_map_page(phys, virt);
-    }
-    
+    return dest_page_table_phys;
+}
 
-    vmm_switch_directory(cur_directory);
-    enable_paging();
+uint32_t VMM::clone_frame(uint32_t src_frame_phys)
+{
+    uint32_t buffer_1_cp = get_buffered_phys_address(m_buffer_1);
+    uint32_t buffer_2_cp = get_buffered_phys_address(m_buffer_2);
+
+    uint32_t dest_frame_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+
+    map_to_buffer(dest_frame_phys, m_buffer_1);
+    map_to_buffer(src_frame_phys, m_buffer_2);
+
+    memcpy((void*)m_buffer_1, (void*)m_buffer_2, PAGE_SIZE);
+
+    map_to_buffer(buffer_1_cp, m_buffer_1);
+    map_to_buffer(buffer_2_cp, m_buffer_2);
+
+    return dest_frame_phys;
+}
+
+void VMM::map_to_buffer(uint32_t phys, uint32_t buff)
+{
+    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
+    page_table_t* pt = (page_table_t*)&boot_page_table2;
+
+    pt->entries[pd_pt_index].frame_adress = phys / PAGE_SIZE;
+    pt->entries[pd_pt_index].present = 1;
+    pt->entries[pd_pt_index].rw = 1;
+    pt->entries[pd_pt_index].user_mode = 1; // set as user for now
+
+    flush_cr3();
+}
+
+void VMM::unmap_from_buffer(uint32_t buff)
+{
+    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
+    page_table_t* pt = (page_table_t*)&boot_page_table2;
+
+    pt->entries[pd_pt_index].__bits = 0;
+}
+
+uint32_t VMM::get_buffered_phys_address(uint32_t buff)
+{
+    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
+    page_table_t* pt = (page_table_t*)&boot_page_table2;
+
+    return pt->entries[pd_pt_index].frame_adress * PAGE_SIZE;
 }

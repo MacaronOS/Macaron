@@ -8,7 +8,7 @@
 #include "drivers/DriverManager.hpp"
 #include "drivers/disk/Ata.hpp"
 #include "fs/File.hpp"
-#include "fs/ext2.hpp"
+#include "fs/ext2fs.hpp"
 #include "fs/Ext2.hpp"
 #include "fs/vfs.hpp"
 #include "memory/kmalloc.hpp"
@@ -48,8 +48,15 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     term_print("Hello, World!\n");
 
     pmm_init(multiboot_structure);
-    // vmm_init();
     kmalloc_init();
+
+    auto vmm = VMM(get_pd_temp_location(), get_pt_temp_location());
+    uint32_t pd = vmm.clone_page_directory();
+    
+    vmm.create_frame(pd, 0);
+    vmm.set_page_directory(pd);
+    int* a = (int*)22;
+    term_printd(*a);
 
     kernel::drivers::DriverManager driver_manager = kernel::drivers::DriverManager();
 

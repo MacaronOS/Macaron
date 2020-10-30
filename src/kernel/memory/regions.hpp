@@ -17,4 +17,8 @@ uint32_t get_kernel_heap_end(bool phys = true);
 
 uint32_t get_kernel_pmm_bitmap_start(bool phys = true);
 
+// temp page places to access in vmm
+uint32_t get_pd_temp_location();
+uint32_t get_pt_temp_location();
+
 #endif // MISTIX_KERNEL_MEMORY_REGIONS_H

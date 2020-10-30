@@ -15,10 +15,13 @@ stack_top:
 ; locating pages
 SECTION .bss nobits
 align 0x1000
+[GLOBAL boot_page_directory]
 boot_page_directory:
 resb 4096
+[GLOBAL boot_page_table1]
 boot_page_table1:
 resb 4096
+[GLOBAL boot_page_table2]
 boot_page_table2:
 resb 4096
 
