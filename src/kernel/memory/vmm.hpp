@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../types.hpp"
+#include "../assert.hpp"
 
 typedef union {
     struct {
@@ -50,6 +51,24 @@ public:
     {
     }
 
+    static VMM* s_vmm;
+    static bool initialized;
+    static bool initialize(uint32_t buffer_1, uint32_t buffer_2)
+    {
+        s_vmm = new VMM(buffer_1, buffer_2);
+        VMM::initialized = true;
+        return VMM::initialized;
+    }
+    static VMM& the()
+    {
+        if (!VMM::initialized) {
+            ASSERT_PANIC("VMM referenced before initializing");
+        }
+        return *s_vmm;
+    }
+
+    uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }
+
     void set_page_directory(uint32_t page_directory_phys);
 
     void create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr);
@@ -73,6 +92,6 @@ private:
     uint32_t m_buffer_1;
     uint32_t m_buffer_2;
 
-    uint32_t kernel_directory_phys;
+    uint32_t m_kernel_directory_phys { clone_page_directory(0) }; // temp decision
     uint32_t cur_directory_phys;
 };
