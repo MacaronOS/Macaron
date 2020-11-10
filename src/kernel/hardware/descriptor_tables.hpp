@@ -2,6 +2,18 @@
 
 #include "types.hpp"
 
+#define GDT_KERNEL_CODE_OFFSET 0x08
+#define GDT_KERNEL_DATA_OFFSET 0x10
+#define GDT_USER_CODE_OFFSET 0x18
+#define GDT_USER_DATA_OFFSET 0x20
+#define GDT_TSS_OFFSET 0x28
+
+#define GDT_KERNEL_CODE 1
+#define GDT_KERNEL_DATA 2
+#define GDT_USER_CODE 3
+#define GDT_USER_DATA 4
+#define GDT_TSS 5
+
 typedef struct {
     uint16_t limit_low; // The lower 16 bits of the limit.
     uint16_t base_low; // The lower 16 bits of the base.
@@ -17,6 +29,7 @@ typedef struct {
 } __attribute__((packed)) gdt_ptr_t;
 
 void init_descriptor_tables();
+void write_tss(uint16_t ss0, uint32_t esp0);
 
 typedef struct {
     uint16_t base_lo; // the lower 16 bits of the address to jump to when this interrupt fires

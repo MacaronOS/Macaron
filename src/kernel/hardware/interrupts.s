@@ -2,8 +2,8 @@
   [GLOBAL isr%1]
   isr%1:
     cli
-    push 0
-    push %1
+    push byte 0
+    push%1
     jmp isr_common_stub
 %endmacro
 
@@ -52,29 +52,46 @@ ISR_NOERRCODE 128
 ; In isr.c
 [EXTERN isr_handler]
 isr_common_stub:
-   pusha
+  pusha
 
-   mov ax, ds
-   push eax
+  xor eax, eax
 
-   mov ax, 0x10 
-   mov ds, ax
-   mov es, ax
-   mov fs, ax
-   mov gs, ax
+  mov ax, gs
+  push eax
 
-   call isr_handler
+  mov ax, fs
+  push eax
 
-   pop eax
-   mov ds, ax
-   mov es, ax
-   mov fs, ax
-   mov gs, ax
+  mov ax, es
+  push eax
 
-   popa ; edi,esi,ebp
-   add esp, 8
-   sti
-   iret ; CS, EIP, EFLAGS, SS, and ESP
+  mov ax, ds
+  push eax
+
+  mov ax, 0x10 
+  mov ds, ax
+  mov es, ax
+  mov fs, ax
+  mov gs, ax
+
+  call isr_handler
+
+  pop eax
+  mov ds, ax
+
+  pop eax
+  mov es, ax
+
+  pop eax
+  mov fs, ax
+
+  pop eax
+  mov gs, ax
+
+  popa
+  add esp, 8 ; clears error code and isr number
+  sti
+  iret ; CS, EIP, EFLAGS, SS, and ESP
 
 
 %macro IRQ 2
@@ -82,7 +99,7 @@ isr_common_stub:
   irq%1:
     cli
     push byte 0
-    push byte %2
+    push %2
     jmp irq_common_stub
 %endmacro
 
@@ -106,26 +123,43 @@ IRQ   15,    47
 ; In isr.c
 [EXTERN irq_handler]
 irq_common_stub:
-   pusha ; pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
+  pusha
 
-   mov ax, ds
-   push eax ; save the data segment descriptor
+  xor eax, eax
 
-   mov ax, 0x10 ; load the kernel data segment descriptor
-   mov ds, ax
-   mov es, ax
-   mov fs, ax
-   mov gs, ax
+  mov ax, gs
+  push eax
 
-   call irq_handler
+  mov ax, fs
+  push eax
 
-   pop ebx
-   mov ds, bx
-   mov es, bx
-   mov fs, bx
-   mov gs, bx
+  mov ax, es
+  push eax
 
-   popa ; Pops edi,esi,ebp...
-   add esp, 8
-   sti
-   iret ; CS, EIP, EFLAGS, SS, and ESP
+  mov ax, ds
+  push eax
+
+  mov ax, 0x10 
+  mov ds, ax
+  mov es, ax
+  mov fs, ax
+  mov gs, ax
+
+  call irq_handler
+
+  pop eax
+  mov ds, ax
+
+  pop eax
+  mov es, ax
+
+  pop eax
+  mov fs, ax
+
+  pop eax
+  mov gs, ax
+
+  popa
+  add esp, 8 ; clears error code and isr number
+  sti
+  iret ; CS, EIP, EFLAGS, SS, and ESP

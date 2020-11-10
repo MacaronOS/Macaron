@@ -1,7 +1,7 @@
 #include "syscalls.hpp"
 #include "assert.hpp"
-#include "isr.hpp"
 #include "monitor.hpp"
+#include "hardware/trapframe.hpp"
 
 static uint32_t syscalls[1] = {
     (uint32_t)term_printd,
@@ -9,7 +9,7 @@ static uint32_t syscalls[1] = {
 
 uint32_t num_syscalls = 1;
 
-void syscalls_handler(registers_t* regs)
+void syscalls_handler(trapframe_t* regs)
 {
     if (regs->eax >= num_syscalls) {
         return;
@@ -37,5 +37,5 @@ void syscalls_handler(registers_t* regs)
 
 void syscalls_init()
 {
-    register_interrupt_handler(0x80, (isr_handler_t)&syscalls_handler);
+    term_print("init...");
 }
