@@ -3,6 +3,7 @@
 #include "../algo/StaticStack.hpp"
 #include "../errors/KError.hpp"
 #include "../types.hpp"
+#include "../assert.hpp"
 #include "File.hpp"
 #include "fs.hpp"
 
@@ -17,6 +18,22 @@ class VFS {
 public:
     VFS();
     ~VFS() = default;
+
+    static VFS* s_vfs;
+    static bool initialized;
+    static bool initialize()
+    {
+        s_vfs = new VFS();
+        VFS::initialized = true;
+        return VFS::initialized;
+    }
+    static VFS& the()
+    {
+        if (!VFS::initialized) {
+            ASSERT_PANIC("VFS referenced before initializing");
+        }
+        return *s_vfs;
+    }
 
     File& root() { return *m_root; }
     FileStorage& file_storage() { return m_file_storage; }
