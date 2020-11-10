@@ -28,12 +28,12 @@ static void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t acc
     gdt_entries[num].access = access;
 }
 
-static void write_tss(uint32_t num, uint16_t ss0, uint32_t esp0)
+void write_tss(uint16_t ss0, uint32_t esp0)
 {
     uint32_t base = (uint32_t)&tss_entry;
     uint32_t limit = base + sizeof(tss_entry_t);
 
-    gdt_set_gate(num, base, limit, 0xE9, 0x00);
+    gdt_set_gate(GDT_TSS, base, limit, 0xE9, 0x00);
 
     tss_entry.ss0 = ss0;
     tss_entry.esp0 = esp0;
@@ -51,12 +51,12 @@ static void init_gdt()
     gdt_ptr.base = (uint32_t)&gdt_entries;
 
     gdt_set_gate(0, 0, 0, 0, 0); // Null segment
-    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
-    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
-    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
-    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment
+    gdt_set_gate(GDT_KERNEL_CODE, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
+    gdt_set_gate(GDT_KERNEL_DATA, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
+    gdt_set_gate(GDT_USER_CODE, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
+    gdt_set_gate(GDT_USER_DATA, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment
 
-    write_tss(5, 0x10, (uint32_t)tss_stack + 4096);
+    write_tss(0x10, (uint32_t)tss_stack + 4096);
     gdt_flush((uint32_t)&gdt_ptr);
     
     tss_flush();
@@ -129,8 +129,6 @@ static void init_idt()
     idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8E);
     idt_set_gate(31, (uint32_t)isr31, 0x08, 0x8E);
 
-    idt_set_gate(128, (uint32_t)isr128, 0x08, 0xEE);
-
     idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E);
     idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E);
     idt_set_gate(34, (uint32_t)irq2, 0x08, 0x8E);
@@ -147,6 +145,8 @@ static void init_idt()
     idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
     idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
     idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+
+    idt_set_gate(128, (uint32_t)isr128, 0x08, 0xEE);
 
     idt_flush((uint32_t)&idt_ptr);
 }
