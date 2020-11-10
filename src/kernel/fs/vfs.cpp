@@ -5,6 +5,9 @@
 
 namespace kernel::fs {
 
+VFS* VFS::s_vfs = nullptr;
+bool VFS::initialized = 0;
+
 VFS::VFS()
 {
     m_root = &m_file_storage.get(2, nullptr);
