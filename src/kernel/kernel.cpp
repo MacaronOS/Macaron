@@ -3,6 +3,7 @@
 #include "algo/Vector.hpp"
 #include "algo/StaticStack.hpp"
 #include "algo/Array.hpp"
+#include "algo/Deque.hpp"
 #include "assert.hpp"
 #include "descriptor_tables.hpp"
 #include "drivers/DriverManager.hpp"
@@ -19,16 +20,21 @@
 #include "monitor.hpp"
 #include "multiboot.hpp"
 #include "syscalls.hpp"
+#include "drivers/PIT.hpp"
 
 using kernel::algorithms::Array;
+using kernel::algorithms::Deque;
 using kernel::algorithms::StaticStack;
 using kernel::algorithms::Vector;
+using kernel::drivers::DriverManager;
+using kernel::drivers::PIT;
+using kernel::drivers::Ata::Ata;
 using kernel::fs::File;
 using kernel::fs::FilePermission;
-using kernel::fs::FileType;
 using kernel::fs::FileStorage;
-using kernel::fs::VFS;
+using kernel::fs::FileType;
 using kernel::fs::FS;
+using kernel::fs::VFS;
 using kernel::fs::ext2::Ext2;
 
 typedef void (*constructor)();
@@ -46,38 +52,44 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     init_descriptor_tables();
     term_init();
     term_print("Hello, World!\n");
-
     pmm_init(multiboot_structure);
     kmalloc_init();
+    InterruptManager::initialize();
 
-    auto vmm = VMM(get_pd_temp_location(), get_pt_temp_location());
-    uint32_t pd = vmm.clone_page_directory();
-    
-    vmm.create_frame(pd, 0);
-    vmm.set_page_directory(pd);
+    // setting VMM
+    VMM::initialize(get_pd_temp_location(), get_pt_temp_location()); 
+    uint32_t pd = VMM::the().clone_page_directory();
+    VMM::the().create_frame(pd, 0);
+    VMM::the().set_page_directory(pd);
+
+    // testing VMM
     int* a = (int*)22;
     term_printd(*a);
 
-    kernel::drivers::DriverManager driver_manager = kernel::drivers::DriverManager();
+    // setting Drivers
+    DriverManager::initialize();
+    auto* ata = new Ata(0x1F0, true);
+    auto* pit = new PIT();
+    DriverManager::the().add_driver(*ata);
+    DriverManager::the().add_driver(*pit);
+    DriverManager::the().install_all();
 
-    kernel::drivers::Ata::Ata ata = kernel::drivers::Ata::Ata(0x1F0, true);
+    pit->register_callback({ 1000, []() { term_print("ticked"); } });
 
-    VFS vfs = VFS();
-    Ext2 ext2 = Ext2(ata, vfs.file_storage());
-    ext2.init();
+    // setting VFS
+    VFS::initialize();
+    Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
+    ext2->init();
+    VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
 
-    vfs.mount(vfs.root(), ext2.root(), "ext2");
-    auto mounted = *vfs.finddir(vfs.root(), "ext2");
+    // testing VFS
+    auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
 
-    Vector<String> dir = vfs.listdir(mounted);
+    Vector<String> dir = VFS::the().listdir(mounted);
     for (size_t i = 0; i < dir.size(); i++) {
         term_print(dir[i]);
         term_print("\n");
     }
 
-    syscalls_init();
-    switch_to_user_mode();
-    sys_printd(22);
-    sys_printd(22);
-    sys_printd(22);
+    asm volatile("sti");
 }
