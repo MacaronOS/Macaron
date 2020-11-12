@@ -22,7 +22,7 @@ void PIT::handle_interrupt(trapframe_t* tf)
 {
     for (size_t i = 0; i < m_callbacks.size(); i++) {
         if (m_ticks_passed % m_callbacks[i].ticks == 0) {
-            m_callbacks[i].callback();
+            m_callbacks[i].callback(tf);
         }
     }
 

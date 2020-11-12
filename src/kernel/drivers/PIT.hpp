@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../algo/Vector.hpp"
+#include "../hardware/InterruptManager.hpp"
 #include "Dirver.hpp"
 #include "monitor.hpp"
 #include "port.hpp"
 #include "types.hpp"
-#include "../hardware/InterruptManager.hpp"
+#include "DriverEntity.hpp"
 
 namespace kernel::drivers {
 
@@ -15,11 +16,13 @@ class PIT : public Driver, InterruptHandler {
 public:
     struct Callback {
         uint32_t ticks;
-        void (*callback)();
+        void (*callback)(trapframe_t*);
     };
 
     PIT(uint32_t frequency = default_frequency)
-        : m_frequency(frequency), InterruptHandler(32)
+        : m_frequency(frequency)
+        , Driver(DriverEntity::PIT)
+        , InterruptHandler(32)
     {
     }
 

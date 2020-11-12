@@ -15,7 +15,7 @@ enum class AdressingMode {
 
 class Ata : public DiskDriver {
 public:
-    Ata(uint16_t port_base, bool master);
+    Ata(uint16_t port_base, bool master, DriverEntity driver_entity);
     bool install() override;
     bool read(uint32_t, uint8_t, void*) override;
     bool write(uint32_t, uint8_t, void*) override;
