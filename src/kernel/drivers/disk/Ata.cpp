@@ -1,7 +1,7 @@
 #include "Ata.hpp"
 
-#include "../monitor.hpp"
 #include "../hardware/port.hpp"
+#include "../monitor.hpp"
 #include "../types.hpp"
 
 // comand port commands
@@ -57,8 +57,10 @@
 
 namespace kernel::drivers::Ata {
 
-Ata::Ata(uint16_t port_base, bool master)
-    : m_data_port(port_base)
+Ata::Ata(uint16_t port_base, bool master, DriverEntity driver_entity)
+
+    : DiskDriver(driver_entity)
+    , m_data_port(port_base)
     , m_error_port(port_base + 0x1)
     , m_sector_count_port(port_base + 0x2)
     , m_lba_low_port(port_base + 0x3)
