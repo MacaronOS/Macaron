@@ -59,6 +59,7 @@ class DequeIterator {
     friend Deque;
 
 public:
+    DequeIterator() = default;
     DequeIterator(DequeNode<ValueType>* ptr)
         : m_ptr(ptr)
     {
@@ -116,7 +117,7 @@ public:
     }
 
 private:
-    DequeNode<ValueType>* m_ptr;
+    DequeNode<ValueType>* m_ptr { nullptr };
 };
 
 template <typename T>
@@ -131,6 +132,9 @@ public:
         m_tail.set_prev(m_head);
     };
 
+    size_t size() const { return m_size; }
+    bool empty() const { return m_size == 0; }
+
     void push_front(const ValueType& value)
     {
         auto* new_node = new DequeNode<ValueType>(value);
@@ -141,6 +145,8 @@ public:
         new_node->set_next(m_head.next());
 
         m_head.set_next(new_node);
+
+        m_size++;
     }
 
     void push_front(ValueType&& value)
@@ -153,6 +159,8 @@ public:
         new_node->set_next(m_head.next());
 
         m_head.set_next(new_node);
+
+        m_size++;
     }
 
     void push_back(ValueType&& value)
@@ -165,6 +173,8 @@ public:
         new_node->set_prev(m_tail.prev());
 
         m_tail.set_prev(new_node);
+
+        m_size++;
     }
 
 
@@ -178,6 +188,8 @@ public:
         new_node->set_prev(m_tail.prev());
 
         m_tail.set_prev(new_node);
+
+        m_size++;
     }
 
     Iterator find(const ValueType& value)
@@ -194,6 +206,7 @@ public:
     void remove(const Iterator& del_it)
     {
         delete del_it.m_ptr;
+        m_size--;
     }
 
     Iterator begin()
@@ -216,6 +229,7 @@ public:
 private:
     DequeNode<ValueType> m_head {};
     DequeNode<ValueType> m_tail {};
-};
 
+    size_t m_size {};
+};
 }
