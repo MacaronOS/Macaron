@@ -19,6 +19,7 @@
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
 #include "multiboot.hpp"
+#include "multitasking/TaskManager.hpp"
 #include "syscalls.hpp"
 #include "drivers/PIT.hpp"
 
@@ -36,6 +37,8 @@ using kernel::fs::FileType;
 using kernel::fs::FS;
 using kernel::fs::VFS;
 using kernel::fs::ext2::Ext2;
+using kernel::multitasking::TaskManager;
+using kernel::drivers::DriverEntity;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -44,6 +47,22 @@ extern "C" void call_constructors()
 {
     for (constructor* i = &start_ctors; i != &end_ctors; i++) {
         (*i)();
+    }
+}
+
+void test1() {
+    while (true) {
+        term_print("test kernel thread: ");
+        term_printd(1);
+        term_print("\n");
+    }
+}
+
+void test2() {
+    while (true) {
+        term_print("test kernel thread: ");
+        term_printd(2);
+        term_print("\n");
     }
 }
 
@@ -68,28 +87,33 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 
     // setting Drivers
     DriverManager::initialize();
-    auto* ata = new Ata(0x1F0, true);
+    auto* ata = new Ata(0x1F0, true, DriverEntity::Ata0);
     auto* pit = new PIT();
     DriverManager::the().add_driver(*ata);
     DriverManager::the().add_driver(*pit);
     DriverManager::the().install_all();
 
-    pit->register_callback({ 1000, []() { term_print("ticked"); } });
+    // pit->register_callback({ 1000, []() { term_print("ticked"); } });
 
-    // setting VFS
-    VFS::initialize();
-    Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
-    ext2->init();
-    VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
+    // // setting VFS
+    // VFS::initialize();
+    // Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
+    // ext2->init();
+    // VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
 
-    // testing VFS
-    auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
+    // // testing VFS
+    // auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
 
-    Vector<String> dir = VFS::the().listdir(mounted);
-    for (size_t i = 0; i < dir.size(); i++) {
-        term_print(dir[i]);
-        term_print("\n");
-    }
+    // Vector<String> dir = VFS::the().listdir(mounted);
+    // for (size_t i = 0; i < dir.size(); i++) {
+    //     term_print(dir[i]);
+    //     term_print("\n");
+    // }
+
+    TaskManager::initialize();
+    TaskManager::the().add_kernel_thread(test1);
+    TaskManager::the().add_kernel_thread(test2);
+    TaskManager::the().run();
 
     asm volatile("sti");
 }
