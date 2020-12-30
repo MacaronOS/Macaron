@@ -2,11 +2,14 @@
 #include "../algo/extras.hpp"
 #include "../assert.hpp"
 #include "../monitor.hpp"
+#include "../posix.hpp"
 
 namespace kernel::fs {
 
-VFS* VFS::s_vfs = nullptr;
-bool VFS::initialized = 0;
+template <>
+VFS* Singleton<VFS>::s_t = nullptr;
+template <>
+bool Singleton<VFS>::s_initialized = false;
 
 VFS::VFS()
 {
@@ -18,22 +21,34 @@ VFS::VFS()
     }
 }
 
-KErrorOr<fd_t> VFS::open(const String& path, int flags)
+KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 {
-    auto file_or_error = resolve_path(path);
-
-    if (!file_or_error) {
-        return file_or_error.error();
-    }
     if (!m_free_fds.size()) {
         return KError(ENFILE);
     }
+
+    auto relation = resolve_relation(path);
+
+    if (!relation) {
+        return relation.error();
+    }
+
+    auto file = relation.result().file;
+
+    if (!file) {
+        if ((mode & O_CREAT)) {
+            file = &create(*relation.result().directory, path.split("/").back(), FileType::File, flags);
+        } else {
+            return KError(ENOENT);
+        }
+    }
+
     fd_t free_fd = m_free_fds.top_and_pop();
-    file_or_error.result()->inc_ref_count();
+    file->inc_ref_count();
 
     m_file_descriptors[free_fd].set_flags(flags);
     m_file_descriptors[free_fd].set_offset(0);
-    m_file_descriptors[free_fd].set_file(file_or_error.result());
+    m_file_descriptors[free_fd].set_file(file);
 
     return free_fd;
 }
@@ -75,10 +90,100 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     return KError(ENOENT);
 }
 
+KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+    if (file_descr->file() && file_descr->file()->fs()) {
+        size_t write_bytes = file_descr->file()->fs()->write(*file_descr->file(), file_descr->offset(), size, buffer);
+        file_descr->inc_offset(write_bytes);
+        return write_bytes;
+    }
+    return KError(ENOENT);
+}
+
+KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    const size_t file_size = file_descr->file()->inode_struct()->size;
+
+    switch (whence) {
+    case SEEK_SET: {
+        if (offset >= file_size) {
+            return KError(EOVERFLOW);
+        }
+        file_descr->set_offset(offset);
+        break;
+    }
+    case SEEK_CUR: {
+        if (file_descr->offset() + offset >= file_size) {
+            return KError(EOVERFLOW);
+        }
+        file_descr->inc_offset(offset);
+        break;
+    }
+    case SEEK_END: {
+        if (file_size - offset < 0) {
+            return KError(EOVERFLOW);
+        }
+        file_descr->set_offset(file_size - offset);
+        break;
+    }
+
+    default:
+        return KError(EINVAL);
+    }
+
+    return file_descr->offset();
+}
+
+KErrorOr<size_t> VFS::truncate(fd_t fd, size_t size)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    if (file_descr->file() && file_descr->file()->fs()) {
+        size_t new_size = file_descr->file()->fs()->truncate(*file_descr->file(), size);
+        return new_size;
+    }
+
+    return KError(ENOENT);
+}
+
+KErrorOr<size_t> VFS::file_size(fd_t fd)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+    if (!file_descr->file()) {
+        return KError(ENOENT);
+    }
+
+    return file_size(*file_descr->file());
+}
+
 uint32_t VFS::write(File& file, uint32_t offset, uint32_t size, void* buffer)
 {
     if (file.fs()) {
         return file.fs()->write(file, offset, size, buffer);
+    }
+
+    return 0;
+}
+
+uint32_t VFS::file_size(File& file)
+{
+    if (file.fs()) {
+        return file.inode_struct()->size;
     }
 
     return 0;
@@ -98,6 +203,18 @@ File* VFS::finddir(File& directory, const String& filename)
     return nullptr;
 }
 
+static int cnt = 0;
+
+Vector<String> VFS::listdir(const String& path)
+{
+    auto r = resolve_path(path);
+
+    if (r) {
+        return listdir(*r.result());
+    }
+    return {};
+}
+
 Vector<String> VFS::listdir(File& directory)
 {
     Vector<String> result;
@@ -107,7 +224,8 @@ Vector<String> VFS::listdir(File& directory)
     }
 
     for (size_t i = 0; i < directory.mounted_dirs().size(); i++) {
-        result.push_back(directory.mounted_dirs()[i].name());
+        auto mounted = directory.mounted_dirs()[i].name();
+        result.push_back(move(mounted));
     }
 
     return result;
@@ -128,6 +246,10 @@ KErrorOr<File*> VFS::resolve_path(const String& path)
     if (!path.size() || path[0] != '/') {
         return KError(ENOTDIR);
     }
+    if (path == "/") {
+        return m_root;
+    }
+
     Vector<String> splited_path = path.split("/");
     File* node = &root();
 
@@ -149,6 +271,46 @@ FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
         }
     }
     return &m_file_descriptors[fd];
+}
+
+KErrorOr<Relation> VFS::resolve_relation(const String& path)
+{
+    if (!path.size() || path[0] != '/') {
+        return KError(ENOTDIR);
+    }
+
+    File* node = &root();
+    File* parent = nullptr;
+
+    if (path == "/") {
+        return Relation({ parent, node });
+    }
+
+    Vector<String> splited_path = path.split("/");
+
+    for (size_t i = 1; i < splited_path.size(); i++) {
+
+        File* file = finddir(*node, splited_path[i]);
+
+        if (!file) {
+            if (i == splited_path.size() - 1) {
+                // at least, we found a parent
+                Relation rel = {};
+                rel.directory = node;
+                return rel;
+            }
+            return KError(ENOENT);
+        }
+        parent = node;
+        node = file;
+    }
+
+    // we found a parent and a file
+    Relation rel;
+    rel.directory = parent;
+    rel.file = node;
+
+    return rel;
 }
 
 }

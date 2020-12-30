@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fs.hpp"
 #include "ext2fs.hpp"
+#include "fs.hpp"
 
 #include "../algo/Bitmap.hpp"
 #include "../algo/String.hpp"
@@ -9,7 +9,6 @@
 #include "../drivers/disk/Ata.hpp"
 #include "../drivers/disk/DiskDriver.hpp"
 #include "../types.hpp"
-
 
 namespace kernel::fs::ext2 {
 using algorithms::Bitmap;
@@ -33,6 +32,7 @@ public:
     // file system api functions
     uint32_t read(File& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(File& file, uint32_t offset, uint32_t size, void* buffer) override;
+    uint32_t truncate(File& file, uint32_t size) override;
 
     File* finddir(File& directory, const String& filename) override;
     Vector<String> listdir(File& directory) override;
@@ -50,16 +50,16 @@ private:
     // file system params
     ext2_superblock_t m_superblock;
     block_group_descriptor_t* m_bgd_table {};
-    uint32_t m_block_size;
+    uint32_t m_block_size; // size of a block in bytes
     uint32_t m_bgd_table_size;
 
-    // buffers
+    // preallocated buffers reduce heap allocation calls
     char* m_block_buffer {};
     char* m_table_buffer_1 {};
     char* m_table_buffer_2 {};
     char* m_table_buffer_3 {};
 
-    // driver based
+    // driver related
     bool read_blocks(uint32_t block, uint32_t block_size, void* mem);
     bool read_block(uint32_t block, void* mem);
     bool write_blocks(uint32_t block, uint32_t block_size, void* mem);
@@ -68,13 +68,15 @@ private:
     // inode helpers
     inode_t get_inode_structure(uint32_t inode);
     bool save_inode_structure(File& file);
-    uint32_t resolve_inode_local_block(File& file, uint32_t block, bool need_create = false);
+    uint32_t* resolve_inode_local_block(File& file, uint32_t block, bool need_create = false);
     uint32_t read_inode_content(File& file, uint32_t offset, uint32_t size, void* mem);
     uint32_t write_inode_content(File& file, uint32_t offset, uint32_t size, void* mem);
+
     uint32_t occypy_inode(uint32_t preferd_block_group = 0);
     bool free_inode(uint32_t inode);
 
     // block helpers
     uint32_t occypy_block(uint32_t preferd_block_group = 0, bool fill_zeroes = false);
+    bool free_block(uint32_t block);
 };
 }
