@@ -19,6 +19,8 @@ public:
     virtual uint32_t read(File& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
     virtual uint32_t write(File& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
 
+    virtual uint32_t truncate(File& file, uint32_t size) { return 0; }
+
     virtual void open(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
     virtual void close(File& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
 

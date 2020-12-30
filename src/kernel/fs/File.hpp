@@ -84,6 +84,7 @@ private:
     File* m_file;
 };
 
+// Represents an object that allows different filesystems communicate which each other.
 class File {
 public:
     File() = default;
