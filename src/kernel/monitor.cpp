@@ -1,5 +1,8 @@
-#include "types.hpp"
+#include "monitor.hpp"
+
 #include "algo/String.hpp"
+#include "hardware/port.hpp"
+#include "types.hpp"
 
 volatile uint16_t* vga_buffer = (uint16_t*)0xC00B8000;
 
@@ -17,11 +20,13 @@ int get_vga_index()
 
 void term_init()
 {
+    term_col = term_row = 0;
     for (int row = 0; row < VGA_ROWS; row++) {
         for (int col = 0; col < VGA_COLS; col++) {
             vga_buffer[row * VGA_COLS + col] = ((uint16_t)term_color << 8) | ' ';
         }
     }
+    enable_cursor();
 }
 
 void inc_vga_pos()
@@ -38,6 +43,21 @@ void inc_vga_pos()
     }
 }
 
+void dec_vga_pos()
+{
+    term_col--;
+    if (term_col == -1) {
+        term_col = VGA_COLS - 1;
+        term_row--;
+    }
+    if (term_row == -1) {
+        term_row = 0;
+    }
+
+    vga_buffer[get_vga_index()] = ((uint16_t)term_color << 8) | '\0';
+    update_cursor();
+}
+
 void term_putc(char c)
 {
     switch (c) {
@@ -51,6 +71,8 @@ void term_putc(char c)
         inc_vga_pos();
         break;
     }
+
+    update_cursor();
 }
 
 void term_print(const char* str)
@@ -61,7 +83,8 @@ void term_print(const char* str)
 }
 
 using kernel::algorithms::String;
-void term_print(const String& str) {
+void term_print(const String& str)
+{
     for (size_t i = 0; i < str.size(); i++) {
         term_putc(str[i]);
     }
@@ -97,4 +120,23 @@ void term_printn(int64_t numb, uint32_t s)
 void term_printd(int64_t numb)
 {
     term_printn(numb, 10);
+}
+
+void enable_cursor()
+{
+    outb(0x3D4, 0x0A);
+    outb(0x3D5, (inb(0x3D5) & 0xC0) | 0);
+
+    outb(0x3D4, 0x0B);
+    outb(0x3D5, (inb(0x3D5) & 0xE0) | 15);
+}
+
+void update_cursor()
+{
+    uint16_t pos = term_row * VGA_COLS + term_col;
+
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }

@@ -62,9 +62,9 @@ drive:
 	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
 	sudo touch mountpoint/file.txt
 	sudo bash -c 'echo "testing..." > mountpoint/file.txt'
-	$(MAKE) apps -C src/userspace
-	sudo mkdir -p mountpoint/apps/
-	sudo find ./src/userspace -type f -name "*.mapp" -exec cp {} ./mountpoint/apps \;
+	# $(MAKE) apps -C src/userspace
+	# sudo mkdir -p mountpoint/apps/
+	# sudo find ./src/userspace -type f -name "*.mapp" -exec cp {} ./mountpoint/apps \;
 	sudo umount mountpoint
 
 run:
