@@ -26,7 +26,7 @@ public:
     const char& operator[](size_t pos) const;
 
     // Modifiers
-    void push_back(const char&);
+    void push_back(char c);
     String& operator+=(const String& str);
     String& operator+=(const char* s);
     String& operator+=(char c);
@@ -36,17 +36,22 @@ public:
     bool operator==(const String& str) const;
     bool operator==(const char* s) const;
 
-    // Other
+    // Other operators
+    String operator+(const String& str) const;
+    String operator+(const char* cstr) const;
+
+    // Other api functions
     Vector<String> split(const String& del) const;
+    char* cstr() const;
 
 private:
     void realloc(size_t);
 
 private:
-    char* m_string {};
+    char* m_string { nullptr };
 
     size_t m_size {};
-    size_t m_capacity{};
+    size_t m_capacity {};
 };
 
 }
