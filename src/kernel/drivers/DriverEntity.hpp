@@ -10,6 +10,8 @@ enum class DriverEntity {
 
     PIT,
 
+    Keyboard,
+
     END,
 };
 
