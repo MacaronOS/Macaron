@@ -1,6 +1,6 @@
 #include "String.hpp"
-#include "Vector.hpp"
 #include "../memory/memory.hpp"
+#include "Vector.hpp"
 
 namespace kernel::algorithms {
 
@@ -163,13 +163,37 @@ bool String::operator==(const char* s) const
     return true;
 }
 
+String String::operator+(const String& str) const
+{
+    auto new_string = *this;
+    if (new_string.m_capacity - new_string.m_size - str.m_size < 0) {
+        new_string.realloc(new_string.m_capacity + str.m_capacity);
+    }
+
+    for (size_t i = 0; i < str.size(); i++) {
+        new_string[new_string.m_size++] = str[i];
+    }
+
+    return new_string;
+}
+
+String String::operator+(const char* cstr) const
+{
+    auto new_string = *this;
+    for (size_t i = 0; cstr[i] != '\0'; i++) {
+        new_string.push_back(cstr[i]);
+    }
+
+    return new_string;
+}
+
 Vector<String> String::split(const String& del) const
 {
     Vector<String> result;
     size_t next_string_start = 0;
     for (size_t i = 0; i < m_size; i++) {
         size_t j = i;
-        while (j < m_size && j - i < del.size() && m_string[j] == del[j-i]) {
+        while (j < m_size && j - i < del.size() && m_string[j] == del[j - i]) {
             j++;
         }
         if (j - i == del.size()) {
@@ -191,4 +215,15 @@ Vector<String> String::split(const String& del) const
 
     return result;
 }
+
+char* String::cstr() const
+{
+    char* res = static_cast<char*>(::operator new(m_size + 1));
+    for (size_t i = 0; i < m_size; i++) {
+        res[i] = m_string[i];
+    }
+    res[m_size] = '\0';
+    return res;
+}
+
 }
