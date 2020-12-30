@@ -17,4 +17,10 @@ void term_printd(int64_t);
 
 void term_putc(char);
 
+void dec_vga_pos();
+
+void enable_cursor();
+
+void update_cursor();
+
 #endif // MISTIX_KERNEL_MONITOR_H

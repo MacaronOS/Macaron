@@ -15,8 +15,10 @@ void InterruptManager::handle_interrupt(trapframe_t* tf)
     if (tf->int_no >= 0 && tf->int_no < 256 && m_handlers[tf->int_no]) {
         m_handlers[tf->int_no]->handle_interrupt(tf);
     } else {
-        term_print("\nRecieved unimplemented interrupt, ");
-        term_printd(tf->int_no);
-        term_print("\n");
+        if (tf->int_no != 46) { // ignore ata irq for now
+            term_print("\nRecieved unimplemented interrupt, ");
+            term_printd(tf->int_no);
+            term_print("\n");
+        }
     }
 }

@@ -22,11 +22,14 @@
 #include "multitasking/TaskManager.hpp"
 #include "syscalls.hpp"
 #include "drivers/PIT.hpp"
+#include "drivers/Keyboard.hpp"
+#include "shell/Shell.hpp"
 
 using kernel::algorithms::Array;
 using kernel::algorithms::Deque;
 using kernel::algorithms::StaticStack;
 using kernel::algorithms::Vector;
+using kernel::drivers::DriverEntity;
 using kernel::drivers::DriverManager;
 using kernel::drivers::PIT;
 using kernel::drivers::Ata::Ata;
@@ -38,7 +41,7 @@ using kernel::fs::FS;
 using kernel::fs::VFS;
 using kernel::fs::ext2::Ext2;
 using kernel::multitasking::TaskManager;
-using kernel::drivers::DriverEntity;
+using kernel::syscalls::SyscallsManager;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -50,12 +53,19 @@ extern "C" void call_constructors()
     }
 }
 
+extern "C" void sys_printd(int);
+extern "C" void switch_to_user_mode();
+
 void test1() {
     while (true) {
         term_print("test kernel thread: ");
+        sys_printd(1);
         term_printd(1);
         term_print("\n");
     }
+
+    // exit() - destroy thread
+    // destroy thread
 }
 
 void test2() {
@@ -74,6 +84,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     pmm_init(multiboot_structure);
     kmalloc_init();
     InterruptManager::initialize();
+    SyscallsManager::initialize();
 
     // setting VMM
     VMM::initialize(get_pd_temp_location(), get_pt_temp_location()); 
@@ -83,7 +94,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 
     // testing VMM
     int* a = (int*)22;
-    term_printd(*a);
+    // term_printd(*a);
 
     // setting Drivers
     DriverManager::initialize();
@@ -91,29 +102,46 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     auto* pit = new PIT();
     DriverManager::the().add_driver(*ata);
     DriverManager::the().add_driver(*pit);
+    DriverManager::the().add_driver(*(new kernel::drivers::Keyboard()));
     DriverManager::the().install_all();
 
-    // pit->register_callback({ 1000, []() { term_print("ticked"); } });
+    // pit->register_callback({ 1000, [](trapframe_t* tf) { term_print("ticked"); } });
 
-    // // setting VFS
-    // VFS::initialize();
-    // Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
-    // ext2->init();
-    // VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
+    // setting VFS
+    VFS::initialize();
+    Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
+    ext2->init();
+    VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
 
-    // // testing VFS
-    // auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
+    // testing VFS
+    auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
 
-    // Vector<String> dir = VFS::the().listdir(mounted);
+    // Vector<String> dir = VFS::the().listdir(VFS::the().root());
     // for (size_t i = 0; i < dir.size(); i++) {
     //     term_print(dir[i]);
     //     term_print("\n");
     // }
 
-    TaskManager::initialize();
-    TaskManager::the().add_kernel_thread(test1);
-    TaskManager::the().add_kernel_thread(test2);
-    TaskManager::the().run();
+    // STOP();
 
+    // auto res = VFS::the().open("/ext2/file.txt", 1);
+    // if (res) {
+    //     char* buf = (char*)kmalloc(10);
+    //     auto res1 = VFS::the().read(res.result(), buf, 9);
+    //     buf[9] = '\0';
+    //     term_print(buf);
+    //     term_printd(VFS::the().file_size(res.result()).result());
+    // }
+
+    // STOP();
+
+    // TaskManager::initialize();
+    // TaskManager::the().add_kernel_thread(test1);
+    // TaskManager::the().add_kernel_thread(test2);
+    // TaskManager::the().create_process("/ext2/apps/main.mapp");
+    // TaskManager::the().run();
     asm volatile("sti");
+    kernel::shell::run();
+    // switch_to_user_mode();
+    // sys_printd(1222);
 }
