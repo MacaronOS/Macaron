@@ -1,16 +1,18 @@
-#include "algo/String.hpp"
-#include "algo/Bitmap.hpp"
-#include "algo/Vector.hpp"
-#include "algo/StaticStack.hpp"
 #include "algo/Array.hpp"
+#include "algo/Bitmap.hpp"
 #include "algo/Deque.hpp"
+#include "algo/StaticStack.hpp"
+#include "algo/String.hpp"
+#include "algo/Vector.hpp"
 #include "assert.hpp"
 #include "descriptor_tables.hpp"
 #include "drivers/DriverManager.hpp"
+#include "drivers/Keyboard.hpp"
+#include "drivers/PIT.hpp"
 #include "drivers/disk/Ata.hpp"
+#include "fs/Ext2.hpp"
 #include "fs/File.hpp"
 #include "fs/ext2fs.hpp"
-#include "fs/Ext2.hpp"
 #include "fs/vfs.hpp"
 #include "memory/kmalloc.hpp"
 #include "memory/memory.hpp"
@@ -20,9 +22,8 @@
 #include "monitor.hpp"
 #include "multiboot.hpp"
 #include "multitasking/TaskManager.hpp"
-#include "drivers/PIT.hpp"
-#include "drivers/Keyboard.hpp"
 #include "shell/Shell.hpp"
+#include "tests/tests.hpp"
 
 using kernel::algorithms::Array;
 using kernel::algorithms::Deque;
@@ -54,7 +55,8 @@ extern "C" void call_constructors()
 extern "C" void sys_printd(int);
 extern "C" void switch_to_user_mode();
 
-void test1() {
+void test1()
+{
     while (true) {
         term_print("test kernel thread: ");
         sys_printd(1);
@@ -66,7 +68,8 @@ void test1() {
     // destroy thread
 }
 
-void test2() {
+void test2()
+{
     while (true) {
         term_print("test kernel thread: ");
         term_printd(2);
@@ -78,20 +81,12 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 {
     init_descriptor_tables();
     term_init();
-    term_print("Hello, World!\n");
     pmm_init(multiboot_structure);
     kmalloc_init();
     InterruptManager::initialize();
 
     // setting VMM
-    VMM::initialize(get_pd_temp_location(), get_pt_temp_location()); 
-    uint32_t pd = VMM::the().clone_page_directory();
-    VMM::the().create_frame(pd, 0);
-    VMM::the().set_page_directory(pd);
-
-    // testing VMM
-    int* a = (int*)22;
-    // term_printd(*a);
+    VMM::initialize(get_pd_temp_location(), get_pt_temp_location());
 
     // setting Drivers
     DriverManager::initialize();
@@ -102,43 +97,17 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     DriverManager::the().add_driver(*(new kernel::drivers::Keyboard()));
     DriverManager::the().install_all();
 
-    // pit->register_callback({ 1000, [](trapframe_t* tf) { term_print("ticked"); } });
-
     // setting VFS
     VFS::initialize();
     Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
     ext2->init();
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
 
-    // testing VFS
-    auto mounted = *VFS::the().finddir(VFS::the().root(), "ext2");
-
-    // Vector<String> dir = VFS::the().listdir(VFS::the().root());
-    // for (size_t i = 0; i < dir.size(); i++) {
-    //     term_print(dir[i]);
-    //     term_print("\n");
-    // }
-
-    // STOP();
-
-    // auto res = VFS::the().open("/ext2/file.txt", 1);
-    // if (res) {
-    //     char* buf = (char*)kmalloc(10);
-    //     auto res1 = VFS::the().read(res.result(), buf, 9);
-    //     buf[9] = '\0';
-    //     term_print(buf);
-    //     term_printd(VFS::the().file_size(res.result()).result());
-    // }
-
-    // STOP();
-
-    // TaskManager::initialize();
-    // TaskManager::the().add_kernel_thread(test1);
-    // TaskManager::the().add_kernel_thread(test2);
-    // TaskManager::the().create_process("/ext2/apps/main.mapp");
-    // TaskManager::the().run();
     asm volatile("sti");
+
+#ifdef MISTIXX_TEST
+    test_main();
+#else
     kernel::shell::run();
-    // switch_to_user_mode();
-    // sys_printd(1222);
+#endif
 }

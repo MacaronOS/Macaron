@@ -18,7 +18,8 @@ LDFLAGS=-Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
 DISK=drive.img
 QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0
 
-TARGET_EXEC ?= a.out
+TARGET_EXEC ?= MistiXX
+TEST_EXEC ?= MistiXX.test
 
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
@@ -26,6 +27,7 @@ SRC_DIRS ?= ./src
 SRCS_KERNEL:=$(shell find ./src -type f -name "*.s" ! -path "./src/userspace/*")
 SRCS_KERNEL+=$(shell find ./src -type f -name "*.cpp" ! -path "./src/userspace/*")
 OBJS_KERNEL:=$(SRCS_KERNEL:%=$(BUILD_DIR)/%.o)
+OBJS_TEST_KERNEL:=$(SRCS_KERNEL:%=$(BUILD_DIR)/%.test.o)
 
 DEPS := $(OBJS_KERNEL:.o=.d)
 
@@ -37,6 +39,9 @@ CFLAGS ?= $(INC_FLAGS)-nostdlib -nostdinc -fno-builtin -fno-stack-protector -ffr
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS_KERNEL)
 	$(CC) $(LDFLAGS) $(OBJS_KERNEL) -o $@ -lgcc
 
+$(BUILD_DIR)/$(TEST_EXEC): $(OBJS_TEST_KERNEL)
+	$(CC) $(LDFLAGS) $(OBJS_TEST_KERNEL) -o $@ -lgcc
+
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
 	$(MKDIR_P) $(dir $@)
@@ -46,6 +51,16 @@ $(BUILD_DIR)/%.s.o: %.s
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+# assembly test assembly
+$(BUILD_DIR)/%.s.test.o: %.s
+	$(MKDIR_P) $(dir $@)
+	$(AS) $(ASFLAGS) -DMISTIXX_TEST $< -o $@
+
+# cpp test source
+$(BUILD_DIR)/%.cpp.test.o: %.cpp
+	$(MKDIR_P) $(dir $@)
+	$(CPPC) $(CPPFLAGS) -DMISTIXX_TEST $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 
@@ -67,8 +82,11 @@ drive:
 	# sudo find ./src/userspace -type f -name "*.mapp" -exec cp {} ./mountpoint/apps \;
 	sudo umount mountpoint
 
-run:
-	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/a.out
+run: $(BUILD_DIR)/$(TARGET_EXEC)
+	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/$(TARGET_EXEC)
+
+test: $(BUILD_DIR)/$(TEST_EXEC)
+	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/$(TEST_EXEC)
 
 -include $(DEPS)
 
