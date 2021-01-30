@@ -3,9 +3,9 @@
 #include "../algo/Vector.hpp"
 #include "../hardware/InterruptManager.hpp"
 #include "Dirver.hpp"
-#include "monitor.hpp"
-#include "port.hpp"
-#include "types.hpp"
+#include "../monitor.hpp"
+#include "../hardware/port.hpp"
+#include "../types.hpp"
 #include "DriverEntity.hpp"
 
 namespace kernel::drivers {

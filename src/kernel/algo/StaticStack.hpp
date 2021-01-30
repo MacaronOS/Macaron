@@ -1,7 +1,7 @@
 #pragma once
 #include "Array.hpp"
 #include "extras.hpp"
-#include "types.hpp"
+#include "../types.hpp"
 
 namespace kernel::algorithms {
 
