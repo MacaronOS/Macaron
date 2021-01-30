@@ -19,3 +19,13 @@ return_from_scheduler:
     add esp, 8 ; clears error code and isr number
     sti
     iret ; CS, EIP, EFLAGS, SS, and ESP
+
+
+return_to_the_kernel_handler:
+    mov esp, [esp+4]
+    pop edi
+    pop esi
+    pop ebx
+    pop ebp
+    pop esp
+    ret

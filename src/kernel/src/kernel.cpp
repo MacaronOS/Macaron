@@ -20,6 +20,7 @@
 #include "memory/regions.hpp"
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
+#include "syscalls.hpp"
 #include "multiboot.hpp"
 #include "multitasking/TaskManager.hpp"
 #include "shell/Shell.hpp"
@@ -41,6 +42,7 @@ using kernel::fs::FS;
 using kernel::fs::VFS;
 using kernel::fs::ext2::Ext2;
 using kernel::multitasking::TaskManager;
+using kernel::syscalls::SyscallsManager;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -85,6 +87,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     pmm_init(multiboot_structure);
     kmalloc_init();
     InterruptManager::initialize();
+    SyscallsManager::initialize();
 
     // setting VMM
     VMM::initialize(get_pd_temp_location(), get_pt_temp_location());
