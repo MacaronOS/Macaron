@@ -2,30 +2,15 @@
 #include "../types.hpp"
 #include "trapframe.hpp"
 #include "../assert.hpp"
+#include "../algo/Singleton.hpp"
 
 typedef void (*interrupt_handler_function)(trapframe_t*);
 
 class InterruptHandler;
 
-class InterruptManager {
+class InterruptManager : public Singleton<InterruptManager> {
 public:
     InterruptManager() = default;
-
-    static InterruptManager* s_im;
-    static bool initialized;
-    static bool initialize()
-    {
-        s_im = new InterruptManager();
-        InterruptManager::initialized = true;
-        return InterruptManager::initialized;
-    }
-    static InterruptManager& the()
-    {
-        if (!InterruptManager::initialized) {
-            ASSERT_PANIC("Interrupt manager referenced before initializing");
-        }
-        return *s_im;
-    }
 
     void register_interrupt_handler(InterruptHandler* handler);
     void handle_interrupt(trapframe_t* tf);

@@ -16,8 +16,10 @@ extern "C" void flush_cr3();
 extern "C" uint32_t boot_page_directory;
 extern "C" uint32_t boot_page_table2;
 
-VMM* VMM::s_vmm = nullptr;
-bool VMM::initialized = false;
+template <>
+VMM* Singleton<VMM>::s_t = nullptr;
+template <>
+bool Singleton<VMM>::s_initialized = false;
 
 void VMM::set_page_directory(uint32_t page_directory_phys)
 {

@@ -5,8 +5,10 @@
 
 namespace kernel::drivers {
 
-DriverManager* DriverManager::s_dm = nullptr;
-bool DriverManager::initialized = false;
+template <>
+DriverManager* Singleton<DriverManager>::s_t = nullptr;
+template <>
+bool Singleton<DriverManager>::s_initialized = false;
 
 void DriverManager::add_driver(Driver& driver)
 {

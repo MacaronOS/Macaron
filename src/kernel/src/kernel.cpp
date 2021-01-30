@@ -4,6 +4,7 @@
 #include "algo/StaticStack.hpp"
 #include "algo/String.hpp"
 #include "algo/Vector.hpp"
+#include "algo/Singleton.hpp"
 #include "assert.hpp"
 #include "hardware/descriptor_tables.hpp"
 #include "drivers/DriverManager.hpp"
@@ -79,7 +80,6 @@ void test2()
     }
 }
 
-
 extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 {
     init_descriptor_tables();
@@ -90,7 +90,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     SyscallsManager::initialize();
 
     // setting VMM
-    VMM::initialize(get_pd_temp_location(), get_pt_temp_location());
+    VMM::initialize();
 
     // setting Drivers
     DriverManager::initialize();
