@@ -41,6 +41,7 @@ public:
     Process* kernel_process() { return m_kernel_process; }
 
     void add_kernel_thread(void (*func)());
+    void create_process(const String& filepath);
 
     void schedule(trapframe_t* tf);
 

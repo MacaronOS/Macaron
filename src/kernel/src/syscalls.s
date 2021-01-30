@@ -1,6 +1,6 @@
 [GLOBAL sys_printd]
 sys_printd:
-    mov eax, 0
+    mov eax, 4
     mov ebx, DWORD[esp+4]
     int 0x80
     ret

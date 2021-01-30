@@ -1,93 +1,34 @@
-EXT2_FORMATTER 				:=
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S), Linux)
-	EXT2_FORMATTER = mkfs
-endif
-ifeq ($(UNAME_S), Darwin)
-	EXT2_FORMATTER = /usr/local/opt/e2fsprogs/sbin/mkfs.ext2
-endif
+include makefile.config
+include src/kernel/Makefile
+include src/userspace/Makefile
 
-MOUNT_EXT2=fuse-ext2
+run: build
+	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
-AS=nasm
-CPPC=i686-elf-g++
-CC=i686-elf-gcc
-ASFLAGS=-felf
-LDFLAGS=-Wl,--gc-sections -ffreestanding -nostdlib -g -T src/linker.ld
+build: apps kernel
 
-DISK=drive.img
-QEMUFLAGS=-device piix3-ide,id=ide -drive id=disk,file=${DISK},if=none -device ide-drive,drive=disk,bus=ide.0
-
-TARGET_EXEC ?= MistiXX
-TEST_EXEC ?= MistiXX.test
-
-BUILD_DIR ?= ./build
-SRC_DIRS ?= ./src
-
-SRCS_KERNEL:=$(shell find ./src -type f -name "*.s" ! -path "./src/userspace/*")
-SRCS_KERNEL+=$(shell find ./src -type f -name "*.cpp" ! -path "./src/userspace/*")
-OBJS_KERNEL:=$(SRCS_KERNEL:%=$(BUILD_DIR)/%.o)
-OBJS_TEST_KERNEL:=$(SRCS_KERNEL:%=$(BUILD_DIR)/%.test.o)
-
-DEPS := $(OBJS_KERNEL:.o=.d)
-
-INC_DIRS := $(shell find $(SRC_DIRS) -type d)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-
-CFLAGS ?= $(INC_FLAGS)-nostdlib -nostdinc -fno-builtin -fno-stack-protector -ffreestanding -fno-exceptions -m32 -Iinclude -fno-use-cxa-atexit -fno-rtti -fno-leading-underscore -Wno-write-strings
-
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS_KERNEL)
-	$(CC) $(LDFLAGS) $(OBJS_KERNEL) -o $@ -lgcc
-
-$(BUILD_DIR)/$(TEST_EXEC): $(OBJS_TEST_KERNEL)
-	$(CC) $(LDFLAGS) $(OBJS_TEST_KERNEL) -o $@ -lgcc
-
-# assembly
-$(BUILD_DIR)/%.s.o: %.s
-	$(MKDIR_P) $(dir $@)
-	$(AS) $(ASFLAGS) $< -o $@
-
-# cpp source
-$(BUILD_DIR)/%.cpp.o: %.cpp
-	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-# assembly test assembly
-$(BUILD_DIR)/%.s.test.o: %.s
-	$(MKDIR_P) $(dir $@)
-	$(AS) $(ASFLAGS) -DMISTIXX_TEST $< -o $@
-
-# cpp test source
-$(BUILD_DIR)/%.cpp.test.o: %.cpp
-	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) -DMISTIXX_TEST $(CFLAGS) -c $< -o $@
-
-.PHONY: clean
-
-clean:
-	$(RM) -r $(BUILD_DIR)
-	$(MAKE) clean -C src/userspace
-
+install:
+	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
+	echo $(USERSPACE_BUILD_DIR)
+	sudo $(MKDIR_P) mountpoint/apps/
+	sudo find $(USERSPACE_BUILD_DIR)/apps/* -type f -name "*.app" -exec cp {} ./mountpoint/apps/ \;
+	sudo umount mountpoint
+	
 drive:
-	rm -f ${DISK}
-	qemu-img create -f raw ${DISK} 16M
+	$(RM) -f ${DISK}
+	$(QEMU_IMG) create -f raw ${DISK} 16M
 	sudo ${EXT2_FORMATTER} -t ext2 -r 0 -b 1024 ${DISK}
 
-	sudo mkdir -p mountpoint
+	sudo $(MKDIR_P) mountpoint
 	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
 	sudo touch mountpoint/file.txt
 	sudo bash -c 'echo "testing..." > mountpoint/file.txt'
-	# $(MAKE) apps -C src/userspace
-	# sudo mkdir -p mountpoint/apps/
-	# sudo find ./src/userspace -type f -name "*.mapp" -exec cp {} ./mountpoint/apps \;
 	sudo umount mountpoint
 
-run: $(BUILD_DIR)/$(TARGET_EXEC)
-	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/$(TARGET_EXEC)
+build_test: kernel_tester
 
-test: $(BUILD_DIR)/$(TEST_EXEC)
-	qemu-system-i386 $(QEMUFLAGS) -kernel $(BUILD_DIR)/$(TEST_EXEC)
+test: build_test
+	qemu-system-i386 $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TEST_EXEC)
 
--include $(DEPS)
-
-MKDIR_P ?= mkdir -p
+clean:
+	$(RM) -r $(BUILD_DIR)
