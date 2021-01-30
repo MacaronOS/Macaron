@@ -2,8 +2,10 @@
 #include "../assert.hpp"
 #include "../monitor.hpp"
 
-InterruptManager* InterruptManager::s_im = nullptr;
-bool InterruptManager::initialized = 0;
+template <>
+InterruptManager* Singleton<InterruptManager>::s_t = nullptr;
+template <>
+bool Singleton<InterruptManager>::s_initialized = false;
 
 void InterruptManager::register_interrupt_handler(InterruptHandler* handler)
 {

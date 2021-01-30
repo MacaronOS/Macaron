@@ -1,7 +1,10 @@
 #pragma once
+#include "regions.hpp"
 
 #include "../types.hpp"
 #include "../assert.hpp"
+#include "../algo/Singleton.hpp"
+#include "../algo/Singleton.hpp"
 
 typedef union {
     struct {
@@ -43,28 +46,12 @@ typedef struct {
     page_directory_entry_t entries[1024];
 } page_directory_t;
 
-class VMM {
+class VMM : public Singleton<VMM> {
 public:
-    VMM(uint32_t buffer_1, uint32_t buffer_2)
-        : m_buffer_1(buffer_1)
-        , m_buffer_2(buffer_2)
+    VMM()
+        : m_buffer_1(get_pd_temp_location())
+        , m_buffer_2(get_pt_temp_location())
     {
-    }
-
-    static VMM* s_vmm;
-    static bool initialized;
-    static bool initialize(uint32_t buffer_1, uint32_t buffer_2)
-    {
-        s_vmm = new VMM(buffer_1, buffer_2);
-        VMM::initialized = true;
-        return VMM::initialized;
-    }
-    static VMM& the()
-    {
-        if (!VMM::initialized) {
-            ASSERT_PANIC("VMM referenced before initializing");
-        }
-        return *s_vmm;
     }
 
     uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }

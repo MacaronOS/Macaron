@@ -11,8 +11,10 @@ namespace kernel::multitasking {
 extern "C" void return_from_scheduler(trapframe_t* tf);
 extern "C" void return_to_the_kernel_handler(kernel_context_t* kc);
 
-TaskManager* TaskManager::s_tm = nullptr;
-bool TaskManager::initialized = false;
+template <>
+TaskManager* Singleton<TaskManager>::s_t = nullptr;
+template <>
+bool Singleton<TaskManager>::s_initialized = false;
 
 bool TaskManager::run()
 {

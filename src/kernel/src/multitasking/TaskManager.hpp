@@ -3,6 +3,7 @@
 #include "../fs/vfs.hpp"
 #include "../memory/vmm.hpp"
 #include "../assert.hpp"
+#include "../algo/Singleton.hpp"
 
 #include "Process.hpp"
 #include "Thread.hpp"
@@ -12,7 +13,7 @@ namespace kernel::multitasking {
 #define DEFAULT_BSS_SIZE 4096
 #define DEFAULT_HEAP_SIZE 4096
 
-class TaskManager {
+class TaskManager : public Singleton<TaskManager> {
 public:
     TaskManager()
     {
@@ -20,22 +21,6 @@ public:
         m_kernel_process = new Process;
         m_kernel_process->id = m_process_count++;
         m_kernel_process->page_dir_phys = VMM::the().kernel_page_directory();
-    }
-
-    static TaskManager* s_tm;
-    static bool initialized;
-    static bool initialize()
-    {
-        s_tm = new TaskManager();
-        TaskManager::initialized = true;
-        return TaskManager::initialized;
-    }
-    static TaskManager& the()
-    {
-        if (!TaskManager::initialized) {
-            ASSERT_PANIC("Task manager referenced before initializing");
-        }
-        return *s_tm;
     }
 
     Process* kernel_process() { return m_kernel_process; }
