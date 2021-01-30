@@ -5,7 +5,7 @@
 #include "algo/String.hpp"
 #include "algo/Vector.hpp"
 #include "assert.hpp"
-#include "descriptor_tables.hpp"
+#include "hardware/descriptor_tables.hpp"
 #include "drivers/DriverManager.hpp"
 #include "drivers/Keyboard.hpp"
 #include "drivers/PIT.hpp"
@@ -76,6 +76,7 @@ void test2()
         term_print("\n");
     }
 }
+
 
 extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 {

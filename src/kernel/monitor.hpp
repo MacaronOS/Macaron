@@ -1,7 +1,7 @@
 #ifndef MISTIX_KERNEL_MONITOR_H
 #define MISTIX_KERNEL_MONITOR_H
 
-#include "../types.hpp"
+#include "types.hpp"
 #include "algo/String.hpp"
 
 void term_init();

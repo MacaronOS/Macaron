@@ -5,7 +5,7 @@
 #include "../errors/KError.hpp"
 #include "../types.hpp"
 #include "File.hpp"
-#include "algo/Singleton.hpp"
+#include "../algo/Singleton.hpp"
 #include "fs.hpp"
 
 namespace kernel::fs {

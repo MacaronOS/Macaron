@@ -58,3 +58,5 @@ inline void* operator new[](unsigned long, void* ptr)
 {
     return ptr;
 }
+
+// inline void* operator new(unsigned long, unsigned long);
