@@ -113,5 +113,11 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     test_main();
 #else
     kernel::shell::run();
+
+    // start up userspace process is going to be main 
+    
+    // TaskManager::initialize();
+    // TaskManager::the().create_process("/ext2/apps/main.app");
+    // TaskManager::the().run();
 #endif
 }

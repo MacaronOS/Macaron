@@ -8,21 +8,8 @@ extern "C" void switch_to_user_mode();
 
 namespace kernel::syscalls {
 
-static int sys_printd(int val)
-{
-    term_printd(val);
-
-    // blocked
-    // stack
-    // registers
-
-    // call scheduler
-
-    // Blocker().block();
-
-
-    
-
+static int sys_putc(char a) {
+    term_putc(a);
     return 1;
 }
 
@@ -33,7 +20,7 @@ SyscallsManager::SyscallsManager()
         m_syscalls[syscall_index] = (uint8_t)SyscallSelector::END;
     }
 
-    register_syscall(SyscallSelector::Printd, (uint32_t)sys_printd);
+    register_syscall(SyscallSelector::Putc, (uint32_t)sys_putc);
 }
 
 void SyscallsManager::initialize()
