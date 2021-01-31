@@ -33,8 +33,6 @@ void TaskManager::schedule(trapframe_t* tf)
         return;
     }
 
-    // term_print("scheduing)");
-
     auto next_thread = m_cur_thread;
 
     // save tf position in the stack
@@ -47,12 +45,6 @@ void TaskManager::schedule(trapframe_t* tf)
     } else {
         next_thread = m_threads.begin();
     }
-
-    // means thread was blocked in the kernel,
-    // so we should return to its handler
-    // if ((*next_thread)->kernel_context) {
-    //     return_to_the_kernel_handler((*next_thread)->kernel_context);
-    // }
 
     // switch to the new thread's tss entry
     write_tss(GDT_KERNEL_DATA_OFFSET, (uint32_t)(*next_thread)->kernel_stack + KERNEL_STACK_SIZE);
@@ -96,7 +88,6 @@ void TaskManager::create_process(const String& filepath) {
 
     auto fd_or_error = vfs.open(filepath, 1);
     if (!fd_or_error) {
-         term_print("nice");
         return;
     }
 
@@ -106,8 +97,6 @@ void TaskManager::create_process(const String& filepath) {
     }
 
     size_t binary_size = bianry_size_res.result();
-
-    term_printd(binary_size);
 
     Process* new_proc = new Process;
     new_proc->id = m_process_count++;
@@ -145,9 +134,5 @@ void TaskManager::create_process(const String& filepath) {
     new_thread->trapframe = trapframe;
 
     m_threads.push_front(new_thread);
-
-    // term_printd((*m_threads.begin())->trapframe->eflags);
-
-    // STOP();
 }
 }

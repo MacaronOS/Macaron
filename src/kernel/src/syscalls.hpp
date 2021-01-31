@@ -5,6 +5,7 @@
 namespace kernel::syscalls {
 
 enum class SyscallSelector {
+    Putc,
     Read,
     Write,
     Open,

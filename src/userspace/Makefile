@@ -42,7 +42,7 @@ libs: $(USERSPACE_LIBS)
 # -------------------------------USERSPACE APPS---------------------------------------
 
 LIBRARIES_FOLDER ?= $(USERSPACE_BUILD_DIR)/libs/
-LINKER_FLAGS ?= -lc -L$(LIBRARIES_FOLDER) -Wl,--oformat=binary -Ttext 0 -nostdlib -nostdinc 
+LINKER_FLAGS ?= -Wl,--oformat=binary -Ttext 0 -nostdlib -nostdinc 
 
 define APP_TEMPLATE
 $(1)_APP_RELATIVE := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $(1).app)
@@ -54,13 +54,12 @@ $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
 $$($(1)_APP): $$($(1)_OBJS)
-	echo $$($(1)_RELATIVE_SRCS)
-	$(CC) $$(LINKER_FLAGS) $$($(1)_OBJS) -o $$@ -lgcc
+	$(CC) $$(LINKER_FLAGS) $$($(1)_OBJS) -lc -L$(LIBRARIES_FOLDER) -o $$@ -lgcc
 
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
 	mkdir -p $$(dir $$@)
-	$(CC) $$(CPPFLAGS) $$(CFLAGS) -c $$< -o $$@
+	$(CC) $$(CPPFLAGS) $$(CFLAGS) -I$$(USERSPACE_SRC_DIR)/libs -c $$< -o $$@
 
 # assembly
 $$(USERSPACE_BUILD_DIR)/%.s.o: %.s
