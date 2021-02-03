@@ -9,7 +9,6 @@ build: apps kernel
 
 install:
 	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+
-	echo $(USERSPACE_BUILD_DIR)
 	sudo $(MKDIR_P) mountpoint/apps/
 	sudo find $(USERSPACE_BUILD_DIR)/apps/* -type f -name "*.app" -exec cp {} ./mountpoint/apps/ \;
 	sudo umount mountpoint

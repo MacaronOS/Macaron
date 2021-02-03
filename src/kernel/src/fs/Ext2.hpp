@@ -11,9 +11,6 @@
 #include "../types.hpp"
 
 namespace kernel::fs::ext2 {
-using algorithms::Bitmap;
-using algorithms::String;
-using algorithms::Vector;
 
 struct inode_cache_t {
     uint32_t inode;

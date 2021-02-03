@@ -3,7 +3,7 @@
 #include "extras.hpp"
 #include "../types.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 template <typename StaticStack>
 class StaticStackIterator {

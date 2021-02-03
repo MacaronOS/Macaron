@@ -6,7 +6,7 @@ namespace kernel::tests {
 
 #define FAILM(msg)                                  \
     {                                               \
-        term_print(algorithms::String(msg) + "\n"); \
+        term_print(String(msg) + "\n"); \
         return false;                               \
     }
 
@@ -17,7 +17,7 @@ namespace kernel::tests {
 
 class Test {
 public:
-    Test(const algorithms::String& name)
+    Test(const String& name)
         : m_name(name)
     {
     }
@@ -27,9 +27,9 @@ public:
         return true;
     }
     
-    algorithms::String name() const { return m_name; }
+    String name() const { return m_name; }
 
 public:
-    algorithms::String m_name;
+    String m_name;
 };
 }

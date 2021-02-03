@@ -11,7 +11,6 @@
 namespace kernel::shell {
 
 using namespace drivers;
-using namespace algorithms;
 using namespace fs;
 
 static bool s_shift_pressed = false;

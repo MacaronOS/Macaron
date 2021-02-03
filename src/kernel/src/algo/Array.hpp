@@ -1,7 +1,7 @@
 #pragma once
 #include "../types.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 template <typename T, size_t S>
 class Array {

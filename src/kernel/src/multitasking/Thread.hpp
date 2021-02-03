@@ -16,8 +16,8 @@ enum class ThreadState {
 
 class Process;
 
-struct kernel_context_t {
-    uint32_t edi;
+struct KernelContext {
+    uint32_t edi; // eax, ecx,
     uint32_t esi;
     uint32_t ebx;
     uint32_t ebp;
@@ -33,6 +33,7 @@ struct Thread {
     void* kernel_stack;
 
     trapframe_t* trapframe;
-    kernel_context_t* kernel_context;
+    KernelContext* kernel_context;
 };
+
 }

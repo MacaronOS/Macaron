@@ -9,8 +9,6 @@
 #include "fs.hpp"
 
 namespace kernel::fs {
-using algorithms::Array;
-using algorithms::StaticStack;
 
 constexpr size_t FD_ALLOWED = 255;
 typedef uint8_t fd_t;

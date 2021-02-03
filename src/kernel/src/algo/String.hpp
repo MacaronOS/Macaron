@@ -2,7 +2,7 @@
 #include "../types.hpp"
 #include "Vector.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 class String {
 

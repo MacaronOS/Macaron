@@ -119,7 +119,7 @@ private:
     KeyboardEvent m_last_keybord_event { Key::Undefined, false };
     uint8_t data_port { 0x60 };
     uint8_t command_port { 0x64 };
-    algorithms::Vector<void (*)(KeyboardEvent)> m_callbacks {};
+    Vector<void (*)(KeyboardEvent)> m_callbacks {};
 };
 
 }

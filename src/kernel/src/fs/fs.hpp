@@ -6,8 +6,6 @@
 #include "../types.hpp"
 
 namespace kernel::fs {
-using algorithms::String;
-using algorithms::Vector;
 
 class FS {
 public:

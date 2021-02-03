@@ -54,7 +54,7 @@ $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
 $$($(1)_APP): $$($(1)_OBJS)
-	$(CC) $$(LINKER_FLAGS) $$($(1)_OBJS) -lc -L$(LIBRARIES_FOLDER) -o $$@ -lgcc
+	$(CC) -lc -L$(LIBRARIES_FOLDER) $$(LINKER_FLAGS) $$($(1)_OBJS) -lc -L$(LIBRARIES_FOLDER) -o $$@ -lgcc
 
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
@@ -76,7 +76,6 @@ uapps := $(shell find $(USERSPACE_SRC_DIR)/apps/* -maxdepth 0 -type d ! -path "b
 $(foreach app, $(uapps), $(eval $(call APP_TEMPLATE,$(app))))
 
 apps: $(USERSPACE_LIBS) $(USERSPACE_APPS)
-	echo $(USERSPACE_APPS)
 
 # ------------------------------------------------------------------------------------
 

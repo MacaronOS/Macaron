@@ -12,7 +12,7 @@
 
 #define KB_TO_BLOCKS(x) (x * KB / BLOCK_SIZE)
 
-kernel::algorithms::Bitmap pmmap; // contains the state of each memory block (0 - unused, 1 - used)
+kernel::Bitmap pmmap; // contains the state of each memory block (0 - unused, 1 - used)
 
 void pmm_init_region(uint32_t base, size_t size)
 {
@@ -66,7 +66,7 @@ void pmm_init(multiboot_info_t* mb_structure)
     const uint32_t blocks_size = mem_size / BLOCK_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
-    pmmap = kernel::algorithms::Bitmap::wrap(get_kernel_pmm_bitmap_start(false), blocks_size);
+    pmmap = kernel::Bitmap::wrap(get_kernel_pmm_bitmap_start(false), blocks_size);
     const uint32_t bitmap_memory_size = pmmap.size();
 
     pmmap.fill();

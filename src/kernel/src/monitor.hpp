@@ -8,7 +8,7 @@ void term_init();
 
 void term_print(const char* str);
 
-using kernel::algorithms::String;
+using kernel::String;
 void term_print(const String&);
 
 void term_printn(int64_t numb, uint32_t s);

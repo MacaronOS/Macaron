@@ -1,10 +1,8 @@
 #include <libc/syscalls.h>
 
-extern int putc(char c);
-
 int main()
 {
-    while (1) {
+    for (int i = 0; i < 1000000; i++) {
         volatile char a = 'a';
         putc(a);
     }

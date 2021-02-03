@@ -3,13 +3,21 @@
 #include "fs/vfs.hpp"
 #include "hardware/trapframe.hpp"
 #include "monitor.hpp"
+#include "multitasking/TaskManager.hpp"
 
 extern "C" void switch_to_user_mode();
 
 namespace kernel::syscalls {
 
-static int sys_putc(char a) {
+static int sys_putc(char a)
+{
     term_putc(a);
+    return 1;
+}
+
+static int sys_exit(int error_code)
+{
+    multitasking::TaskManager::the().sys_exit_handler(error_code);
     return 1;
 }
 
@@ -21,6 +29,7 @@ SyscallsManager::SyscallsManager()
     }
 
     register_syscall(SyscallSelector::Putc, (uint32_t)sys_putc);
+    register_syscall(SyscallSelector::Exit, (uint32_t)sys_exit);
 }
 
 void SyscallsManager::initialize()

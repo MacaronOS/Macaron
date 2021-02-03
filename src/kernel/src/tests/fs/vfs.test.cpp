@@ -21,7 +21,7 @@ bool TestVFS::test()
         FAILM("unexpected error after trunctating a testing file");
     }
 
-    algorithms::String example_input = "example";
+    String example_input = "example";
 
     // write some numbmer of characters in a tesing file
     auto write_res = vfs.write(fd_res.result(), example_input.cstr(), example_input.size());

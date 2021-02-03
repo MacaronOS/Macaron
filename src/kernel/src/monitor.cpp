@@ -82,7 +82,7 @@ void term_print(const char* str)
     }
 }
 
-using kernel::algorithms::String;
+using kernel::String;
 void term_print(const String& str)
 {
     for (size_t i = 0; i < str.size(); i++) {

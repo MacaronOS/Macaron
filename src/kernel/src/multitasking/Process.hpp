@@ -1,9 +1,13 @@
 #pragma once
-#pragma once
 #include "Thread.hpp"
 #include "../algo/Deque.hpp"
+#include "../algo/StaticStack.hpp"
 
 namespace kernel::multitasking {
+
+typedef uint8_t pid_t;
+
+constexpr pid_t MAX_PROCESSES_ALLOWED = 255;
 
 enum class ProcessState {
     Running,
@@ -15,7 +19,21 @@ struct Process {
     uint32_t page_dir_phys;
     uint32_t thread_count;
 
-    algorithms::Deque<Thread> m_threads {};
+    Deque<Thread*> m_threads {};
+};
+
+class ProcessStorage {
+    public:
+        ProcessStorage();
+        // allocates a process, with ID being set
+        Process* allocate_process();
+        void free_process(pid_t id);
+
+        Process& operator[](pid_t pid);
+
+    private:
+        Process m_process_pool[MAX_PROCESSES_ALLOWED] {};
+        StaticStack<pid_t, MAX_PROCESSES_ALLOWED> m_free_ids {};
 };
 
 }

@@ -2,7 +2,7 @@
 #include "../memory/memory.hpp"
 #include "Vector.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 String::String(const String& str)
 {

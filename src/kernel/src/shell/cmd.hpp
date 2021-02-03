@@ -1,7 +1,6 @@
 #pragma once
 #include "../algo/String.hpp"
 namespace kernel::shell::cmd {
-using namespace algorithms;
 
 void init();
 

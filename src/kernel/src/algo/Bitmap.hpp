@@ -4,7 +4,7 @@
 
 #define BITMAP_NULL -1
 
-namespace kernel::algorithms {
+namespace kernel {
 
 class Bitmap {
 private:

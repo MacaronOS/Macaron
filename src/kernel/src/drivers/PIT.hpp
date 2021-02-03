@@ -36,6 +36,6 @@ public:
 private:
     uint32_t m_frequency {};
     uint32_t m_ticks_passed {};
-    algorithms::Vector<Callback> m_callbacks {};
+    Vector<Callback> m_callbacks {};
 };
 }

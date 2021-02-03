@@ -2,7 +2,7 @@
 
 #include "../monitor.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 template <typename T>
 class DequeNode {
@@ -63,6 +63,10 @@ public:
     DequeIterator(DequeNode<ValueType>* ptr)
         : m_ptr(ptr)
     {
+    }
+    DequeIterator operator=(const DequeIterator& oth) {
+        m_ptr = oth.m_ptr;
+        return *this;
     }
 
     ValueType& operator*()
@@ -203,10 +207,15 @@ public:
         return end();
     }
 
-    void remove(const Iterator& del_it)
+    // removes element by its iterator,
+    // returns previous element
+    Iterator remove(const Iterator& del_it)
     {
+        auto cp = del_it;
+        cp--;
         delete del_it.m_ptr;
         m_size--;
+        return cp;
     }
 
     Iterator begin()

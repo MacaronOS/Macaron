@@ -10,8 +10,6 @@
 #include "ext2fs.hpp"
 
 namespace kernel::fs {
-using algorithms::String;
-using algorithms::Vector;
 
 class FS;
 

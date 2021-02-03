@@ -15,7 +15,7 @@ public:
     void add_test(Test* tests);
 
 private:
-    algorithms::Vector<Test*> m_tests {};
+    Vector<Test*> m_tests {};
 };
 
 }

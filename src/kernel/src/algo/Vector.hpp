@@ -4,7 +4,7 @@
 #include "../memory/memory.hpp"
 #include "../types.hpp"
 
-namespace kernel::algorithms {
+namespace kernel {
 
 template <typename T>
 class Vector {

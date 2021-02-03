@@ -13,3 +13,8 @@ int putc(char c)
 {
     return do_syscall(SYS_PUTC, c, 0, 0, 0, 0);
 }
+
+int exit(int error_code)
+{
+    return do_syscall(SYS_EXIT, error_code, 0, 0, 0, 0);
+}

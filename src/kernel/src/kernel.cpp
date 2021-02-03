@@ -27,10 +27,10 @@
 #include "shell/Shell.hpp"
 #include "tests/tests.hpp"
 
-using kernel::algorithms::Array;
-using kernel::algorithms::Deque;
-using kernel::algorithms::StaticStack;
-using kernel::algorithms::Vector;
+using kernel::Array;
+using kernel::Deque;
+using kernel::StaticStack;
+using kernel::Vector;
 using kernel::drivers::DriverEntity;
 using kernel::drivers::DriverManager;
 using kernel::drivers::PIT;
@@ -52,31 +52,6 @@ extern "C" void call_constructors()
 {
     for (constructor* i = &start_ctors; i != &end_ctors; i++) {
         (*i)();
-    }
-}
-
-extern "C" void sys_printd(int);
-extern "C" void switch_to_user_mode();
-
-void test1()
-{
-    while (true) {
-        term_print("test kernel thread: ");
-        sys_printd(1);
-        term_printd(1);
-        term_print("\n");
-    }
-
-    // exit() - destroy thread
-    // destroy thread
-}
-
-void test2()
-{
-    while (true) {
-        term_print("test kernel thread: ");
-        term_printd(2);
-        term_print("\n");
     }
 }
 
