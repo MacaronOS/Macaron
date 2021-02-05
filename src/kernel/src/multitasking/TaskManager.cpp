@@ -116,34 +116,17 @@ void TaskManager::add_kernel_thread(void (*func)())
 
 void TaskManager::create_process(const String& filepath)
 {
-    auto& vfs = fs::VFS::the();
     auto& vmm = VMM::the();
 
-    auto fd_or_error = vfs.open(filepath, 1);
-    if (!fd_or_error) {
+    const uint32_t page_dir_phys = vmm.clone_page_directory();
+    auto exec_data = m_elf.load_exec(filepath, page_dir_phys);
+
+    if (!exec_data) {
         return;
     }
-
-    auto bianry_size_res = vfs.file_size(fd_or_error.result());
-    if (!bianry_size_res) {
-        return;
-    }
-
-    size_t binary_size = bianry_size_res.result();
 
     Process* new_proc = m_process_storage.allocate_process();
-    new_proc->page_dir_phys = vmm.clone_page_directory();
-
-    // allocate space for the binary
-    const size_t bin_pages_count = binary_size / 4096 + (binary_size % 4096 != 0);
-    for (size_t page = 0; page < bin_pages_count; page++) {
-        vmm.create_frame(new_proc->page_dir_phys, page * 4096);
-    }
-    // alocate space for the bss
-    vmm.create_frame(new_proc->page_dir_phys, bin_pages_count);
-    // load the binary
-    vmm.set_page_directory(new_proc->page_dir_phys);
-    vfs.read(fd_or_error.result(), (void*)0, binary_size);
+    new_proc->page_dir_phys = page_dir_phys;
 
     Thread* new_thread = new Thread;
     new_thread->process = new_proc;
@@ -157,12 +140,11 @@ void TaskManager::create_process(const String& filepath)
     trapframe->es = GDT_KERNEL_DATA_OFFSET;
     trapframe->fs = GDT_KERNEL_DATA_OFFSET;
     trapframe->gs = GDT_KERNEL_DATA_OFFSET;
-
-    trapframe->eip = (uint32_t)0;
     trapframe->cs = GDT_KERNEL_CODE_OFFSET;
+    trapframe->ss = GDT_KERNEL_DATA_OFFSET;
+    trapframe->eip = exec_data.result().entry_point;
     trapframe->eflags = 0x202;
     trapframe->useresp = (uint32_t)new_thread->user_stack + USER_STACK_SIZE;
-    trapframe->ss = GDT_KERNEL_DATA_OFFSET;
 
     new_thread->trapframe = trapframe;
 

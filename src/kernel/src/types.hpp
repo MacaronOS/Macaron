@@ -25,5 +25,6 @@ typedef uint32_t            size_t;
 #define KB 1024
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 #endif // MISTIX_KERNEL_TYPES_H

@@ -7,6 +7,7 @@
 
 #include "Process.hpp"
 #include "Thread.hpp"
+#include "Elf/Elf.hpp"
 
 namespace kernel::multitasking {
 
@@ -33,6 +34,7 @@ private:
     void schedule(trapframe_t* tf);
 
 private:
+    Elf m_elf {};
     Process* m_kernel_process;
     ProcessStorage m_process_storage {};
     Deque<Thread*> m_threads {};

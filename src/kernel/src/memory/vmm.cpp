@@ -6,8 +6,6 @@
 #include "pmm.hpp"
 #include "regions.hpp"
 
-#define PAGE_SIZE 4096
-
 // int paging.s
 extern "C" void set_cr3(uint32_t page_directory_phys);
 extern "C" void enable_paging();

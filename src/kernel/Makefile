@@ -18,7 +18,7 @@ $(KERNEL_BUILD_DIR)/%.s.o: $(KERNEL_SRC_DIR)/%.s
 # cpp source
 $(KERNEL_BUILD_DIR)/%.cpp.o: $(KERNEL_SRC_DIR)/%.cpp
 	$(MKDIR_P) $(dir $@)
-	@ $(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CPPC) $(CPPFLAGS) $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
 
 kernel:	$(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
@@ -39,7 +39,7 @@ $(KERNEL_BUILD_DIR)/%.s.test.o: $(KERNEL_SRC_DIR)/%.s
 
 $(KERNEL_BUILD_DIR)/%.cpp.test.o: $(KERNEL_SRC_DIR)/%.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) -DMISTIXX_TEST $(CFLAGS) -c $< -o $@
+	$(CPPC) $(CPPFLAGS) -DMISTIXX_TEST $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
 
 kernel_tester: $(KERNEL_BUILD_DIR)/$(TEST_EXEC)
 

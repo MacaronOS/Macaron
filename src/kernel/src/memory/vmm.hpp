@@ -6,6 +6,8 @@
 #include "../algo/Singleton.hpp"
 #include "../algo/Singleton.hpp"
 
+#define PAGE_SIZE 4096
+
 typedef union {
     struct {
         uint32_t present : 1;
