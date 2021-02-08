@@ -1,6 +1,11 @@
 [GLOBAL set_cr3]
 [GLOBAL enable_paging]
 [GLOBAL flush_cr3]
+[GLOBAL get_cr2]
+
+get_cr2:
+    mov eax, cr2
+    ret
 
 set_cr3:
     mov eax, [esp+4]

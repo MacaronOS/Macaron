@@ -16,6 +16,8 @@ TaskManager* Singleton<TaskManager>::s_t = nullptr;
 template <>
 bool Singleton<TaskManager>::s_initialized = false;
 
+using namespace memory;
+
 TaskManager::TaskManager()
 {
     // setup the initial kernel process

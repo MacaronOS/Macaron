@@ -4,11 +4,16 @@
 template <typename T>
 class Singleton {
 public:
-    static bool initialize()
+    template <typename... Types>
+    static bool initialize(Types... args)
     {
-        s_t = new T();
+        s_t = new T(args...);
         s_initialized = true;
         return s_initialized;
+    }
+    static bool initialize()
+    {
+        return initialize<>();
     }
     static T& the()
     {
