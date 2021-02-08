@@ -1,18 +1,35 @@
-#ifndef MISTIX_KERNEL_MEMORY_PMM_H
-#define MISTIX_KERNEL_MEMORY_PMM_H
+#pragma once
 
-#include "../multiboot.hpp"
-#include "../types.hpp"
+#include <types.hpp>
+#include <multiboot.hpp>
 
-#define BLOCK_SIZE 4096
+#include <algo/Bitmap.hpp>
+#include <algo/Singleton.hpp>
 
-enum class ShouldZeroFill {
-    No,
-    Yes
+namespace kernel::memory {
+
+constexpr uint32_t FRAME_SIZE = 4096;
+
+class PMM : public Singleton<PMM> {
+public:
+    PMM(multiboot_info* multiboot_info);
+
+    // allocates available frame
+    // frame represents a FRAME_SIZE sized chunk of main memory
+    uint32_t allocate_frame();
+    // deallocates frame
+    void free_frame(uint32_t frame);
+
+private:
+    // marks memory [left ; right] as occupied
+    void occupy_range(uint32_t left, size_t right);
+
+    // marks memory [left ; right] as free
+    void free_range(uint32_t left, size_t right);
+
+private:
+    multiboot_info* m_multiboot_info; // initial disk layout information, provided by GRUB
+    Bitmap m_pmmap; // contains the state of each memory block (0 - unused, 1 - used)
 };
 
-void pmm_init(multiboot_info_t*);
-void* pmm_allocate_block(ShouldZeroFill = ShouldZeroFill::Yes, bool phys = true);
-void pmm_free_block(void*);
-
-#endif // MISTIX_KERNEL_MEMORY_PMM_H
+}

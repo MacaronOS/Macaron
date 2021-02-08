@@ -17,10 +17,10 @@
 #include "fs/ext2fs.hpp"
 #include "fs/vfs.hpp"
 #include "hardware/descriptor_tables.hpp"
+#include "memory/Layout.hpp"
 #include "memory/kmalloc.hpp"
 #include "memory/memory.hpp"
 #include "memory/pmm.hpp"
-#include "memory/regions.hpp"
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
 #include "multiboot.hpp"
@@ -29,23 +29,14 @@
 #include "syscalls.hpp"
 #include "tests/tests.hpp"
 
-using kernel::Array;
-using kernel::Deque;
-using kernel::StaticStack;
-using kernel::Vector;
-using kernel::drivers::DriverEntity;
-using kernel::drivers::DriverManager;
-using kernel::drivers::PIT;
-using kernel::drivers::Ata::Ata;
-using kernel::fs::File;
-using kernel::fs::FilePermission;
-using kernel::fs::FileStorage;
-using kernel::fs::FileType;
-using kernel::fs::FS;
-using kernel::fs::VFS;
-using kernel::fs::ext2::Ext2;
-using kernel::multitasking::TaskManager;
-using kernel::syscalls::SyscallsManager;
+using namespace kernel;
+using namespace drivers;
+using namespace Ata;
+using namespace fs;
+using namespace ext2;
+using namespace multitasking;
+using namespace syscalls;
+using namespace memory;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -61,17 +52,15 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 {
     init_descriptor_tables();
     term_init();
-    pmm_init(multiboot_structure);
     kmalloc_init();
+    PMM::initialize<multiboot_info*>(multiboot_structure);
+    VMM::initialize();
     InterruptManager::initialize();
     SyscallsManager::initialize();
 
-    // setting VMM
-    VMM::initialize();
-
     // setting Drivers
     DriverManager::initialize();
-    auto* ata = new Ata(0x1F0, true, DriverEntity::Ata0);
+    auto* ata = new Ata::Ata(0x1F0, true, DriverEntity::Ata0);
     auto* pit = new PIT();
     DriverManager::the().add_driver(*ata);
     DriverManager::the().add_driver(*pit);
@@ -91,10 +80,10 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     asm volatile("sti");
     kernel::shell::run();
 
-    // start up userspace process is going to be main 
-    
-    // TaskManager::initialize();
-    // TaskManager::the().create_process("/ext2/apps/main.app");
-    // TaskManager::the().run();
+    // start up userspace process is going to be main
+
+    TaskManager::initialize();
+    TaskManager::the().create_process("/ext2/apps/main.app");
+    TaskManager::the().run();
 #endif
 }

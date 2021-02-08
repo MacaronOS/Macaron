@@ -1,22 +1,23 @@
 #include "kmalloc.hpp"
-#include "regions.hpp"
+#include "Layout.hpp"
 
-#include "../types.hpp"
 #include "../assert.hpp"
+#include "../types.hpp"
+
+using namespace kernel::memory;
 
 void kmalloc_init()
 {
-    kmalloc_header_t* first_block = (kmalloc_header_t*)(get_kernel_heap_start(false));
-
+    kmalloc_header_t* first_block = reinterpret_cast<kmalloc_header_t*>(Layout::GetLocationVirt(LayoutElement::KernelHeapStart));
+    first_block->size = Layout::GetLocationVirt(LayoutElement::KernelHeapEnd) - Layout::GetLocationVirt(LayoutElement::KernelHeapStart) - sizeof(kmalloc_header_t);
     first_block->free = 1;
     first_block->next_block = 0;
     first_block->prev_block = 0;
-    first_block->size = get_kernel_heap_end(false) - get_kernel_heap_start(false) - sizeof(kmalloc_header_t);
 }
 
 void* kmalloc(size_t size)
 {
-    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start(false));
+    kmalloc_header_t* block = reinterpret_cast<kmalloc_header_t*>(Layout::GetLocationVirt(LayoutElement::KernelHeapStart));
     kmalloc_header_t* first_fit_block = 0;
 
     while (!first_fit_block && block) {
@@ -49,7 +50,7 @@ void* kmalloc(size_t size)
 
 void kfree(void* mem)
 {
-    if ((uint32_t)mem + sizeof(kmalloc_header_t) >= get_kernel_heap_end(false) || (uint32_t)mem < get_kernel_heap_start(false)) {
+    if ((uint32_t)mem + sizeof(kmalloc_header_t) >= Layout::GetLocationVirt(LayoutElement::KernelHeapEnd) || (uint32_t)mem < Layout::GetLocationVirt(LayoutElement::KernelHeapStart)) {
         return;
     }
     kmalloc_header_t* block = (kmalloc_header_t*)((uint32_t)mem - sizeof(kmalloc_header_t));
@@ -73,7 +74,7 @@ void kfree(void* mem)
 #ifdef DEBUG
 void kmalloc_dump()
 {
-    kmalloc_header_t* block = (kmalloc_header_t*)(get_kernel_heap_start(false));
+    kmalloc_header_t* block = (kmalloc_header_t*)(Layout::GetLocationVirt(LayoutElement::KernelHeapStart));
     while (block) {
         term_print("block_size: ");
         term_printd(block->size);

@@ -1,23 +1,39 @@
 #include "vmm.hpp"
-#include "../assert.hpp"
-#include "../monitor.hpp"
-#include "../types.hpp"
+#include "Layout.hpp"
 #include "memory.hpp"
+#include "pagingstructs.hpp"
 #include "pmm.hpp"
-#include "regions.hpp"
+
+#include <assert.hpp>
+#include <monitor.hpp>
+#include <types.hpp>
+
+#include <multitasking/TaskManager.hpp>
 
 // int paging.s
 extern "C" void set_cr3(uint32_t page_directory_phys);
 extern "C" void enable_paging();
 extern "C" void flush_cr3();
+extern "C" uint32_t get_cr2();
 
 extern "C" uint32_t boot_page_directory;
+extern "C" uint32_t boot_page_table1;
 extern "C" uint32_t boot_page_table2;
+
+namespace kernel::memory {
 
 template <>
 VMM* Singleton<VMM>::s_t = nullptr;
 template <>
 bool Singleton<VMM>::s_initialized = false;
+
+VMM::VMM()
+    : InterruptHandler(14)
+    , m_buffer_1(Layout::GetLocationVirt(LayoutElement::PagingBuffer1))
+    , m_buffer_2(Layout::GetLocationVirt(LayoutElement::PagingBuffer2))
+{
+    set_page_directory(m_kernel_directory_phys);
+}
 
 void VMM::set_page_directory(uint32_t page_directory_phys)
 {
@@ -38,7 +54,6 @@ void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
     }
 
     uint32_t page_table_phys = page_directory_virt->entries[frame_virt_addr / PAGE_SIZE / 1024].page_table_base_adress * PAGE_SIZE;
-
     map_to_buffer(page_table_phys, m_buffer_1);
     page_table_t* page_table_virt = (page_table_t*)m_buffer_1;
 
@@ -46,12 +61,12 @@ void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
         return;
     }
 
-    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].frame_adress = (uint32_t)pmm_allocate_block(ShouldZeroFill::No) / PAGE_SIZE;
+    page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].frame_adress = PMM::the().allocate_frame();
     page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].present = true;
     page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].rw = true;
     page_table_virt->entries[frame_virt_addr / PAGE_SIZE % 1024].user_mode = true;
 
-    unmap_from_buffer(m_buffer_1);
+    flush_cr3();
 }
 
 uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
@@ -60,7 +75,7 @@ uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
         src_page_directory_phys = (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET;
     }
 
-    uint32_t dest_page_dir_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    uint32_t dest_page_dir_phys = PMM::the().allocate_frame() * FRAME_SIZE;
     map_to_buffer(dest_page_dir_phys, m_buffer_1);
     map_to_buffer(src_page_directory_phys, m_buffer_2);
 
@@ -75,6 +90,7 @@ uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
 
     for (size_t i = 0; i < 768; i++) {
         if (src_page_dir_virt->entries[i].__bits) {
+            dest_page_dir_virt->entries[i] = src_page_dir_virt->entries[i];
             dest_page_dir_virt->entries[i].page_table_base_adress = clone_page_table(src_page_dir_virt->entries[i].page_table_base_adress * PAGE_SIZE) / PAGE_SIZE;
         }
     }
@@ -89,7 +105,7 @@ uint32_t VMM::create_page_table()
 {
     uint32_t buffer_1_cp = get_buffered_phys_address(m_buffer_1);
 
-    uint32_t page_table_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    uint32_t page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
     map_to_buffer(page_table_phys, m_buffer_1);
     page_table_t* page_table_virt = (page_table_t*)m_buffer_1;
     memset(page_table_virt, 0, sizeof(page_table_t));
@@ -105,7 +121,7 @@ uint32_t VMM::clone_page_table(uint32_t src_page_table_phys)
     uint32_t buffer_2_cp = get_buffered_phys_address(m_buffer_2);
 
     // allocate space for the new page table
-    uint32_t dest_page_table_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    uint32_t dest_page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
 
     // map page tables
     map_to_buffer(dest_page_table_phys, m_buffer_1);
@@ -115,6 +131,7 @@ uint32_t VMM::clone_page_table(uint32_t src_page_table_phys)
     page_table_t* src_page_table_virt = (page_table_t*)m_buffer_2;
 
     memset(dest_page_table_virt, 0, sizeof(page_table_t));
+    flush_cr3();
     for (size_t i = 0; i < 1024; i++) {
         if (src_page_table_virt->entries[i].__bits) {
             dest_page_table_virt->entries[i] = src_page_table_virt->entries[i];
@@ -133,7 +150,7 @@ uint32_t VMM::clone_frame(uint32_t src_frame_phys)
     uint32_t buffer_1_cp = get_buffered_phys_address(m_buffer_1);
     uint32_t buffer_2_cp = get_buffered_phys_address(m_buffer_2);
 
-    uint32_t dest_frame_phys = (uint32_t)pmm_allocate_block(ShouldZeroFill::No);
+    uint32_t dest_frame_phys = PMM::the().allocate_frame() * FRAME_SIZE;
 
     map_to_buffer(dest_frame_phys, m_buffer_1);
     map_to_buffer(src_frame_phys, m_buffer_2);
@@ -146,31 +163,82 @@ uint32_t VMM::clone_frame(uint32_t src_frame_phys)
     return dest_frame_phys;
 }
 
-void VMM::map_to_buffer(uint32_t phys, uint32_t buff)
+void VMM::map_to_buffer(uint32_t phys, uint32_t buff_virt)
 {
-    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
-    page_table_t* pt = (page_table_t*)&boot_page_table2;
-
-    pt->entries[pd_pt_index].frame_adress = phys / PAGE_SIZE;
-    pt->entries[pd_pt_index].present = 1;
-    pt->entries[pd_pt_index].rw = 1;
-    pt->entries[pd_pt_index].user_mode = 1; // set as user for now
+    auto& pte = get_buffer_pte(buff_virt);
+    pte.frame_adress = phys / FRAME_SIZE;
+    pte.present = 1;
+    pte.rw = 1;
+    pte.user_mode = 1; // set as user for now
 
     flush_cr3();
 }
 
-void VMM::unmap_from_buffer(uint32_t buff)
+void VMM::unmap_from_buffer(uint32_t buff_virt)
 {
-    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
-    page_table_t* pt = (page_table_t*)&boot_page_table2;
-
-    pt->entries[pd_pt_index].__bits = 0;
+    get_buffer_pte(buff_virt).__bits = 0;
+    flush_cr3();
 }
 
-uint32_t VMM::get_buffered_phys_address(uint32_t buff)
+uint32_t VMM::get_buffered_phys_address(uint32_t buff_virt)
 {
-    uint32_t pd_pt_index = buff / PAGE_SIZE % 1024;
-    page_table_t* pt = (page_table_t*)&boot_page_table2;
+    return get_buffer_pte(buff_virt).frame_adress * PAGE_SIZE;
+}
 
-    return pt->entries[pd_pt_index].frame_adress * PAGE_SIZE;
+page_table_entry_t& VMM::get_buffer_pte(uint32_t buff_virt)
+{
+    // at first, calculating a page table which locates buffer.
+    // as buffers are in a higher half and they were initialy shifted
+    // by HIGHER_HALF_OFFSET=0xC0000000, we know, that the page table is one of 2 - 768 or 769
+
+    static page_table_t* page_tables[] = {
+        (page_table_t*)&boot_page_table1,
+        (page_table_t*)&boot_page_table2,
+    };
+
+    page_table_t* pt = page_tables[buff_virt / PAGE_SIZE / 1024 - 768];
+
+    // now, find what offset has this buffer withing the page table
+    return pt->entries[buff_virt / PAGE_SIZE % 1024];
+}
+
+void VMM::handle_interrupt(trapframe_t* tf)
+{
+    term_print("\nPage fault! Info:\n");
+
+    term_print("Virtual address: ");
+    term_printd(get_cr2());
+
+    static PageFaultFlag flags[] = {
+        PageFaultFlag::Present,
+        PageFaultFlag::Write,
+        PageFaultFlag::User,
+        PageFaultFlag::ReservedWrite,
+        PageFaultFlag::InstructionFetch,
+    };
+
+    static char* descr[] = {
+        "Present",
+        "Write",
+        "User",
+        "ReservedWrite",
+        "InstructionFetch",
+    };
+
+    term_print("\nFlags: ");
+
+    for (auto flag : flags) {
+        if (tf->err_code & (1 << static_cast<uint32_t>(flag))) {
+            term_print(descr[static_cast<uint32_t>(flag)]);
+            term_print(" ");
+        }
+    }
+
+    term_print("\nPID:");
+    term_printd(multitasking::TaskManager::the().cur_thread()->process->id);
+    term_print("\n");
+
+    STOP();
+}
+
 }

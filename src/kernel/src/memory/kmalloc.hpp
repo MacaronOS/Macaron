@@ -1,9 +1,6 @@
 #pragma once
 
-#include "regions.hpp"
 #include "../types.hpp"
-
-#define HEAP_SIZE 4 * 1024 * 1024
 
 typedef struct kmalloc_header {
     struct kmalloc_header* next_block;

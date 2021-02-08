@@ -9,6 +9,8 @@
 
 namespace kernel::multitasking {
 
+using namespace memory;
+
 KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_directory)
 {
     auto& vfs = fs::VFS::the();

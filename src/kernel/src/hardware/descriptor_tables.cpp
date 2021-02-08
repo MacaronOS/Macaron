@@ -2,7 +2,6 @@
 #include "../memory/memory.hpp"
 #include "port.hpp"
 #include "../types.hpp"
-#include "../memory/regions.hpp"
 
 // Lets us access our ASM functions from our C code.
 extern "C" void gdt_flush(uint32_t);

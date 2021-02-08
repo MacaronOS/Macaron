@@ -13,7 +13,8 @@ namespace kernel {
 
 Bitmap::Bitmap(uint32_t location, size_t size)
     : m_array((uint32_t*)location)
-    , m_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
+    , m_size(size)
+    , m_memory_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
     , m_self_created(false)
 {
 }
@@ -37,9 +38,14 @@ Bitmap::~Bitmap()
     }
 }
 
-size_t Bitmap::size()
+size_t Bitmap::size() const
 {
     return m_size;
+}
+
+size_t Bitmap::memory_size() const
+{
+    return m_memory_size;
 }
 
 bool Bitmap::operator[](const size_t index)
