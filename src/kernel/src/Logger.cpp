@@ -1,9 +1,7 @@
-#pragma once
-
+#include "Logger.hpp"
 #include <algo/String.hpp>
 #include <drivers/DriverManager.hpp>
 #include <drivers/Uart.hpp>
-
 namespace kernel {
 
 using namespace drivers;
@@ -58,6 +56,39 @@ namespace Logger {
     void printd(int64_t numb)
     {
         printn(numb, 10);
+    }
+
+    void printd(uint32_t numb)
+    {
+        char buffer[15];
+        int pos = 0;
+
+        do {
+            buffer[pos++] = numb % 10 + '0';
+            numb /= 10;
+        } while (numb);
+
+        while (pos) {
+            putc((char)buffer[pos - 1]);
+            pos--;
+        }
+    }
+
+    const Log& operator<<(const Log& log, const String& value)
+    {
+        print(value);
+        return log;
+    }
+
+    const Log& operator<<(const Log& log, uint32_t value)
+    {
+        printd(value);
+        return log;
+    }
+
+    const Log& operator<<(const Log& log, int value) {
+        printd((int64_t)value);
+        return log;
     }
 }
 }
