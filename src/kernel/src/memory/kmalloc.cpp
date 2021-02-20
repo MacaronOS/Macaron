@@ -48,6 +48,11 @@ void* kmalloc(size_t size)
     return (void*)((uint32_t)first_fit_block + sizeof(kmalloc_header_t));
 }
 
+void* kmalloc_4(size_t size)
+{
+    return (void*)((uint32_t)kmalloc(size + 3) & ~(uint32_t)(3));
+}
+
 void kfree(void* mem)
 {
     if ((uint32_t)mem + sizeof(kmalloc_header_t) >= Layout::GetLocationVirt(LayoutElement::KernelHeapEnd) || (uint32_t)mem < Layout::GetLocationVirt(LayoutElement::KernelHeapStart)) {
