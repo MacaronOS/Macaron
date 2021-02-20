@@ -11,6 +11,10 @@ typedef struct kmalloc_header {
 
 void kmalloc_init();
 void* kmalloc(size_t);
+
+//kmalloc, but 4 bytes aligned
+void* kmalloc_4(size_t);
+
 void kfree(void*);
 #ifdef DEBUG
 void kmalloc_dump();
