@@ -7,6 +7,7 @@
 #include <assert.hpp>
 #include <monitor.hpp>
 #include <types.hpp>
+#include <Logger.hpp>
 
 #include <multitasking/TaskManager.hpp>
 
@@ -21,6 +22,8 @@ extern "C" uint32_t boot_page_table1;
 extern "C" uint32_t boot_page_table2;
 
 namespace kernel::memory {
+
+using namespace Logger;
 
 template <>
 VMM* Singleton<VMM>::s_t = nullptr;
@@ -239,6 +242,34 @@ void VMM::handle_interrupt(trapframe_t* tf)
     term_print("\n");
 
     STOP();
+}
+
+void VMM::inspect_page_diriectory(uint32_t page_directory_phys)
+{
+
+    map_to_buffer(page_directory_phys, m_buffer_2);
+    page_directory_t* page_dir_virt = (page_directory_t*)m_buffer_2;
+
+    for (size_t i = 0; i < 1024; i++) {
+        if (i == 768 || i == 769) {
+            continue; // skip kernel page tables
+        }
+        if (page_dir_virt->entries[i].__bits) {
+            inspect_page_table(page_dir_virt->entries[i].page_table_base_adress * 4096, i);
+        }
+    }
+}
+
+void VMM::inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index)
+{
+    map_to_buffer(page_table_phys, m_buffer_1);
+    page_table_t* page_table_virt = (page_table_t*)m_buffer_1;
+
+    for (size_t i = 0; i < 1024; i++) {
+        if (page_table_virt->entries[i].__bits) {
+            Log() << "Page: " << (page_table_index * 1024 + i) * 4096 << " , Frame: " << page_table_virt->entries[i].frame_adress * 4096 << "\n";
+        }
+    }
 }
 
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.hpp"
+#include <types.hpp>
 
 #define GDT_KERNEL_CODE_OFFSET 0x08
 #define GDT_KERNEL_DATA_OFFSET 0x10
@@ -13,6 +13,8 @@
 #define GDT_USER_CODE 3
 #define GDT_USER_DATA 4
 #define GDT_TSS 5
+
+#define REQUEST_RING_3 3
 
 typedef struct {
     uint16_t limit_low; // The lower 16 bits of the limit.
@@ -30,6 +32,8 @@ typedef struct {
 
 void init_descriptor_tables();
 void write_tss(uint16_t ss0, uint32_t esp0);
+
+void set_kernel_stack(uint32_t stack);
 
 typedef struct {
     uint16_t base_lo; // the lower 16 bits of the address to jump to when this interrupt fires
@@ -97,31 +101,31 @@ extern "C" void isr128();
 
 struct [[gnu::packed]] tss_entry_t
 {
-   uint32_t prev_tss { 0 };
-   uint32_t esp0 { 0 };
-   uint32_t ss0 { 0 };
-   uint32_t esp1 { 0 };
-   uint32_t ss1 { 0 };
-   uint32_t esp2 { 0 };
-   uint32_t ss2 { 0 };
-   uint32_t cr3 { 0 };
-   uint32_t eip { 0 };
-   uint32_t eflags { 0 };
-   uint32_t eax { 0 };
-   uint32_t ecx { 0 };
-   uint32_t edx { 0 };
-   uint32_t ebx { 0 };
-   uint32_t esp { 0 };
-   uint32_t ebp { 0 };
-   uint32_t esi { 0 };
-   uint32_t edi { 0 };
-   uint32_t es { 0 };
-   uint32_t cs { 0 };
-   uint32_t ss { 0 };
-   uint32_t ds { 0 };
-   uint32_t fs { 0 };
-   uint32_t gs { 0 };
-   uint32_t ldt { 0 };
-   uint16_t trap { 0 };
-   uint16_t iomap_base { 0 };
+    uint32_t prev_tss { 0 };
+    uint32_t esp0 { 0 };
+    uint32_t ss0 { 0 };
+    uint32_t esp1 { 0 };
+    uint32_t ss1 { 0 };
+    uint32_t esp2 { 0 };
+    uint32_t ss2 { 0 };
+    uint32_t cr3 { 0 };
+    uint32_t eip { 0 };
+    uint32_t eflags { 0 };
+    uint32_t eax { 0 };
+    uint32_t ecx { 0 };
+    uint32_t edx { 0 };
+    uint32_t ebx { 0 };
+    uint32_t esp { 0 };
+    uint32_t ebp { 0 };
+    uint32_t esi { 0 };
+    uint32_t edi { 0 };
+    uint32_t es { 0 };
+    uint32_t cs { 0 };
+    uint32_t ss { 0 };
+    uint32_t ds { 0 };
+    uint32_t fs { 0 };
+    uint32_t gs { 0 };
+    uint32_t ldt { 0 };
+    uint16_t trap { 0 };
+    uint16_t iomap_base { 0 };
 };

@@ -1,6 +1,7 @@
 #include "InterruptManager.hpp"
-#include "../assert.hpp"
-#include "../monitor.hpp"
+#include <Logger.hpp>
+#include <assert.hpp>
+#include <monitor.hpp>
 
 template <>
 InterruptManager* Singleton<InterruptManager>::s_t = nullptr;

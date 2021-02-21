@@ -4,11 +4,12 @@
 #include "hardware/trapframe.hpp"
 #include "monitor.hpp"
 #include "multitasking/TaskManager.hpp"
+#include "Logger.hpp"
 
 extern "C" void switch_to_user_mode();
 
 namespace kernel::syscalls {
-
+using namespace Logger;
 static int sys_putc(char a)
 {
     term_putc(a);
@@ -21,6 +22,11 @@ static int sys_exit(int error_code)
     return 1;
 }
 
+static int sys_fork()
+{
+    return multitasking::TaskManager::the().sys_fork_handler();
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -30,6 +36,7 @@ SyscallsManager::SyscallsManager()
 
     register_syscall(SyscallSelector::Putc, (uint32_t)sys_putc);
     register_syscall(SyscallSelector::Exit, (uint32_t)sys_exit);
+    register_syscall(SyscallSelector::Fork, (uint32_t)sys_fork);
 }
 
 void SyscallsManager::initialize()

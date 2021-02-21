@@ -5,6 +5,9 @@ include src/userspace/Makefile
 run: build
 	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
+debug:
+	$(QEMU) -s -S -snapshot $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
+
 build: apps kernel
 
 install:

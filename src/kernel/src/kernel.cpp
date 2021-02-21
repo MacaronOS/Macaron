@@ -52,10 +52,11 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 {
     init_descriptor_tables();
     term_init();
+    term_print("hello\n");
     kmalloc_init();
+    InterruptManager::initialize();
     PMM::initialize<multiboot_info*>(multiboot_structure);
     VMM::initialize();
-    InterruptManager::initialize();
     SyscallsManager::initialize();
 
     // setting Drivers
@@ -77,7 +78,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 #ifdef MISTIXX_TEST
     test_main();
 #else
-    asm volatile("sti");
+    // asm volatile("sti");
     kernel::shell::run();
 
     // start up userspace process is going to be main

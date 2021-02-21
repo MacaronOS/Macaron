@@ -46,6 +46,7 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
             }
             vfs.lseek(prog_fd, ph_table[i].offset, SEEK_SET);
             vfs.read(prog_fd, (void*)ph_table[i].vaddr, ph_table->filesz);
+            memset((void*)(ph_table[i].vaddr + ph_table->filesz), 0, ph_table->memsz - ph_table->filesz);
         }
     }
 

@@ -2,7 +2,7 @@
   [GLOBAL isr%1]
   isr%1:
     cli
-    push byte 0
+    push 0
     push %1
     jmp isr_common_stub
 %endmacro
@@ -52,7 +52,7 @@ ISR_NOERRCODE 128
 ; In isr.c
 [EXTERN isr_handler]
 isr_common_stub:
-  pusha
+  pushad
 
   xor eax, eax
 
@@ -68,6 +68,8 @@ isr_common_stub:
   mov ax, ds
   push eax
 
+  push esp
+
   mov ax, 0x10 
   mov ds, ax
   mov es, ax
@@ -76,6 +78,8 @@ isr_common_stub:
 
   call isr_handler
 
+  pop esp
+
   pop eax
   mov ds, ax
 
@@ -88,10 +92,10 @@ isr_common_stub:
   pop eax
   mov gs, ax
 
-  popa
+  popad
   add esp, 8 ; clears error code and isr number
   sti
-  iret ; CS, EIP, EFLAGS, SS, and ESP
+  iretd ; CS, EIP, EFLAGS, SS, and ESP
 
 
 %macro IRQ 2
@@ -123,7 +127,7 @@ IRQ   15,    47
 ; In isr.c
 [EXTERN irq_handler]
 irq_common_stub:
-  pusha
+  pushad
 
   xor eax, eax
 
@@ -139,6 +143,8 @@ irq_common_stub:
   mov ax, ds
   push eax
 
+  push esp
+
   mov ax, 0x10 
   mov ds, ax
   mov es, ax
@@ -147,6 +153,8 @@ irq_common_stub:
 
   call irq_handler
 
+  pop esp
+
   pop eax
   mov ds, ax
 
@@ -159,7 +167,7 @@ irq_common_stub:
   pop eax
   mov gs, ax
 
-  popa
+  popad
   add esp, 8 ; clears error code and isr number
   sti
   iret ; CS, EIP, EFLAGS, SS, and ESP

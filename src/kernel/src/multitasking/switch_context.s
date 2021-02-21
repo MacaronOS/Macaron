@@ -15,10 +15,9 @@ return_from_scheduler:
     pop eax
     mov gs, ax
 
-    popa
+    popad
     add esp, 8 ; clears error code and isr number
-    sti
-    iret ; CS, EIP, EFLAGS, SS, and ESP
+    iretd ; CS, EIP, EFLAGS, SS, and ESP
 
 
 return_to_the_kernel_handler:

@@ -10,7 +10,7 @@
 
 namespace kernel::drivers {
 
-constexpr uint32_t default_frequency = 1000;
+constexpr uint32_t default_frequency = 150;
 
 class PIT : public Driver, InterruptHandler {
 public:
