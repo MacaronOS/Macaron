@@ -50,7 +50,7 @@ void* kmalloc(size_t size)
 
 void* kmalloc_4(size_t size)
 {
-    return (void*)((uint32_t)kmalloc(size + 3) & ~(uint32_t)(3));
+    return (void*)(((uint32_t)kmalloc(size + 3) + 3) & ~(uint32_t)(3));
 }
 
 void kfree(void* mem)

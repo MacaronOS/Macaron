@@ -30,6 +30,10 @@ public:
     // interrupt handler functions:
     void handle_interrupt(trapframe_t* tf) override;
 
+    // debug purpose
+    void inspect_page_diriectory(uint32_t page_directory_phys);
+    void inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index);
+
 private:
     uint32_t create_page_table();
 

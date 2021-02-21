@@ -42,7 +42,7 @@ libs: $(USERSPACE_LIBS)
 # -------------------------------USERSPACE APPS---------------------------------------
 
 LIBRARIES_FOLDER ?= $(USERSPACE_BUILD_DIR)/libs/
-LINKER_FLAGS ?= -Wl,--gc-sections -ffreestanding -nostdlib -nostdinc 
+LINKER_FLAGS ?= -Wl,--gc-sections -ffreestanding -nostdlib -nostdinc -fno-pie
 
 define APP_TEMPLATE
 $(1)_APP_RELATIVE := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $(1).app)

@@ -22,13 +22,16 @@ public:
 
     // syscalls handlers
     void sys_exit_handler(int error_code);
+    int sys_fork_handler();
 
     void create_process(const String& filepath);
     void destroy_current_process();
     void destroy_prcoess(const pid_t process);
     void destroy_thread();
 
-private:
+    Thread* cur_thread() { return *m_cur_thread; }
+
+public:
     Process* kernel_process() { return m_kernel_process; }
     void add_kernel_thread(void (*func)());
     void schedule(trapframe_t* tf);

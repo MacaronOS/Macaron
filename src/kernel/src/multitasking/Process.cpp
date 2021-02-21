@@ -23,6 +23,7 @@ Process* ProcessStorage::allocate_process()
 void ProcessStorage::free_process(pid_t id)
 {
     m_process_pool[id].~Process();
+    m_free_ids.push(id);
 }
 
 Process& ProcessStorage::operator[](pid_t pid)

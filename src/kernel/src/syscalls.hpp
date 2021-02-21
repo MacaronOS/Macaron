@@ -7,6 +7,7 @@ namespace kernel::syscalls {
 enum class SyscallSelector {
     Putc = 0,
     Exit,
+    Fork,
     Read,
     Write,
     Open,

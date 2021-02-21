@@ -18,7 +18,7 @@ $(KERNEL_BUILD_DIR)/%.s.o: $(KERNEL_SRC_DIR)/%.s
 # cpp source
 $(KERNEL_BUILD_DIR)/%.cpp.o: $(KERNEL_SRC_DIR)/%.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
+	$(CPPC) $(CPPFLAGS) -ggdb $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
 
 kernel:	$(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 

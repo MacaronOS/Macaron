@@ -18,3 +18,8 @@ int exit(int error_code)
 {
     return do_syscall(SYS_EXIT, error_code, 0, 0, 0, 0);
 }
+
+int fork()
+{
+    return do_syscall(SYS_FORK, 0, 0, 0, 0, 0);
+}

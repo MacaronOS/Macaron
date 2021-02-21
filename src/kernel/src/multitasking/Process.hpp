@@ -1,7 +1,7 @@
 #pragma once
-#include "Thread.hpp"
 #include "../algo/Deque.hpp"
 #include "../algo/StaticStack.hpp"
+#include "Thread.hpp"
 
 namespace kernel::multitasking {
 
@@ -23,17 +23,19 @@ struct Process {
 };
 
 class ProcessStorage {
-    public:
-        ProcessStorage();
-        // allocates a process, with ID being set
-        Process* allocate_process();
-        void free_process(pid_t id);
+public:
+    ProcessStorage();
+    // allocates a process, with ID being set
+    Process* allocate_process();
+    void free_process(pid_t id);
 
-        Process& operator[](pid_t pid);
+    Process& operator[](pid_t pid);
 
-    private:
-        Process m_process_pool[MAX_PROCESSES_ALLOWED] {};
-        StaticStack<pid_t, MAX_PROCESSES_ALLOWED> m_free_ids {};
+    size_t size() const { return MAX_PROCESSES_ALLOWED - m_free_ids.size(); }
+
+private:
+    Process m_process_pool[MAX_PROCESSES_ALLOWED] {};
+    StaticStack<pid_t, MAX_PROCESSES_ALLOWED> m_free_ids {};
 };
 
 }

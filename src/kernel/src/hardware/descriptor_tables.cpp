@@ -1,7 +1,7 @@
 #include "descriptor_tables.hpp"
 #include "../memory/memory.hpp"
-#include "port.hpp"
 #include "../types.hpp"
+#include "port.hpp"
 
 // Lets us access our ASM functions from our C code.
 extern "C" void gdt_flush(uint32_t);
@@ -34,6 +34,8 @@ void write_tss(uint16_t ss0, uint32_t esp0)
 
     gdt_set_gate(GDT_TSS, base, limit, 0xE9, 0x00);
 
+    memset(&tss_entry, 0, sizeof(tss_entry));
+
     tss_entry.ss0 = ss0;
     tss_entry.esp0 = esp0;
     tss_entry.cs = 0x0b;
@@ -42,6 +44,11 @@ void write_tss(uint16_t ss0, uint32_t esp0)
     tss_entry.es = 0x13;
     tss_entry.fs = 0x13;
     tss_entry.gs = 0x13;
+}
+
+void set_kernel_stack(uint32_t stack)
+{
+    tss_entry.esp0 = stack;
 }
 
 static void init_gdt()
@@ -54,10 +61,9 @@ static void init_gdt()
     gdt_set_gate(GDT_KERNEL_DATA, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
     gdt_set_gate(GDT_USER_CODE, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
     gdt_set_gate(GDT_USER_DATA, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment
+    write_tss(GDT_KERNEL_DATA_OFFSET, (uint32_t)tss_stack + 4096);
 
-    write_tss(0x10, (uint32_t)tss_stack + 4096);
     gdt_flush((uint32_t)&gdt_ptr);
-    
     tss_flush();
 }
 
