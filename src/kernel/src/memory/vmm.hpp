@@ -13,6 +13,16 @@
 
 namespace kernel::memory {
 
+// int paging.s
+extern "C" void set_cr3(uint32_t page_directory_phys);
+extern "C" void enable_paging();
+extern "C" void flush_cr3();
+extern "C" uint32_t get_cr2();
+
+extern "C" uint32_t boot_page_directory;
+extern "C" uint32_t boot_page_table1;
+extern "C" uint32_t boot_page_table2;
+
 class VMM : public Singleton<VMM>, InterruptHandler {
 public:
     VMM();
@@ -23,6 +33,9 @@ public:
 
     // allocates an actual frame then maps it to the frame_virt_addr
     void create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr);
+
+    // removes all entries in all page tables except the kernel ones
+    void unmap_user_address_space(uint32_t src_page_directory_phys);
 
     // clones an entire page directory. also makes a copy of each frame
     uint32_t clone_page_directory(uint32_t src_page_directory_phys = 0);
@@ -41,14 +54,6 @@ private:
     uint32_t clone_page_table(uint32_t src_page_table_phys);
     uint32_t clone_frame(uint32_t src_frame_phys);
 
-    // buffers functions
-    page_table_entry_t& get_buffer_pte(uint32_t buff_virt);
-    void map_to_buffer(uint32_t phys, uint32_t buf);
-    void unmap_from_buffer(uint32_t buf);
-    uint32_t get_buffered_phys_address(uint32_t buff);
-
-    // interrupt handler functions:
-
 private:
     // virtual addresses of buffers
     uint32_t m_buffer_1;
@@ -56,6 +61,65 @@ private:
 
     uint32_t m_kernel_directory_phys { clone_page_directory(0) }; // temp decision
     uint32_t cur_directory_phys;
+};
+
+template <typename T>
+[[nodiscard]] class PageBinder {
+public:
+    PageBinder(uint32_t phys, uint32_t buff_virt)
+        : m_buff_virt(buff_virt)
+        , m_buffered_phys_address(get_buffered_phys_address())
+    {
+        map_to_buffer(phys);
+    }
+
+    ~PageBinder()
+    {
+        map_to_buffer(m_buffered_phys_address);
+    }
+
+    T get()
+    {
+        return reinterpret_cast<T>(m_buff_virt);
+    }
+
+private:
+    void map_to_buffer(uint32_t phys)
+    {
+        auto& pte = get_buffer_pte();
+        pte.frame_adress = phys / PAGE_SIZE;
+        pte.present = 1;
+        pte.rw = 1;
+        pte.user_mode = 1; // set as user for now
+
+        flush_cr3();
+    }
+
+    uint32_t get_buffered_phys_address()
+    {
+        return get_buffer_pte().frame_adress * PAGE_SIZE;
+    }
+
+    page_table_entry_t& get_buffer_pte()
+    {
+        // at first, calculating a page table which locates buffer.
+        // as buffers are in a higher half and they were initialy shifted
+        // by HIGHER_HALF_OFFSET=0xC0000000, we know, that the page table is one of 2 - 768 or 769
+
+        static page_table_t* page_tables[] = {
+            (page_table_t*)&boot_page_table1,
+            (page_table_t*)&boot_page_table2,
+        };
+
+        page_table_t* pt = page_tables[m_buff_virt / PAGE_SIZE / 1024 - 768];
+
+        // now, find what offset has this buffer withing the page table
+        return pt->entries[m_buff_virt / PAGE_SIZE % 1024];
+    }
+
+private:
+    uint32_t m_buff_virt;
+    uint32_t m_buffered_phys_address;
 };
 
 }
