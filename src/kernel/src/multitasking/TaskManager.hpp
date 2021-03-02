@@ -23,6 +23,7 @@ public:
     // syscalls handlers
     void sys_exit_handler(int error_code);
     int sys_fork_handler();
+    int sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp);
 
     void create_process(const String& filepath);
     void destroy_current_process();
@@ -31,10 +32,12 @@ public:
 
     Thread* cur_thread() { return *m_cur_thread; }
 
-public:
+private:
     Process* kernel_process() { return m_kernel_process; }
     void add_kernel_thread(void (*func)());
     void schedule(trapframe_t* tf);
+
+    void setup_process(const pid_t pid, const String& filepath);
 
 private:
     Elf m_elf {};

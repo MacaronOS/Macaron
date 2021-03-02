@@ -35,7 +35,8 @@ public:
     void create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr);
 
     // removes all entries in all page tables except the kernel ones
-    void unmap_user_address_space(uint32_t src_page_directory_phys);
+    // also clears corresponding frames
+    void clear_user_directory_pages(uint32_t src_page_directory_phys);
 
     // clones an entire page directory. also makes a copy of each frame
     uint32_t clone_page_directory(uint32_t src_page_directory_phys = 0);
@@ -53,6 +54,9 @@ private:
     // clone helping functions
     uint32_t clone_page_table(uint32_t src_page_table_phys);
     uint32_t clone_frame(uint32_t src_frame_phys);
+
+    // unmaping helping functions
+    void clear_user_table_pages(uint32_t src_page_table_phys);
 
 private:
     // virtual addresses of buffers

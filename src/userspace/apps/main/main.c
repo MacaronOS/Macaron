@@ -9,9 +9,7 @@ int main()
             putc('a');
         }
     } else {
-        for (int i = 0; i < 1000000; i++) {
-            putc('b');
-        }
+        execve("/ext2/apps/putb.app", 0, 0);
     }
     return 0;
 }

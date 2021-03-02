@@ -3,7 +3,7 @@
 
 namespace kernel::multitasking {
 
-#define KERNEL_STACK_SIZE 1024
+#define KERNEL_STACK_SIZE 4096
 #define USER_STACK_SIZE 4096
 
 enum class ThreadState {

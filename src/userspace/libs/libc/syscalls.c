@@ -23,3 +23,8 @@ int fork()
 {
     return do_syscall(SYS_FORK, 0, 0, 0, 0, 0);
 }
+
+int execve(const char* filename, const char* const* argv, const char* const* envp)
+{
+    return do_syscall(SYS_EXECVE, filename, argv, envp, 0, 0);
+}

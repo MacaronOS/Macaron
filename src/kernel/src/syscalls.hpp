@@ -13,6 +13,8 @@ enum class SyscallSelector {
     Open,
     Close,
 
+    Execve = 9,
+
     Printd,
 
     END,
@@ -27,7 +29,6 @@ public:
 
     void handle_interrupt(trapframe_t* tf) override;
     void register_syscall(SyscallSelector ss, uint32_t syscall_ptr);
-
 
 private:
     uint32_t m_syscalls[syscall_count];

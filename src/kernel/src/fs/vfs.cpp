@@ -4,8 +4,10 @@
 #include "../monitor.hpp"
 #include "../posix.hpp"
 
-namespace kernel::fs {
+#include <Logger.hpp>
 
+namespace kernel::fs {
+using namespace Logger;
 template <>
 VFS* Singleton<VFS>::s_t = nullptr;
 template <>

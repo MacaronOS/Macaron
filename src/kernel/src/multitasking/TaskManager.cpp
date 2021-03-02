@@ -107,6 +107,12 @@ int TaskManager::sys_fork_handler()
     return new_proc->id;
 }
 
+int TaskManager::sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp)
+{
+    setup_process((*m_cur_thread)->process->id, filename);
+    return 1;
+}
+
 void TaskManager::destroy_prcoess(const pid_t pid)
 {
     Process& process = m_process_storage[pid];
@@ -147,30 +153,49 @@ void TaskManager::add_kernel_thread(void (*func)())
 
 void TaskManager::create_process(const String& filepath)
 {
-    auto& vmm = VMM::the();
+    setup_process(m_process_storage.allocate_process()->id, filepath);
+}
 
-    const uint32_t page_dir_phys = vmm.clone_page_directory();
-    auto exec_data = m_elf.load_exec(filepath, page_dir_phys);
+void TaskManager::setup_process(const pid_t pid, const String& filepath)
+{
+
+    auto& vmm = VMM::the();
+    auto& proc = m_process_storage[pid];
+
+    if (!proc.page_dir_phys) {
+        proc.page_dir_phys = vmm.clone_page_directory();
+    } else {
+        vmm.clear_user_directory_pages(proc.page_dir_phys);
+    }
+
+    auto exec_data = m_elf.load_exec(filepath, proc.page_dir_phys);
 
     if (!exec_data) {
         return;
     }
 
-    Process* new_proc = m_process_storage.allocate_process();
-    new_proc->page_dir_phys = page_dir_phys;
+    while (proc.m_threads.size() > 1) {
+        m_threads.remove(m_threads.find(*proc.m_threads.rbegin()));
+        proc.m_threads.remove(proc.m_threads.rbegin());
+    }
 
-    Thread* new_thread = new Thread;
-    new_thread->process = new_proc;
-    new_thread->state = ThreadState::Running;
-    new_thread->kernel_stack = kmalloc_4(KERNEL_STACK_SIZE);
+    if (proc.m_threads.size() < 1) {
+        auto new_thread = new Thread;
+        new_thread->process = &proc;
+        new_thread->kernel_stack = kmalloc_4(KERNEL_STACK_SIZE);
+        proc.m_threads.push_back(new_thread);
+        m_threads.push_front(new_thread);
+    }
+
+    auto thread = *proc.m_threads.begin();
+    thread->state = ThreadState::Running;
 
     // place user stack just before the kernel
-    vmm.create_frame(page_dir_phys, HIGHER_HALF_OFFSET - USER_STACK_SIZE);
-
-    new_thread->user_stack = (void*)(HIGHER_HALF_OFFSET - USER_STACK_SIZE);
+    vmm.create_frame(proc.page_dir_phys, HIGHER_HALF_OFFSET - USER_STACK_SIZE);
+    thread->user_stack = (void*)(HIGHER_HALF_OFFSET - USER_STACK_SIZE);
 
     // setup initial trapframe
-    trapframe_t* trapframe = (trapframe_t*)((uint32_t)new_thread->kernel_stack + KERNEL_STACK_SIZE - sizeof(trapframe_t));
+    trapframe_t* trapframe = (trapframe_t*)((uint32_t)thread->kernel_stack + KERNEL_STACK_SIZE - sizeof(trapframe_t));
     trapframe->ds = GDT_USER_DATA_OFFSET | REQUEST_RING_3;
     trapframe->es = GDT_USER_DATA_OFFSET | REQUEST_RING_3;
     trapframe->fs = GDT_USER_DATA_OFFSET | REQUEST_RING_3;
@@ -179,13 +204,10 @@ void TaskManager::create_process(const String& filepath)
     trapframe->ss = GDT_USER_DATA_OFFSET | REQUEST_RING_3;
     trapframe->eip = exec_data.result().entry_point;
     trapframe->eflags = 0x202;
-    trapframe->useresp = (uint32_t)new_thread->user_stack + USER_STACK_SIZE;
+    trapframe->useresp = (uint32_t)thread->user_stack + USER_STACK_SIZE;
     trapframe->ebp = trapframe->useresp;
 
-    new_thread->trapframe = trapframe;
-
-    m_threads.push_front(new_thread);
-    new_proc->m_threads.push_front(new_thread);
+    thread->trapframe = trapframe;
 }
 
 }

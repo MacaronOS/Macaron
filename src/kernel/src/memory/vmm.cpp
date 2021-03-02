@@ -57,6 +57,20 @@ void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
     page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].user_mode = true;
 }
 
+void VMM::clear_user_directory_pages(uint32_t src_page_directory_phys)
+{
+    auto page_dir_virt = PageBinder<page_directory_t*>(src_page_directory_phys, m_buffer_2);
+
+    for (size_t i = 0; i < 1024; i++) {
+        if (i == 768 || i == 769) {
+            continue; // skip kernel page tables
+        }
+        if (page_dir_virt.get()->entries[i].__bits) {
+            clear_user_table_pages(page_dir_virt.get()->entries[i].page_table_base_adress * 4096);
+        }
+    }
+}
+
 uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
 {
     if (!src_page_directory_phys) {
@@ -88,7 +102,7 @@ uint32_t VMM::create_page_table()
 {
     uint32_t page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
     auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
-    
+
     memset(page_table_virt.get(), 0, sizeof(page_table_t));
 
     return page_table_phys;
@@ -124,6 +138,15 @@ uint32_t VMM::clone_frame(uint32_t src_frame_phys)
     memcpy(dest_page.get(), src_page.get(), PAGE_SIZE);
 
     return dest_frame_phys;
+}
+
+void VMM::clear_user_table_pages(uint32_t src_page_table_phys)
+{
+    auto page_table_virt = PageBinder<page_table_t*>(src_page_table_phys, m_buffer_1);
+    for (int i = 0 ; i < 1024; i++) {
+        PMM::the().free_frame(page_table_virt.get()->entries[i].frame_adress);
+        page_table_virt.get()->entries[i].__bits = 0;
+    }
 }
 
 void VMM::handle_interrupt(trapframe_t* tf)
