@@ -17,6 +17,8 @@ enum class SyscallSelector {
 
     Printd,
 
+    Mmap = 90,
+
     END,
 };
 

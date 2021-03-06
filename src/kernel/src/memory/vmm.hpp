@@ -6,6 +6,7 @@
 #include <types.hpp>
 
 #include <algo/Singleton.hpp>
+#include <errors/KError.hpp>
 #include <hardware/InterruptManager.hpp>
 #include <multitasking/TaskManager.hpp>
 
@@ -40,6 +41,9 @@ public:
 
     // clones an entire page directory. also makes a copy of each frame
     uint32_t clone_page_directory(uint32_t src_page_directory_phys = 0);
+
+    // allocates virtual space, returns adress
+    KErrorOr<uint32_t> allocate_space(uint32_t page_directory_phys, uint32_t size);
 
     // interrupt handler functions:
     void handle_interrupt(trapframe_t* tf) override;

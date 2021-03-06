@@ -5,9 +5,10 @@ int main()
     int p = fork();
 
     if (p) {
-        for (int i = 0; i < 1000000; i++) {
-            putc('a');
+        while (1)
+        {
         }
+        
     } else {
         execve("/ext2/apps/putb.app", 0, 0);
     }

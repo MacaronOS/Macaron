@@ -28,3 +28,15 @@ int execve(const char* filename, const char* const* argv, const char* const* env
 {
     return do_syscall(SYS_EXECVE, filename, argv, envp, 0, 0);
 }
+
+void* mmap(void *start, unsigned int length, int prot , int flags, int fd, unsigned int offset)
+{
+    struct mmap_params params;
+    params.start = start;
+    params.length = length;
+    params.prot = prot;
+    params.flags = flags;
+    params.fd = fd;
+    params.offset = offset;
+    return do_syscall(SYS_MMAP, &params, 0, 0, 0, 0);
+}

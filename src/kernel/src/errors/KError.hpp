@@ -17,6 +17,7 @@ public:
     }
 
     k_error_t error() const { return m_error; }
+    int posix_error() const { return (int)m_error * -1; }
     operator bool() const { return m_error; }
 
 private:
