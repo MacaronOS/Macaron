@@ -1,6 +1,6 @@
 #pragma once
 #include "../../algo/String.hpp"
-#include <fs/vfs.hpp>
+#include <fs/vfs/vfs.hpp>
 #include <errors/KError.hpp>
 
 namespace kernel::multitasking {

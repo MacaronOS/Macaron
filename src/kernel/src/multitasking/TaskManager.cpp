@@ -5,7 +5,7 @@
 #include <drivers/DriverEntity.hpp>
 #include <drivers/DriverManager.hpp>
 #include <drivers/PIT.hpp>
-#include <fs/vfs.hpp>
+#include <fs/vfs/vfs.hpp>
 #include <hardware/descriptor_tables.hpp>
 #include <memory/kmalloc.hpp>
 

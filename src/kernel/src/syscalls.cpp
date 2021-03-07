@@ -1,7 +1,7 @@
 #include "syscalls.hpp"
 #include "Logger.hpp"
 #include "assert.hpp"
-#include "fs/vfs.hpp"
+#include "fs/vfs/vfs.hpp"
 #include "hardware/trapframe.hpp"
 #include "monitor.hpp"
 #include "multitasking/TaskManager.hpp"

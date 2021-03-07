@@ -2,7 +2,7 @@
 #include "../algo/Deque.hpp"
 #include "../algo/Singleton.hpp"
 #include "../assert.hpp"
-#include "../fs/vfs.hpp"
+#include "../fs/vfs/vfs.hpp"
 #include "../memory/vmm.hpp"
 
 #include "Process.hpp"

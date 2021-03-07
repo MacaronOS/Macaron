@@ -1,6 +1,6 @@
 #include "cmd.hpp"
 #include "../algo/String.hpp"
-#include "../fs/vfs.hpp"
+#include "../fs/vfs/vfs.hpp"
 #include "../monitor.hpp"
 #include "../posix.hpp"
 

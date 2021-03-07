@@ -1,5 +1,5 @@
 #include "vfs.test.hpp"
-#include "../../fs/vfs.hpp"
+#include "../../fs/vfs/vfs.hpp"
 #include "../../monitor.hpp"
 #include "../../algo/String.hpp"
 #include "../../posix.hpp"

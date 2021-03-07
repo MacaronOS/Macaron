@@ -3,8 +3,8 @@
 #include "../algo/String.hpp"
 #include "../drivers/DriverManager.hpp"
 #include "../drivers/Keyboard.hpp"
-#include "../fs/File.hpp"
-#include "../fs/vfs.hpp"
+#include "../fs/base/VNode.hpp"
+#include "../fs/vfs/vfs.hpp"
 #include "../posix.hpp"
 #include "cmd.hpp"
 

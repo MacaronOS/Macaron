@@ -3,7 +3,7 @@
 
 #include <algo/String.hpp>
 #include <posix.hpp>
-#include <fs/vfs.hpp>
+#include <fs/vfs/vfs.hpp>
 #include <memory/vmm.hpp>
 #include <errors/KError.hpp>
 

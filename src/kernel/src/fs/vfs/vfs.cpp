@@ -1,10 +1,11 @@
 #include "vfs.hpp"
-#include "../algo/extras.hpp"
-#include "../assert.hpp"
-#include "../monitor.hpp"
-#include "../posix.hpp"
 
 #include <Logger.hpp>
+#include <assert.hpp>
+#include <monitor.hpp>
+#include <posix.hpp>
+
+#include <algo/extras.hpp>
 
 namespace kernel::fs {
 using namespace Logger;
@@ -15,7 +16,8 @@ bool Singleton<VFS>::s_initialized = false;
 
 VFS::VFS()
 {
-    m_root = &m_file_storage.get(2, nullptr);
+    m_root = new VNode(nullptr, 2);
+    m_file_storage.push(m_root);
 
     // setting all fds as free
     for (fd_t i = 0; i < FD_ALLOWED; i++) {
@@ -64,12 +66,12 @@ KError VFS::close(const fd_t fd)
     return KError(0);
 }
 
-void VFS::mount(File& dir, File& appended_dir, const String& appended_dir_name)
+void VFS::mount(VNode& dir, VNode& appended_dir, const String& appended_dir_name)
 {
-    dir.mount(Mountpoint(appended_dir_name, &appended_dir));
+    dir.mount(VNode::Mountpoint(appended_dir_name, &appended_dir));
 }
 
-uint32_t VFS::read(File& file, uint32_t offset, uint32_t size, void* buffer)
+uint32_t VFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 {
     if (file.fs()) {
         return file.fs()->read(file, offset, size, buffer);
@@ -84,8 +86,8 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (file_descr->file() && file_descr->file()->fs()) {
-        size_t read_bytes = file_descr->file()->fs()->read(*file_descr->file(), file_descr->offset(), size, buffer);
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        size_t read_bytes = file_descr->vnode()->fs()->read(*file_descr->vnode(), file_descr->offset(), size, buffer);
         file_descr->inc_offset(read_bytes);
         return read_bytes;
     }
@@ -98,8 +100,8 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (file_descr->file() && file_descr->file()->fs()) {
-        size_t write_bytes = file_descr->file()->fs()->write(*file_descr->file(), file_descr->offset(), size, buffer);
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        size_t write_bytes = file_descr->vnode()->fs()->write(*file_descr->vnode(), file_descr->offset(), size, buffer);
         file_descr->inc_offset(write_bytes);
         return write_bytes;
     }
@@ -113,7 +115,7 @@ KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
         return KError(EBADF);
     }
 
-    const size_t file_size = file_descr->file()->inode_struct()->size;
+    const size_t file_size = file_descr->vnode()->size();
 
     switch (whence) {
     case SEEK_SET: {
@@ -152,8 +154,8 @@ KErrorOr<size_t> VFS::truncate(fd_t fd, size_t size)
         return KError(EBADF);
     }
 
-    if (file_descr->file() && file_descr->file()->fs()) {
-        size_t new_size = file_descr->file()->fs()->truncate(*file_descr->file(), size);
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        size_t new_size = file_descr->vnode()->fs()->truncate(*file_descr->vnode(), size);
         return new_size;
     }
 
@@ -166,14 +168,14 @@ KErrorOr<size_t> VFS::file_size(fd_t fd)
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (!file_descr->file()) {
+    if (!file_descr->vnode()) {
         return KError(ENOENT);
     }
 
-    return file_size(*file_descr->file());
+    return file_size(*file_descr->vnode());
 }
 
-uint32_t VFS::write(File& file, uint32_t offset, uint32_t size, void* buffer)
+uint32_t VFS::write(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 {
     if (file.fs()) {
         return file.fs()->write(file, offset, size, buffer);
@@ -182,20 +184,20 @@ uint32_t VFS::write(File& file, uint32_t offset, uint32_t size, void* buffer)
     return 0;
 }
 
-uint32_t VFS::file_size(File& file)
+uint32_t VFS::file_size(VNode& file)
 {
     if (file.fs()) {
-        return file.inode_struct()->size;
+        return file.size();
     }
 
     return 0;
 }
 
-File* VFS::finddir(File& directory, const String& filename)
+VNode* VFS::finddir(VNode& directory, const String& filename)
 {
     for (size_t i = 0; i < directory.mounted_dirs().size(); i++) {
         if (filename == directory.mounted_dirs()[i].name()) {
-            return &(directory.mounted_dirs()[i].file());
+            return &(directory.mounted_dirs()[i].vnode());
         }
     }
     if (directory.fs()) {
@@ -217,7 +219,7 @@ Vector<String> VFS::listdir(const String& path)
     return {};
 }
 
-Vector<String> VFS::listdir(File& directory)
+Vector<String> VFS::listdir(VNode& directory)
 {
     Vector<String> result;
 
@@ -233,17 +235,17 @@ Vector<String> VFS::listdir(File& directory)
     return result;
 }
 
-File& VFS::create(File& directory, const String& name, FileType type, file_permissions_t perms)
+VNode& VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
 {
     return directory.fs()->create(directory, name, type, perms);
 }
 
-bool VFS::erase(File& directory, const File& file)
+bool VFS::erase(VNode& directory, const VNode& file)
 {
     return directory.fs()->erase(directory, file);
 }
 
-KErrorOr<File*> VFS::resolve_path(const String& path)
+KErrorOr<VNode*> VFS::resolve_path(const String& path)
 {
     if (!path.size() || path[0] != '/') {
         return KError(ENOTDIR);
@@ -253,10 +255,10 @@ KErrorOr<File*> VFS::resolve_path(const String& path)
     }
 
     Vector<String> splited_path = path.split("/");
-    File* node = &root();
+    VNode* node = &root();
 
     for (size_t i = 1; i < splited_path.size(); i++) {
-        File* file = finddir(*node, splited_path[i]);
+        VNode* file = finddir(*node, splited_path[i]);
         if (!file) {
             return KError(ENOENT);
         }
@@ -265,7 +267,7 @@ KErrorOr<File*> VFS::resolve_path(const String& path)
     return node;
 }
 
-FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
+VFS::FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
 {
     for (fd_t i : m_free_fds) {
         if (i == fd) {
@@ -281,8 +283,8 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
         return KError(ENOTDIR);
     }
 
-    File* node = &root();
-    File* parent = nullptr;
+    VNode* node = &root();
+    VNode* parent = nullptr;
 
     if (path == "/") {
         return Relation({ parent, node });
@@ -292,7 +294,7 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
 
     for (size_t i = 1; i < splited_path.size(); i++) {
 
-        File* file = finddir(*node, splited_path[i]);
+        VNode* file = finddir(*node, splited_path[i]);
 
         if (!file) {
             if (i == splited_path.size() - 1) {

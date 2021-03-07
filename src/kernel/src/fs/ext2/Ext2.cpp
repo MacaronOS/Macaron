@@ -1,15 +1,19 @@
-#include "Ext2.hpp"
-#include "File.hpp"
+#include "Ext2Inode.hpp"
 #include "ext2fs.hpp"
 
-#include "../algo/Bitmap.hpp"
-#include "../algo/String.hpp"
-#include "../algo/Vector.hpp"
-#include "../assert.hpp"
-#include "../drivers/disk/Ata.hpp"
-#include "../memory/kmalloc.hpp"
-#include "../memory/memory.hpp"
-#include "../monitor.hpp"
+#include <monitor.hpp>
+#include <types.hpp>
+
+#include <algo/Bitmap.hpp>
+#include <algo/String.hpp>
+#include <algo/Vector.hpp>
+#include <assert.hpp>
+#include <drivers/disk/Ata.hpp>
+#include <drivers/disk/DiskDriver.hpp>
+#include <fs/base/VNode.hpp>
+#include <fs/base/fs.hpp>
+#include <memory/kmalloc.hpp>
+#include <memory/memory.hpp>
 
 #define EXT2_MAGIC 0xEF53
 
@@ -20,7 +24,7 @@
 
 namespace kernel::fs::ext2 {
 
-Ext2::Ext2(drivers::DiskDriver& disk_driver, FileStorage& file_storage)
+Ext2::Ext2(drivers::DiskDriver& disk_driver, VNodeStorage& file_storage)
     : m_disk_driver(disk_driver)
     , m_file_storage(file_storage)
 {
@@ -56,33 +60,31 @@ bool Ext2::init()
 
     m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
-    File& root = m_file_storage.get(2, this, true);
-
-    *root.allocate_inode_struct() = get_inode_structure(2);
-
-    m_root = &root;
+    m_root = new Ext2Inode(this, 2);
+    *ToExt2Inode(m_root)->inode_struct() = get_inode_structure(2);
 
     return true;
 }
 
-uint32_t Ext2::read(File& file, uint32_t offset, uint32_t size, void* buffer)
+uint32_t Ext2::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 {
-    return read_inode_content(file, offset, size, buffer);
+    return read_inode_content(ToExt2Inode(file), offset, size, buffer);
 }
 
-uint32_t Ext2::write(File& file, uint32_t offset, uint32_t size, void* buffer)
+uint32_t Ext2::write(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 {
-    return write_inode_content(file, offset, size, buffer);
+    return write_inode_content(ToExt2Inode(file), offset, size, buffer);
 }
 
-uint32_t Ext2::truncate(File& file, uint32_t size)
+uint32_t Ext2::truncate(VNode& file, uint32_t size)
 {
+    auto& i_file = ToExt2Inode(file);
     const uint32_t block_start = size / m_block_size + 1; // start freeing blocks from this index
-    const uint32_t block_end = file.inode_struct()->size / m_block_size; // end freeing blocks up to this index
+    const uint32_t block_end = i_file.inode_struct()->size / m_block_size; // end freeing blocks up to this index
 
     // freeing its remaining blocks
     for (size_t i = block_start; i <= block_end; i++) {
-        uint32_t* block_in_ext2 = resolve_inode_local_block(file, i);
+        uint32_t* block_in_ext2 = resolve_inode_local_block(i_file, i);
         if (block_in_ext2) {
             free_block(*block_in_ext2);
             *block_in_ext2 = 0; // zeroes a block pointer in file.inode_struct()
@@ -90,21 +92,23 @@ uint32_t Ext2::truncate(File& file, uint32_t size)
     }
 
     // update file size
-    file.inode_struct()->size = size;
-    save_inode_structure(file);
+    i_file.inode_struct()->size = size;
+    save_inode_structure(i_file);
 
     return size;
 }
 
-File* Ext2::finddir(File& directory, const String& filename)
+VNode* Ext2::finddir(VNode& directory, const String& filename)
 {
-    uint8_t* directory_content = (uint8_t*)kmalloc(directory.inode_struct()->size);
+    auto& i_directory = ToExt2Inode(directory);
 
-    read_inode_content(directory, 0, directory.inode_struct()->size, directory_content);
+    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
+
+    read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
     size_t entry_pointer = 0;
 
-    while (entry_pointer < directory.inode_struct()->size) {
+    while (entry_pointer < i_directory.inode_struct()->size) {
         dir_entry_t entry = ((dir_entry_t*)((size_t)directory_content + entry_pointer))[0];
 
         char name[1024];
@@ -113,13 +117,13 @@ File* Ext2::finddir(File& directory, const String& filename)
         name[entry.name_len_low] = '\0';
 
         if (filename == name) {
-            auto& file = m_file_storage.get(entry.inode, this);
-
-            if (!file.inode_struct()) {
-                *file.allocate_inode_struct() = get_inode_structure(entry.inode);
+            auto* file = m_file_storage.find(this, entry.inode);
+            if (!file) {
+                file = new Ext2Inode(this, entry.inode);
+                *ToExt2Inode(file)->inode_struct() = get_inode_structure(entry.inode);
             }
 
-            return &file;
+            return file;
         }
 
         entry_pointer += entry.size;
@@ -129,16 +133,18 @@ File* Ext2::finddir(File& directory, const String& filename)
     return nullptr;
 }
 
-Vector<String> Ext2::listdir(File& directory)
+Vector<String> Ext2::listdir(VNode& directory)
 {
-    uint8_t* directory_content = (uint8_t*)kmalloc(directory.inode_struct()->size);
+    auto& i_directory = ToExt2Inode(directory);
 
-    read_inode_content(directory, 0, directory.inode_struct()->size, directory_content);
+    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
+
+    read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
     Vector<String> filenames;
     size_t entry_pointer = 0;
 
-    while (entry_pointer < directory.inode_struct()->size) {
+    while (entry_pointer < i_directory.inode_struct()->size) {
         dir_entry_t entry = ((dir_entry_t*)((size_t)directory_content + entry_pointer))[0];
 
         char name[1024];
@@ -155,18 +161,20 @@ Vector<String> Ext2::listdir(File& directory)
     return filenames;
 }
 
-File& Ext2::create(File& directory, const String& name, FileType type, file_permissions_t perms)
+VNode& Ext2::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
 {
+    // TODO: what if file already exists? Probably should be checked at the VFS layer
+
     // init file inode structure, then save it
     uint32_t free_inode = occypy_inode();
-    File& created_file = m_file_storage.get(free_inode, this);
+    auto created_file = new Ext2Inode(this, free_inode);
 
-    created_file.allocate_inode_struct();
-    created_file.inode_struct()->type_and_permissions = static_cast<uint16_t>(type) | perms;
-    created_file.inode_struct()->user_id = 1;
-    created_file.inode_struct()->size = 0;
-    created_file.inode_struct()->c_time = 116;
+    created_file->inode_struct()->type_and_permissions = static_cast<uint16_t>(type) | perms;
+    created_file->inode_struct()->user_id = 1;
+    created_file->inode_struct()->size = 0;
+    created_file->inode_struct()->c_time = 116;
 
+    m_file_storage.push(created_file);
     save_inode_structure(created_file);
 
     // init directory entry, then append it
@@ -181,30 +189,31 @@ File& Ext2::create(File& directory, const String& name, FileType type, file_perm
         *(&file_entry[0].name_characters + i) = name[i];
     }
 
-    write_inode_content(directory, directory.inode_struct()->size, file_entry_size, file_entry);
+    write_inode_content(ToExt2Inode(directory), ToExt2Inode(directory).inode_struct()->size, file_entry_size, file_entry);
 
-    return created_file;
+    return *created_file;
 }
 
-bool Ext2::erase(File& directory, const File& file)
+bool Ext2::erase(VNode& directory, const VNode& file)
 {
-    uint8_t* directory_content = (uint8_t*)kmalloc(directory.inode_struct()->size);
+    auto& i_directory = ToExt2Inode(directory);
+    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
 
-    read_inode_content(directory, 0, directory.inode_struct()->size, directory_content);
+    read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
     size_t entry_pointer = 0;
 
-    while (entry_pointer < directory.inode_struct()->size) {
+    while (entry_pointer < i_directory.inode_struct()->size) {
         dir_entry_t entry = ((dir_entry_t*)((size_t)directory_content + entry_pointer))[0];
 
-        if (file.inode() == entry.inode) {
+        if (file.vnode() == entry.inode) {
             // mark file's inode as free
-            free_inode(file.inode());
+            free_inode(file.vnode());
 
             // delete file's row from dir_entry table
-            directory.inode_struct()->size -= entry.size;
-            save_inode_structure(directory);
-            write_inode_content(directory, entry_pointer, directory.inode_struct()->size - entry_pointer - entry.size, (void*)(entry_pointer + entry.size));
+            i_directory.inode_struct()->size -= entry.size;
+            save_inode_structure(i_directory);
+            write_inode_content(i_directory, entry_pointer, i_directory.inode_struct()->size - entry_pointer - entry.size, (void*)(entry_pointer + entry.size));
 
             kfree(directory_content);
             return true;
@@ -237,36 +246,36 @@ bool Ext2::write_block(uint32_t block, void* mem)
     return write_blocks(block, 1, mem);
 }
 
-uint32_t* Ext2::resolve_inode_local_block(File& file, uint32_t block, bool need_create)
+uint32_t* Ext2::resolve_inode_local_block(Ext2Inode& i_file, uint32_t block, bool need_create)
 {
     const size_t table_size = m_block_size / 4;
 
     if (block < 12) {
-        if (!file.inode_struct()->direct_block_pointers[block]) {
+        if (!i_file.inode_struct()->direct_block_pointers[block]) {
             if (need_create) {
-                file.inode_struct()->direct_block_pointers[block] = occypy_block();
-                save_inode_structure(file);
+                i_file.inode_struct()->direct_block_pointers[block] = occypy_block();
+                save_inode_structure(i_file);
             }
         }
-        return &file.inode_struct()->direct_block_pointers[block];
+        return &i_file.inode_struct()->direct_block_pointers[block];
     }
     block -= 12;
 
     if (block < table_size) {
-        if (!file.inode_struct()->singly_inderect_block_pointer) {
+        if (!i_file.inode_struct()->singly_inderect_block_pointer) {
             if (need_create) {
-                file.inode_struct()->singly_inderect_block_pointer = occypy_block();
-                save_inode_structure(file);
+                i_file.inode_struct()->singly_inderect_block_pointer = occypy_block();
+                save_inode_structure(i_file);
             } else {
                 return nullptr;
             }
         }
         uint32_t table[table_size];
-        read_block(file.inode_struct()->singly_inderect_block_pointer, &table);
+        read_block(i_file.inode_struct()->singly_inderect_block_pointer, &table);
         if (!table[block]) {
             if (need_create) {
                 table[block] = occypy_block();
-                write_block(file.inode_struct()->singly_inderect_block_pointer, &table);
+                write_block(i_file.inode_struct()->singly_inderect_block_pointer, &table);
             } else {
                 return nullptr;
             }
@@ -276,21 +285,21 @@ uint32_t* Ext2::resolve_inode_local_block(File& file, uint32_t block, bool need_
     block -= 256;
 
     if (block < table_size * table_size) {
-        if (!file.inode_struct()->doubly_inderect_block_pointer) {
+        if (!i_file.inode_struct()->doubly_inderect_block_pointer) {
             if (need_create) {
-                file.inode_struct()->doubly_inderect_block_pointer = occypy_block();
-                save_inode_structure(file);
+                i_file.inode_struct()->doubly_inderect_block_pointer = occypy_block();
+                save_inode_structure(i_file);
             } else {
                 return nullptr;
             }
         }
         uint32_t double_table[table_size];
-        read_block(file.inode_struct()->doubly_inderect_block_pointer, &double_table);
+        read_block(i_file.inode_struct()->doubly_inderect_block_pointer, &double_table);
 
         if (!double_table[block / table_size]) {
             if (need_create) {
                 double_table[block / table_size] = occypy_block();
-                write_block(file.inode_struct()->doubly_inderect_block_pointer, &double_table);
+                write_block(i_file.inode_struct()->doubly_inderect_block_pointer, &double_table);
             } else {
                 return nullptr;
             }
@@ -312,21 +321,21 @@ uint32_t* Ext2::resolve_inode_local_block(File& file, uint32_t block, bool need_
     block -= 256 * 256;
 
     if (block < table_size * table_size * table_size) {
-        if (!file.inode_struct()->triply_inderect_block_pointer) {
+        if (!i_file.inode_struct()->triply_inderect_block_pointer) {
             if (need_create) {
-                file.inode_struct()->triply_inderect_block_pointer = occypy_block();
-                save_inode_structure(file);
+                i_file.inode_struct()->triply_inderect_block_pointer = occypy_block();
+                save_inode_structure(i_file);
             } else {
                 return nullptr;
             }
         }
         uint32_t triple_table[table_size];
-        read_block(file.inode_struct()->triply_inderect_block_pointer, &triple_table);
+        read_block(i_file.inode_struct()->triply_inderect_block_pointer, &triple_table);
 
         if (!triple_table[block / (table_size * table_size)]) {
             if (need_create) {
                 triple_table[block / (table_size * table_size)] = occypy_block();
-                write_block(file.inode_struct()->triply_inderect_block_pointer, &triple_table);
+                write_block(i_file.inode_struct()->triply_inderect_block_pointer, &triple_table);
             } else {
                 return nullptr;
             }
@@ -361,7 +370,7 @@ uint32_t* Ext2::resolve_inode_local_block(File& file, uint32_t block, bool need_
     return 0;
 }
 
-uint32_t Ext2::read_inode_content(File& file, uint32_t offset, uint32_t size, void* mem)
+uint32_t Ext2::read_inode_content(Ext2Inode& file, uint32_t offset, uint32_t size, void* mem)
 {
     if (offset >= file.inode_struct()->size) {
         return 0;
@@ -400,7 +409,7 @@ uint32_t Ext2::read_inode_content(File& file, uint32_t offset, uint32_t size, vo
     return read_bytes;
 }
 
-uint32_t Ext2::write_inode_content(File& file, uint32_t offset, uint32_t size, void* mem)
+uint32_t Ext2::write_inode_content(Ext2Inode& file, uint32_t offset, uint32_t size, void* mem)
 {
     const uint32_t block_start = offset / m_block_size;
     const uint32_t block_end = (offset + size) / m_block_size;
@@ -467,11 +476,11 @@ inode_t Ext2::get_inode_structure(uint32_t inode)
     return result;
 }
 
-bool Ext2::save_inode_structure(File& file)
+bool Ext2::save_inode_structure(Ext2Inode& file)
 {
-    uint32_t block_group_index = (file.inode() - 1) / m_superblock.inodes_per_block_group;
+    uint32_t block_group_index = (file.vnode() - 1) / m_superblock.inodes_per_block_group;
     uint32_t inode_table_block = m_bgd_table[block_group_index].inode_table_addr;
-    uint32_t inode_table_index = (file.inode() - 1) % m_superblock.inodes_per_block_group;
+    uint32_t inode_table_index = (file.vnode() - 1) % m_superblock.inodes_per_block_group;
 
     // block, where inode structure is stored
     uint32_t inode_block = inode_table_block + (inode_table_index * sizeof(inode_t)) / m_block_size;
@@ -490,6 +499,14 @@ bool Ext2::save_inode_structure(File& file)
     delete[] inodes;
 
     return result;
+}
+
+bool Ext2::save_inode_structure(Ext2Inode* file)
+{
+    if (file) {
+        return save_inode_structure(*file);
+    }
+    return false;
 }
 
 uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
@@ -564,5 +581,4 @@ bool Ext2::free_inode(uint32_t inode)
     bit.set_false((inode - 1) % m_superblock.inodes_per_block_group);
     return write_block(m_bgd_table[(inode - 1) / m_superblock.inodes_per_block_group].inode_bitmap_addr, inode_bitmap);
 }
-
 }
