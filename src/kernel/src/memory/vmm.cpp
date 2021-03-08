@@ -58,6 +58,40 @@ void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
     page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].user_mode = true;
 }
 
+void VMM::map_virt_to_phys(uint32_t page_dir_phys, uint32_t virt_addr, uint32_t phys_addr, uint32_t size)
+{
+    uint32_t virt_start = virt_addr / PAGE_SIZE;
+    uint32_t phys_start = phys_addr / FRAME_SIZE;
+
+    uint32_t virt_end = (virt_addr + size + PAGE_SIZE - 1) / PAGE_SIZE;
+    uint32_t phys_end = (phys_addr + size + FRAME_SIZE - 1) / FRAME_SIZE;
+
+    uint32_t cnt_pages = max(virt_end - virt_start, phys_end - phys_start) + 1;
+    for (int page = 0; page < cnt_pages; page++) {
+        map_page_to_frame(page_dir_phys, virt_start + page, phys_start + page);
+    }
+}
+
+void VMM::map_page_to_frame(uint32_t page_dir_phys, uint32_t page, uint32_t frame)
+{
+    auto page_directory_virt = PageBinder<page_directory_t*>(page_dir_phys, m_buffer_1);
+
+    if (!page_directory_virt.get()->entries[page / 1024].__bits) {
+        page_directory_virt.get()->entries[page / 1024].page_table_base_adress = create_page_table() / PAGE_SIZE;
+        page_directory_virt.get()->entries[page / 1024].present = true;
+        page_directory_virt.get()->entries[page / 1024].rw = true;
+        page_directory_virt.get()->entries[page / 1024].user_mode = true;
+    }
+
+    uint32_t page_table_phys = page_directory_virt.get()->entries[page / 1024].page_table_base_adress * PAGE_SIZE;
+    auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
+
+    page_table_virt.get()->entries[page % 1024].frame_adress = frame;
+    page_table_virt.get()->entries[page % 1024].present = true;
+    page_table_virt.get()->entries[page % 1024].rw = true;
+    page_table_virt.get()->entries[page % 1024].user_mode = true;
+}
+
 void VMM::clear_user_directory_pages(uint32_t src_page_directory_phys)
 {
     auto page_dir_virt = PageBinder<page_directory_t*>(src_page_directory_phys, m_buffer_2);

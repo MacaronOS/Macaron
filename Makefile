@@ -3,12 +3,19 @@ include src/kernel/Makefile
 include src/userspace/Makefile
 
 run: build
-	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
+	$(QEMU) $(QEMUFLAGS) -cdrom $(KERNEL_BUILD_DIR)/iso/$(TARGET_EXEC_ISO)
 
 debug:
 	$(QEMU) -s -S -snapshot $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
-build: apps kernel
+build: apps iso
+
+iso: kernel
+	mkdir -p $(KERNEL_BUILD_DIR)/iso/boot/grub
+	cp $(KERNEL_BUILD_DIR)/$(TARGET_EXEC) $(KERNEL_BUILD_DIR)/iso/boot
+	cp grub.cfg $(KERNEL_BUILD_DIR)/iso/boot/grub/grub.cfg
+	rm -f $(KERNEL_BUILD_DIR)/iso/$(TARGET_EXEC_ISO)
+	grub-mkrescue -o $(KERNEL_BUILD_DIR)/iso/$(TARGET_EXEC_ISO) $(KERNEL_BUILD_DIR)/iso
 
 install:
 	sudo ${MOUNT_EXT2} ${DISK} mountpoint -o rw+

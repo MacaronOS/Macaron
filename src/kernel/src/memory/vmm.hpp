@@ -35,6 +35,12 @@ public:
     // allocates an actual frame then maps it to the frame_virt_addr
     void create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr);
 
+    // maps virtual address to physical addres
+    void map_virt_to_phys(uint32_t page_dir_phys, uint32_t virt_addr, uint32_t phys_addr, uint32_t size);
+
+    // maps page to frame
+    void map_page_to_frame(uint32_t page_dir_phys, uint32_t page, uint32_t frame);
+
     // removes all entries in all page tables except the kernel ones
     // also clears corresponding frames
     void clear_user_directory_pages(uint32_t src_page_directory_phys);
