@@ -12,10 +12,10 @@
 #include "drivers/PIT.hpp"
 #include "drivers/Uart.hpp"
 #include "drivers/disk/Ata.hpp"
-#include "fs/Ext2.hpp"
-#include "fs/File.hpp"
-#include "fs/ext2fs.hpp"
-#include "fs/vfs.hpp"
+#include "fs/ext2/Ext2.hpp"
+#include "fs/base/VNode.hpp"
+#include "fs/ext2/ext2fs.hpp"
+#include "fs/vfs/vfs.hpp"
 #include "hardware/descriptor_tables.hpp"
 #include "memory/Layout.hpp"
 #include "memory/kmalloc.hpp"
@@ -28,6 +28,7 @@
 #include "shell/Shell.hpp"
 #include "syscalls.hpp"
 #include "tests/tests.hpp"
+#include "drivers/pci/PCI.hpp"
 
 using namespace kernel;
 using namespace drivers;
@@ -67,6 +68,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     DriverManager::the().add_driver(*pit);
     DriverManager::the().add_driver(*(new kernel::drivers::Keyboard()));
     DriverManager::the().add_driver(*(new kernel::drivers::Uart()));
+    DriverManager::the().add_driver(*(new kernel::drivers::PCI()));
     DriverManager::the().install_all();
 
     // setting VFS
@@ -78,7 +80,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 #ifdef MISTIXX_TEST
     test_main();
 #else
-    // asm volatile("sti");
+    asm volatile("sti");
     kernel::shell::run();
 
     // start up userspace process is going to be main
