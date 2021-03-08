@@ -2,7 +2,7 @@
 
 #include "../algo/Vector.hpp"
 #include "../hardware/InterruptManager.hpp"
-#include "Dirver.hpp"
+#include "Driver.hpp"
 #include "../monitor.hpp"
 #include "../hardware/port.hpp"
 #include "../types.hpp"

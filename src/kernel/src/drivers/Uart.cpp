@@ -2,6 +2,7 @@
 
 #include <hardware/port.hpp>
 #include <monitor.hpp>
+#include <types.hpp>
 
 namespace kernel::drivers {
 

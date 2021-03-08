@@ -1,7 +1,7 @@
 #pragma once
 #include "../algo/Vector.hpp"
 #include "../hardware/InterruptManager.hpp"
-#include "Dirver.hpp"
+#include "Driver.hpp"
 
 namespace kernel::drivers {
 

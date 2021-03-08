@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Dirver.hpp"
+#include "../Driver.hpp"
 
 namespace kernel::drivers {
 

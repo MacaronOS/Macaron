@@ -1,5 +1,6 @@
 #pragma once
-#include "Dirver.hpp"
+#include "Driver.hpp"
+#include <types.hpp>
 
 namespace kernel::drivers {
 

@@ -14,6 +14,10 @@ enum class DriverEntity {
 
     Keyboard,
 
+    PCI,
+
+    BGA,
+
     END,
 };
 
