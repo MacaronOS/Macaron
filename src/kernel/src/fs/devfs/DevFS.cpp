@@ -3,7 +3,7 @@
 #include "DevFS.hpp"
 #include "DevFSNode.hpp"
 
-#include <drivers/CharacterDevice.hpp>
+#include <drivers/base/CharacterDevice.hpp>
 #include <drivers/DriverManager.hpp>
 #include <fs/base/VNode.hpp>
 #include <fs/base/fs.hpp>

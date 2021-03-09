@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algo/Vector.hpp>
-#include <drivers/CharacterDevice.hpp>
+#include <drivers/base/CharacterDevice.hpp>
 #include <fs/base/VNode.hpp>
 
 namespace kernel::fs::devfs {

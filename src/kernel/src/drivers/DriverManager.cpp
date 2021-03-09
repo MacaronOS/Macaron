@@ -1,8 +1,8 @@
 #include "DriverManager.hpp"
 #include "../errors/KError.hpp"
 #include "BochVBE.hpp"
-#include "Driver.hpp"
-#include "DriverEntity.hpp"
+#include "base/Driver.hpp"
+#include "base/DriverEntity.hpp"
 #include <algo/Vector.hpp>
 #include <drivers/pci/PCI.hpp>
 #include <drivers/pci/PCIDevice.hpp>

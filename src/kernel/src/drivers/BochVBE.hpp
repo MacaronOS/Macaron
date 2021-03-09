@@ -1,8 +1,8 @@
 #pragma once
 
-#include "CharacterDevice.hpp"
-#include "Driver.hpp"
-#include "DriverEntity.hpp"
+#include "base/CharacterDevice.hpp"
+#include "base/Driver.hpp"
+#include "base/DriverEntity.hpp"
 
 #include <drivers/pci/PCIDeviceDriver.hpp>
 

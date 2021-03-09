@@ -2,7 +2,7 @@
 
 #include <Logger.hpp>
 
-#include <drivers/DriverEntity.hpp>
+#include <drivers/base/DriverEntity.hpp>
 #include <drivers/DriverManager.hpp>
 #include <drivers/PIT.hpp>
 #include <fs/vfs/vfs.hpp>
