@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PCIDevice.hpp"
-#include <drivers/Driver.hpp>
+#include <drivers/base/Driver.hpp>
 
 namespace kernel::drivers {
 

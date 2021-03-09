@@ -1,6 +1,6 @@
 #include "BochVBE.hpp"
-#include "CharacterDevice.hpp"
-#include "DriverEntity.hpp"
+#include "base/CharacterDevice.hpp"
+#include "base/DriverEntity.hpp"
 
 #include <Logger.hpp>
 #include <assert.hpp>

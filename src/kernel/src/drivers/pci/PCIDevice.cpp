@@ -2,8 +2,8 @@
 #include "PCI.hpp"
 
 #include <Logger.hpp>
-#include <drivers/Driver.hpp>
-#include <drivers/DriverEntity.hpp>
+#include <drivers/base/Driver.hpp>
+#include <drivers/base/DriverEntity.hpp>
 #include <hardware/port.hpp>
 
 namespace kernel::drivers {
