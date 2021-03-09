@@ -1,5 +1,5 @@
-#ifndef MISTIX_KERNEL_PORT_H
-#define MISTIX_KERNEL_PORT_H
+#ifndef HinliXX_KERNEL_PORT_H
+#define HinliXX_KERNEL_PORT_H
 
 #include "../types.hpp"
 
@@ -10,4 +10,4 @@ uint8_t inb(uint16_t port);
 uint16_t inw(uint16_t port);
 uint32_t inl(uint16_t port);
 
-#endif // MISTIX_KERNEL_PORT_H
+#endif // HinliXX_KERNEL_PORT_H

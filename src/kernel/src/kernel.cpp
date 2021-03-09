@@ -77,7 +77,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     ext2->init();
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
 
-#ifdef MISTIXX_TEST
+#ifdef HinliXX_TEST
     test_main();
 #else
     asm volatile("sti");

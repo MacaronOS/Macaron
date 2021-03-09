@@ -1,5 +1,5 @@
-#ifndef MISTIX_KERNEL_MONITOR_H
-#define MISTIX_KERNEL_MONITOR_H
+#ifndef HinliXX_KERNEL_MONITOR_H
+#define HinliXX_KERNEL_MONITOR_H
 
 #include "types.hpp"
 #include "algo/String.hpp"
@@ -23,4 +23,4 @@ void enable_cursor();
 
 void update_cursor();
 
-#endif // MISTIX_KERNEL_MONITOR_H
+#endif // HinliXX_KERNEL_MONITOR_H

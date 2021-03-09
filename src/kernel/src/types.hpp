@@ -1,5 +1,5 @@
-#ifndef MISTIX_KERNEL_TYPES_H
-#define MISTIX_KERNEL_TYPES_H
+#ifndef HinliXX_KERNEL_TYPES_H
+#define HinliXX_KERNEL_TYPES_H
 
 typedef unsigned long  uint64_t;
 typedef unsigned int   uint32_t;
@@ -27,4 +27,4 @@ typedef uint32_t            size_t;
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-#endif // MISTIX_KERNEL_TYPES_H
+#endif // HinliXX_KERNEL_TYPES_H

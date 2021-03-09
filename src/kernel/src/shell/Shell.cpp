@@ -238,7 +238,7 @@ static void execute_command(const String& command)
 void run()
 {
     term_init();
-    term_print("MistiXX Shell v0.1\n");
+    term_print("HinliXX Shell v0.1\n");
 
     s_keyboard = static_cast<Keyboard*>(DriverManager::the().get_driver(DriverEntity::Keyboard));
     kernel::shell::cmd::init();
