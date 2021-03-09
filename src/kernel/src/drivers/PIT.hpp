@@ -2,11 +2,11 @@
 
 #include "../algo/Vector.hpp"
 #include "../hardware/InterruptManager.hpp"
-#include "Driver.hpp"
+#include "base/Driver.hpp"
 #include "../monitor.hpp"
 #include "../hardware/port.hpp"
 #include "../types.hpp"
-#include "DriverEntity.hpp"
+#include "base/DriverEntity.hpp"
 
 namespace kernel::drivers {
 

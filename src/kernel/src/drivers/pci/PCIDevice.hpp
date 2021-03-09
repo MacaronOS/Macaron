@@ -3,7 +3,7 @@
 #include "PCI.hpp"
 
 #include <algo/Vector.hpp>
-#include <drivers/Driver.hpp>
+#include <drivers/base/Driver.hpp>
 #include <types.hpp>
 
 namespace kernel::drivers {
