@@ -63,7 +63,7 @@ public:
     KErrorOr<size_t> lseek(fd_t fd, size_t offset, int whence);
     KErrorOr<size_t> truncate(fd_t fd, size_t offset);
 
-    // custom MistiXX api fuctions
+    // custom WisteriaOS api fuctions
     KErrorOr<size_t> file_size(fd_t fd);
     Vector<String> listdir(const String& path);
 

@@ -35,11 +35,11 @@ $(KERNEL_BUILD_DIR)/$(TEST_EXEC): $(OBJS_TESTER)
 
 $(KERNEL_BUILD_DIR)/%.s.test.o: $(KERNEL_SRC_DIR)/%.s
 	$(MKDIR_P) $(dir $@)
-	$(AS) -DMISTIXX_TEST $(ASFLAGS) $< -o $@
+	$(AS) -DWisteria_TEST $(ASFLAGS) $< -o $@
 
 $(KERNEL_BUILD_DIR)/%.cpp.test.o: $(KERNEL_SRC_DIR)/%.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) -DMISTIXX_TEST $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
+	$(CPPC) $(CPPFLAGS) -DWisteria_TEST $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
 
 kernel_tester: $(KERNEL_BUILD_DIR)/$(TEST_EXEC)
 

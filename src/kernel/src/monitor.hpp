@@ -1,5 +1,4 @@
-#ifndef MISTIX_KERNEL_MONITOR_H
-#define MISTIX_KERNEL_MONITOR_H
+#pragma once
 
 #include "types.hpp"
 #include "algo/String.hpp"
@@ -22,5 +21,3 @@ void dec_vga_pos();
 void enable_cursor();
 
 void update_cursor();
-
-#endif // MISTIX_KERNEL_MONITOR_H

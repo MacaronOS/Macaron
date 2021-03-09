@@ -10,7 +10,7 @@ void Tester::add_test(Test* tests)
 
 bool Tester::run_all()
 {
-    term_print("MistiXX Tester\n");
+    term_print("Wisteria Tester\n");
     bool ok = true;
 
     for (size_t i = 0; i < m_tests.size(); i++) {

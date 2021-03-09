@@ -1,7 +1,4 @@
-#ifndef MISTIX_KERNEL_ASSERT_H
-#define MISTIX_KERNEL_ASSERT_H
+#pragma once
 
 void ASSERT_PANIC(char* message);
 void STOP();
-
-#endif
