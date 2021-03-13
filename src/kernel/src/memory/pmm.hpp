@@ -20,6 +20,8 @@ public:
     // deallocates frame
     void free_frame(uint32_t frame);
 
+    void occypy_frame(uint32_t frame);
+
 private:
     // marks memory [left ; right] as occupied
     void occupy_range(uint32_t left, size_t right);

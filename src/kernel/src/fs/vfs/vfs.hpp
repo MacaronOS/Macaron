@@ -62,6 +62,7 @@ public:
     KErrorOr<size_t> write(fd_t fd, void* buffer, size_t size);
     KErrorOr<size_t> lseek(fd_t fd, size_t offset, int whence);
     KErrorOr<size_t> truncate(fd_t fd, size_t offset);
+    KError mmap(fd_t fd, uint32_t addr, uint32_t size);
 
     // custom WisteriaOS api fuctions
     KErrorOr<size_t> file_size(fd_t fd);

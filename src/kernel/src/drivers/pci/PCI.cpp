@@ -33,6 +33,7 @@ bool PCI::install()
             }
         }
     }
+    return true;
 }
 
 bool PCI::DeviceHasFunctions(uint16_t bus, uint16_t device)

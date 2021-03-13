@@ -12,8 +12,10 @@
 #include "drivers/PIT.hpp"
 #include "drivers/Uart.hpp"
 #include "drivers/disk/Ata.hpp"
-#include "fs/ext2/Ext2.hpp"
+#include "drivers/pci/PCI.hpp"
 #include "fs/base/VNode.hpp"
+#include "fs/devfs/DevFS.hpp"
+#include "fs/ext2/Ext2.hpp"
 #include "fs/ext2/ext2fs.hpp"
 #include "fs/vfs/vfs.hpp"
 #include "hardware/descriptor_tables.hpp"
@@ -28,13 +30,13 @@
 #include "shell/Shell.hpp"
 #include "syscalls.hpp"
 #include "tests/tests.hpp"
-#include "drivers/pci/PCI.hpp"
 
 using namespace kernel;
 using namespace drivers;
 using namespace Ata;
 using namespace fs;
 using namespace ext2;
+using namespace devfs;
 using namespace multitasking;
 using namespace syscalls;
 using namespace memory;
@@ -55,6 +57,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     term_init();
     term_print("hello\n");
     kmalloc_init();
+
     InterruptManager::initialize();
     PMM::initialize<multiboot_info*>(multiboot_structure);
     VMM::initialize();
@@ -73,15 +76,21 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
 
     // setting VFS
     VFS::initialize();
+
     Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
     ext2->init();
+
+    DevFS* devfs = new DevFS(VFS::the().file_storage());
+    devfs->init();
+
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
+    VFS::the().mount(VFS::the().root(), devfs->root(), "dev");
 
 #ifdef Wisteria_TEST
     test_main();
 #else
-    asm volatile("sti");
-    kernel::shell::run();
+    // asm volatile("sti");
+    // kernel::shell::run();
 
     // start up userspace process is going to be main
 

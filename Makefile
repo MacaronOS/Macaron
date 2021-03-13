@@ -3,12 +3,12 @@ include src/kernel/Makefile
 include src/userspace/Makefile
 
 run: build
-	$(QEMU) $(QEMUFLAGS) -cdrom $(KERNEL_BUILD_DIR)/iso/$(TARGET_EXEC_ISO)
+	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
 debug:
 	$(QEMU) -s -S -snapshot $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
-build: apps iso
+build: apps kernel
 
 iso: kernel
 	mkdir -p $(KERNEL_BUILD_DIR)/iso/boot/grub

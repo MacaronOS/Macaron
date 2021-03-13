@@ -2,6 +2,8 @@
 #include "../hardware/port.hpp"
 #include "../monitor.hpp"
 
+#include <assert.hpp>
+
 namespace kernel::drivers {
 
 bool Keyboard::install()
@@ -24,6 +26,7 @@ bool Keyboard::install()
 
     // activate a keyboard
     outb(data_port, 0xf4);
+    return true;
 }
 
 void Keyboard::handle_interrupt(trapframe_t* tf)
