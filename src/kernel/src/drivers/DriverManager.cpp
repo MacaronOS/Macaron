@@ -39,7 +39,7 @@ Vector<Driver*> DriverManager::get_by_type(Driver::DriverType type)
 {
     Vector<Driver*> drivers;
     for (size_t driver = 0; driver < drivers_count; driver++) {
-        if (m_drivers[driver]->type() == type) {
+        if (m_drivers[driver] && m_drivers[driver]->type() == type) {
             drivers.push_back(m_drivers[driver]);
         }
     }

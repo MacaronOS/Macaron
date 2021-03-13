@@ -32,6 +32,7 @@ VMM::VMM()
 void VMM::set_page_directory(uint32_t page_directory_phys)
 {
     set_cr3(page_directory_phys);
+    m_cur_page_dir_phys = page_directory_phys;
 }
 
 void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
@@ -74,6 +75,7 @@ void VMM::map_virt_to_phys(uint32_t page_dir_phys, uint32_t virt_addr, uint32_t 
 
 void VMM::map_page_to_frame(uint32_t page_dir_phys, uint32_t page, uint32_t frame)
 {
+    PMM::the().occypy_frame(frame);
     auto page_directory_virt = PageBinder<page_directory_t*>(page_dir_phys, m_buffer_1);
 
     if (!page_directory_virt.get()->entries[page / 1024].__bits) {
@@ -133,7 +135,7 @@ uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
     return dest_page_dir_phys;
 }
 
-KErrorOr<uint32_t> VMM::allocate_space(uint32_t page_directory_phys, uint32_t size)
+KErrorOr<uint32_t> VMM::find_free_space(uint32_t page_directory_phys, uint32_t size)
 {
     auto page_dir_virt = PageBinder<page_directory_t*>(page_directory_phys, m_buffer_1);
 
@@ -165,11 +167,20 @@ KErrorOr<uint32_t> VMM::allocate_space(uint32_t page_directory_phys, uint32_t si
         return KError(ENOMEM);
     }
 
-    for (size_t page = cur_page; page < cur_page + size_in_pages; page++) {
-        create_frame(page_directory_phys, page * PAGE_SIZE);
+    return cur_page * PAGE_SIZE;
+}
+
+KErrorOr<uint32_t> VMM::allocate_space(uint32_t page_directory_phys, uint32_t size)
+{
+    auto free_space = find_free_space(page_directory_phys, size);
+    
+    if (free_space) {
+        for (size_t addr = free_space.result(); addr < free_space.result() + size; addr += FRAME_SIZE) {
+            create_frame(page_directory_phys, addr);
+        }
     }
 
-    return cur_page * PAGE_SIZE;
+    return free_space;
 }
 
 uint32_t VMM::create_page_table()

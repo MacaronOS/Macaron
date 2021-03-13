@@ -5,6 +5,8 @@
 #include <algo/Vector.hpp>
 #include <types.hpp>
 
+#include <posix.hpp>
+
 namespace kernel::fs {
 
 class FS {
@@ -23,14 +25,16 @@ public:
     virtual void close(VNode& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
 
     // returns file by filename, if it exists
-    virtual VNode* finddir(VNode& directory, const String& filename) { }
+    virtual VNode* finddir(VNode& directory, const String& filename) { return nullptr; }
 
     // returns all filenames inside the directory
-    virtual Vector<String> listdir(VNode& directory) { }
+    virtual Vector<String> listdir(VNode& directory) { return {}; }
 
     // creates a file inside file storage and returns it
     virtual VNode& create(VNode& directory, const String& name, FileType type, file_permissions_t perms) { }
 
-    virtual bool erase(VNode& directory, const VNode& file) { }
+    virtual bool erase(VNode& directory, const VNode& file) { return false; }
+
+    virtual bool mmap(VNode& file, uint32_t addr, uint32_t size) { return false; };
 };
 }

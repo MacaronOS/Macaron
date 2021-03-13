@@ -24,14 +24,19 @@ int fork()
     return do_syscall(SYS_FORK, 0, 0, 0, 0, 0);
 }
 
+int open(const char* filename, int flags, unsigned short mode)
+{
+    return do_syscall(SYS_OPEN, filename, flags, mode, 0, 0);
+}
+
 int execve(const char* filename, const char* const* argv, const char* const* envp)
 {
     return do_syscall(SYS_EXECVE, filename, argv, envp, 0, 0);
 }
 
-void* mmap(void *start, unsigned int length, int prot , int flags, int fd, unsigned int offset)
+void* mmap(void* start, unsigned int length, int prot, int flags, int fd, unsigned int offset)
 {
-    struct mmap_params params;
+    volatile struct mmap_params params;
     params.start = start;
     params.length = length;
     params.prot = prot;

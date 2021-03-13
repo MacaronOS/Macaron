@@ -2,25 +2,27 @@
 
 #include "Driver.hpp"
 
-#include <types.hpp>
-
+#include <Logger.hpp>
 #include <algo/String.hpp>
+#include <types.hpp>
 
 namespace kernel::drivers {
 
-class CharacterDevice {
+class CharacterDevice : public Driver {
 public:
-    CharacterDevice(const String& name)
-        : m_name(name)
+    CharacterDevice(DriverEntity entity, const String& name)
+        : Driver(entity, DriverType::CharacterDevice)
+        , m_name(name)
     {
     }
-    
+
+   const String& name() const { return m_name; }
+
     virtual uint32_t read(uint32_t offset, uint32_t size, void* buffer) { return 0; }
-    virtual void mmap() {};
+    virtual bool mmap(uint32_t addr, uint32_t size) { return false; };
 
-    const String& name() const { return m_name; }
-
-private:
+protected:
     String m_name;
 };
+
 }

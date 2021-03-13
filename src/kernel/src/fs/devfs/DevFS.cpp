@@ -3,14 +3,19 @@
 #include "DevFS.hpp"
 #include "DevFSNode.hpp"
 
-#include <drivers/base/CharacterDevice.hpp>
+#include <Logger.hpp>
+
 #include <drivers/DriverManager.hpp>
+#include <drivers/base/CharacterDevice.hpp>
 #include <fs/base/VNode.hpp>
 #include <fs/base/fs.hpp>
+
+#include <memory/vmm.hpp>
 
 namespace kernel::fs::devfs {
 
 using namespace drivers;
+using namespace memory;
 
 DevFS::DevFS(VNodeStorage& vnode_storage)
     : m_vnode_storage(vnode_storage)
@@ -22,10 +27,11 @@ bool DevFS::init()
 {
     auto devices = DriverManager::the().get_by_type(Driver::DriverType::CharacterDevice);
     for (size_t device = 0; device < devices.size(); device++) {
-        auto node = new DevFSNode(this, devnodes++, reinterpret_cast<CharacterDevice*>(devices[device]));
+        auto node = new DevFSNode(this, devnodes++, static_cast<CharacterDevice*>(devices[device]));
         m_vnode_storage.push(node);
         m_root.m_childs.push_back(node);
     }
+    return true;
 }
 
 VNode* DevFS::finddir(VNode& parent, const String& devname)
@@ -39,4 +45,21 @@ VNode* DevFS::finddir(VNode& parent, const String& devname)
     return nullptr;
 }
 
+Vector<String> DevFS::listdir(VNode& directory)
+{
+    auto dev_dir = ToDevFSNode(directory);
+    Vector<String> result;
+    for (size_t device = 0; device < dev_dir.m_childs.size(); device++) {
+        if (dev_dir.m_childs[device] && dev_dir.m_childs[device]->m_device) {
+            result.push_back(dev_dir.m_childs[device]->m_device->name());
+        }
+    }
+    return result;
+}
+
+bool DevFS::mmap(VNode& file, uint32_t addr, uint32_t size)
+{
+    auto dev = ToDevFSNode(file);
+    return dev.m_device->mmap(addr, size);
+}
 }
