@@ -29,6 +29,7 @@ public:
     VMM();
 
     uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }
+    uint32_t current_page_directory() const { return m_cur_page_dir_phys; }
 
     void set_page_directory(uint32_t page_directory_phys);
 
@@ -50,6 +51,9 @@ public:
 
     // allocates virtual space, returns adress
     KErrorOr<uint32_t> allocate_space(uint32_t page_directory_phys, uint32_t size);
+
+    // find free spcae in page tables space (no mapping will happen)
+    KErrorOr<uint32_t> find_free_space(uint32_t page_directory_phys, uint32_t size);
 
     // interrupt handler functions:
     void handle_interrupt(trapframe_t* tf) override;
@@ -74,7 +78,7 @@ private:
     uint32_t m_buffer_2;
 
     uint32_t m_kernel_directory_phys { clone_page_directory(0) }; // temp decision
-    uint32_t cur_directory_phys;
+    uint32_t m_cur_page_dir_phys;
 };
 
 template <typename T>

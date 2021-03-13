@@ -1,9 +1,9 @@
 #include "pmm.hpp"
-#include "memory.hpp"
 #include "Layout.hpp"
+#include "memory.hpp"
 
-#include <types.hpp>
 #include <multiboot.hpp>
+#include <types.hpp>
 
 #include <algo/Bitmap.hpp>
 #include <algo/Singleton.hpp>
@@ -54,6 +54,11 @@ uint32_t PMM::allocate_frame()
 void PMM::free_frame(uint32_t frame)
 {
     m_pmmap.set_false(frame);
+}
+
+void PMM::occypy_frame(uint32_t frame)
+{
+    m_pmmap.set_true(frame);
 }
 
 void PMM::occupy_range(uint32_t left, size_t right)

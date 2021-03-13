@@ -4,12 +4,14 @@
 #define SYS_PUTC 0
 #define SYS_EXIT 1
 #define SYS_FORK 2
+#define SYS_OPEN 5
 #define SYS_EXECVE 9
 #define SYS_MMAP 90
 
 int putc(char c);
 int exit(int error_code);
 int fork();
+int open(const char* filename, int flags, unsigned short mode);
 int execve(const char* filename, const char* const* argv, const char* const* envp);
 
 #define MAP_SHARED 0x01
@@ -22,7 +24,7 @@ int execve(const char* filename, const char* const* argv, const char* const* env
 #define PROT_READ 0x1
 #define PROT_WRITE 0x2
 #define PROT_EXEC 0x4
-#define PROT_NONE 0x0 
+#define PROT_NONE 0x0
 
 struct mmap_params {
     void* start;
@@ -33,6 +35,6 @@ struct mmap_params {
     unsigned int offset;
 };
 
-void* mmap(void *start, unsigned int length, int prot , int flags, int fd, unsigned int offset);
+void* mmap(void* start, unsigned int length, int prot, int flags, int fd, unsigned int offset);
 
 #endif // __libc_syscalls

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "VNode.hpp"
 
 #include <algo/String.hpp>

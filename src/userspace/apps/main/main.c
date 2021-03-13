@@ -10,7 +10,7 @@ int main()
         }
         
     } else {
-        execve("/ext2/apps/putb.app", 0, 0);
+        execve("/ext2/apps/gui.app", 0, 0);
     }
     return 0;
 }

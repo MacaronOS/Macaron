@@ -8,16 +8,16 @@
 #include <memory/vmm.hpp>
 #include <types.hpp>
 
-#include <drivers/pci/PCIDeviceDriver.hpp>
-
 namespace kernel::drivers {
+
+using namespace memory;
 
 constexpr uint32_t BochVBEIoPortIndex = 0x01CE;
 constexpr uint32_t BochVBEIoPortData = 0x01CF;
 
 BochVBE::BochVBE(PCIDevice* pci_device)
-    : PCIDeviceDriver(DriverEntity::BGA, pci_device)
-    , CharacterDevice("bga")
+    : CharacterDevice(DriverEntity::BGA, "bga")
+    , m_pci_device(pci_device)
 {
 }
 
@@ -41,22 +41,30 @@ bool BochVBE::install()
     write(IndexRegister::Bank, 0);
 
     auto addr = m_pci_device->read_base_register(0) & 0xfffffff0;
-    memory::VMM::the().map_virt_to_phys(memory::VMM::the().kernel_page_directory(), addr, addr, 1024 * 768 * 4 * 2);
+    VMM::the().map_virt_to_phys(VMM::the().kernel_page_directory(), addr, addr, 1024 * 768 * 4 * 2);
 
-    auto pixel = reinterpret_cast<uint32_t*>(addr);
+    m_pixels = reinterpret_cast<uint32_t*>(addr);
+    m_pixels_length = 1024 * 768 * 4 * 2;
+
     uint32_t i = 0;
 
     for (; i < 1024 * 768 / 3; i++) {
-        pixel[i] = 0xffffffff;
+        m_pixels[i] = 0xffffffff;
     }
 
     for (; i < 1024 * 768 / 3 * 2; i++) {
-        pixel[i] = 0x000000ff;
+        m_pixels[i] = 0x000000ff;
     }
 
     for (; i < 2 * 1024 * 768; i++) {
-        pixel[i] = 0x00ff0000;
+        m_pixels[i] = 0x00ff0000;
     }
+}
+
+bool BochVBE::mmap(uint32_t addr, uint32_t size)
+{
+    VMM::the().map_virt_to_phys(VMM::the().current_page_directory(), addr, (uint32_t)m_pixels, min(m_pixels_length, size));
+    return true;
 }
 
 inline void BochVBE::write(IndexRegister reg, uint16_t data)

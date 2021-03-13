@@ -235,6 +235,19 @@ Vector<String> VFS::listdir(VNode& directory)
     return result;
 }
 
+KError VFS::mmap(fd_t fd, uint32_t addr, uint32_t size)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        file_descr->vnode()->fs()->mmap(*file_descr->vnode(), addr, size);
+        return KError(0);
+    }
+    return KError(ENOENT);
+}
+
 VNode& VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
 {
     return directory.fs()->create(directory, name, type, perms);
