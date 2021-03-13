@@ -67,11 +67,11 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     DriverManager::initialize();
     auto* ata = new Ata::Ata(0x1F0, true, DriverEntity::Ata0);
     auto* pit = new PIT();
-    DriverManager::the().add_driver(*ata);
-    DriverManager::the().add_driver(*pit);
-    DriverManager::the().add_driver(*(new kernel::drivers::Keyboard()));
-    DriverManager::the().add_driver(*(new kernel::drivers::Uart()));
-    DriverManager::the().add_driver(*(new kernel::drivers::PCI()));
+    DriverManager::the().add_driver(ata);
+    DriverManager::the().add_driver(pit);
+    DriverManager::the().add_driver(new kernel::drivers::Keyboard());
+    DriverManager::the().add_driver(new kernel::drivers::Uart());
+    DriverManager::the().add_driver(new kernel::drivers::PCI());
     DriverManager::the().install_all();
 
     // setting VFS

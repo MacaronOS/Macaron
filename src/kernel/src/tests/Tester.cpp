@@ -30,6 +30,8 @@ bool Tester::run_all()
     } else {
         term_print("RESULT: FAIL\n");
     }
+
+    return ok;
 }
 
 };

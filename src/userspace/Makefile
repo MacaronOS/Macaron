@@ -18,7 +18,7 @@ $$($(1)_LIB): $$($(1)_OBJS)
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
 	mkdir -p $$(dir $$@)
-	$(CC) $$(CPPFLAGS) $$(CFLAGS) -c $$< -o $$@
+	$(CC) $$(CFLAGS) -c $$< -o $$@
 
 # assembly
 $$(USERSPACE_BUILD_DIR)/%.s.o: $$(USERSPACE_SRC_DIR)/%.s
@@ -59,7 +59,7 @@ $$($(1)_APP): $$($(1)_OBJS)
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
 	mkdir -p $$(dir $$@)
-	$(CC) $$(CPPFLAGS) $$(CFLAGS) -I$$(USERSPACE_SRC_DIR)/libs -c $$< -o $$@
+	$(CC) $$(CFLAGS) -I$$(USERSPACE_SRC_DIR)/libs -c $$< -o $$@
 
 # assembly
 $$(USERSPACE_BUILD_DIR)/%.s.o: %.s

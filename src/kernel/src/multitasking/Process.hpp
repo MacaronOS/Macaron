@@ -7,7 +7,7 @@ namespace kernel::multitasking {
 
 typedef uint8_t pid_t;
 
-constexpr pid_t MAX_PROCESSES_ALLOWED = 255;
+constexpr pid_t MAX_PROCESSES_ALLOWED = 20;
 
 enum class ProcessState {
     Running,

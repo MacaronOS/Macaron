@@ -39,7 +39,7 @@ public:
     VNode* finddir(VNode& directory, const String& filename) override;
     Vector<String> listdir(VNode& directory) override;
 
-    VNode& create(VNode& directory, const String& name, FileType type, file_permissions_t perms) override;
+    VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) override;
     bool erase(VNode& directory, const VNode& file) override;
 
 private:
@@ -74,7 +74,7 @@ private:
     inode_t get_inode_structure(uint32_t inode);
     bool save_inode_structure(Ext2Inode& file);
     bool save_inode_structure(Ext2Inode* file);
-    uint32_t* resolve_inode_local_block(Ext2Inode& file, uint32_t block, bool need_create = false);
+    uint32_t resolve_inode_local_block(Ext2Inode& file, uint32_t block, bool need_create = false);
     uint32_t read_inode_content(Ext2Inode& file, uint32_t offset, uint32_t size, void* mem);
     uint32_t write_inode_content(Ext2Inode& file, uint32_t offset, uint32_t size, void* mem);
 
