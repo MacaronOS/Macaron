@@ -9,10 +9,8 @@ String::String(const String& str)
     m_size = str.size();
     m_capacity = str.capacity();
 
-    m_string = new char[m_capacity];
-    for (size_t i = 0; i < m_size; i++) {
-        m_string[i] = str[i];
-    }
+    m_string = (char*)kmalloc(m_capacity);
+    memcpy(m_string, str.m_string, m_size);
 }
 
 String::String(String&& str)
@@ -28,14 +26,19 @@ String::String(String&& str)
 String::String(const char* s)
 {
     realloc(2);
-    for (size_t i = 0; s[i] != 0; i++) {
+    for (size_t i = 0; s[i] != '\0'; i++) {
         push_back(s[i]);
     }
 }
 
 String::~String()
 {
-    delete[] m_string;
+    m_size = 0;
+    m_capacity = 0;
+    if (m_string) {
+        kfree(m_string);
+        m_string = nullptr;
+    }
 }
 
 String& String::operator=(const String& str)
@@ -45,12 +48,13 @@ String& String::operator=(const String& str)
     }
     memcpy(m_string, str.m_string, str.size());
     m_size = str.size();
+    return *this;
 }
 
 String& String::operator=(String&& str)
 {
     if (m_string) {
-        delete[] m_string;
+        kfree(m_string);
     }
     m_string = str.m_string;
     m_size = str.m_size;
@@ -58,6 +62,7 @@ String& String::operator=(String&& str)
     str.m_string = nullptr;
     str.m_size = 0;
     str.m_capacity = 0;
+    return *this;
 }
 
 String& String::operator=(const char* s)
@@ -70,12 +75,14 @@ String& String::operator=(const char* s)
         m_string[i] = s[i];
     }
     m_size = i;
+    return *this;
 }
 
 void String::realloc(size_t new_capacity)
 {
-    char* new_string = new char[new_capacity];
+    auto new_string = (char*)kmalloc(new_capacity);
     memcpy(new_string, m_string, m_size);
+    kfree(m_string);
     m_string = new_string;
     m_capacity = new_capacity;
 }
@@ -102,11 +109,11 @@ const char& String::operator[](size_t pos) const
 String& String::operator+=(const String& str)
 {
     if (str.size() > m_capacity - m_size) {
-        realloc((m_capacity + str.capacity()) * 2);
+        realloc((m_capacity + str.capacity()) * 2 + 1);
     }
 
     for (size_t i = 0; i < str.size(); i++) {
-        this->push_back(str[i]);
+        push_back(str[i]);
     }
 
     return *this;
@@ -123,7 +130,10 @@ String& String::operator+=(const char* s)
 
 String& String::operator+=(char c)
 {
-    this->push_back(c);
+    if (m_capacity <= m_size) {
+        realloc(m_capacity * 2 + 1);
+    }
+    push_back(c);
     return *this;
 }
 
@@ -150,7 +160,10 @@ bool String::operator==(const String& str) const
 bool String::operator==(const char* s) const
 {
     size_t i = 0;
-    for (; s[i] != 0; i++) {
+    for (; s[i] != '\0'; i++) {
+        if (i >= m_size) {
+            return false;
+        }
         if (m_string[i] != s[i]) {
             return false;
         }
