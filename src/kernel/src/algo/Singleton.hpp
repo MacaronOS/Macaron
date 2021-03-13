@@ -24,7 +24,8 @@ public:
         return *s_t;
     }
 
-public:
+private:
     static T* s_t;
+public:
     static bool s_initialized;
 };

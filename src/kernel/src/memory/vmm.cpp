@@ -255,9 +255,11 @@ void VMM::handle_interrupt(trapframe_t* tf)
         }
     }
 
-    term_print("\nPID:");
-    term_printd(multitasking::TaskManager::the().cur_thread()->process->id);
-    term_print("\n");
+    if (multitasking::TaskManager::s_initialized) {
+        term_print("\nPID:");
+        term_printd(multitasking::TaskManager::the().cur_thread()->process->id);
+        term_print("\n");
+    }
 
     STOP();
 }

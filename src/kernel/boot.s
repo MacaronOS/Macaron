@@ -10,6 +10,7 @@ MBOOT_CHECKSUM      equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
 SECTION .bootstrap_stack nobits
 stack_bottom:
 resb 16384 ; 16 KiB
+[GLOBAL stack_top]
 stack_top:
 
 ; locating pages

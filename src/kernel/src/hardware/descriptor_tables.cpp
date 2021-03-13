@@ -12,7 +12,7 @@ gdt_entry_t gdt_entries[6];
 gdt_ptr_t gdt_ptr;
 tss_entry_t tss_entry;
 
-char tss_stack[4096];
+extern "C" uint32_t stack_top;
 
 static void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
 {
@@ -61,7 +61,7 @@ static void init_gdt()
     gdt_set_gate(GDT_KERNEL_DATA, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment
     gdt_set_gate(GDT_USER_CODE, 0, 0xFFFFFFFF, 0xFA, 0xCF); // User mode code segment
     gdt_set_gate(GDT_USER_DATA, 0, 0xFFFFFFFF, 0xF2, 0xCF); // User mode data segment
-    write_tss(GDT_KERNEL_DATA_OFFSET, (uint32_t)tss_stack + 4096);
+    write_tss(GDT_KERNEL_DATA_OFFSET, (uint32_t)&stack_top);
 
     gdt_flush((uint32_t)&gdt_ptr);
     tss_flush();
