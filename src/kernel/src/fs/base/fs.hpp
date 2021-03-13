@@ -31,7 +31,7 @@ public:
     virtual Vector<String> listdir(VNode& directory) { return {}; }
 
     // creates a file inside file storage and returns it
-    virtual VNode& create(VNode& directory, const String& name, FileType type, file_permissions_t perms) { }
+    virtual VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) { return nullptr; }
 
     virtual bool erase(VNode& directory, const VNode& file) { return false; }
 

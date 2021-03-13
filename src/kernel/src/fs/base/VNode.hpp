@@ -48,8 +48,8 @@ public:
         Mountpoint(const String& name, VNode* vnode);
         Mountpoint(const Mountpoint& mp);
         Mountpoint(Mountpoint&& mp);
-        Mountpoint operator=(const Mountpoint& mp);
-        Mountpoint operator=(Mountpoint&& mp);
+        Mountpoint& operator=(const Mountpoint& mp);
+        Mountpoint& operator=(Mountpoint&& mp);
 
         String& name() { return m_name; }
         VNode& vnode() { return *m_vnode; }

@@ -19,15 +19,17 @@ VNode::Mountpoint::Mountpoint(Mountpoint&& mp)
     , m_vnode(mp.m_vnode)
 {
 }
-VNode::Mountpoint VNode::Mountpoint::operator=(const Mountpoint& mp)
+VNode::Mountpoint& VNode::Mountpoint::operator=(const Mountpoint& mp)
 {
     m_name = mp.m_name;
     m_vnode = mp.m_vnode;
+    return *this;
 }
-VNode::Mountpoint VNode::Mountpoint::operator=(Mountpoint&& mp)
+VNode::Mountpoint& VNode::Mountpoint::operator=(Mountpoint&& mp)
 {
     m_name = move(mp.m_name);
     m_vnode = mp.m_vnode;
+    return *this;
 }
 
 VNode::VNode(FS* fs, uint32_t vnode)

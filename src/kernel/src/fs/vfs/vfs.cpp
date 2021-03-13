@@ -41,7 +41,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 
     if (!file) {
         if ((mode & O_CREAT)) {
-            file = &create(*relation.result().directory, path.split("/").back(), FileType::File, flags);
+            file = create(*relation.result().directory, path.split("/").back(), FileType::File, flags);
         } else {
             return KError(ENOENT);
         }
@@ -248,7 +248,7 @@ KError VFS::mmap(fd_t fd, uint32_t addr, uint32_t size)
     return KError(ENOENT);
 }
 
-VNode& VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
+VNode* VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
 {
     return directory.fs()->create(directory, name, type, perms);
 }
