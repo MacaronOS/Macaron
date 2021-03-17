@@ -1,11 +1,11 @@
 #include "Logger.hpp"
-#include "algo/Array.hpp"
-#include "algo/Bitmap.hpp"
-#include "algo/Deque.hpp"
-#include "algo/Singleton.hpp"
-#include "algo/StaticStack.hpp"
-#include "algo/String.hpp"
-#include "algo/Vector.hpp"
+#include <wisterialib/Array.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/Deque.hpp>
+#include <wisterialib/Singleton.hpp>
+#include <wisterialib/StaticStack.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
 #include "assert.hpp"
 #include "drivers/DriverManager.hpp"
 #include "drivers/Keyboard.hpp"
@@ -20,8 +20,8 @@
 #include "fs/vfs/vfs.hpp"
 #include "hardware/descriptor_tables.hpp"
 #include "memory/Layout.hpp"
-#include "memory/kmalloc.hpp"
-#include "memory/memory.hpp"
+#include "memory/malloc.hpp"
+#include <wisterialib/memory.hpp>
 #include "memory/pmm.hpp"
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
@@ -56,7 +56,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     init_descriptor_tables();
     term_init();
     term_print("hello\n");
-    kmalloc_init();
+    malloc_init();
 
     InterruptManager::initialize();
     PMM::initialize<multiboot_info*>(multiboot_structure);

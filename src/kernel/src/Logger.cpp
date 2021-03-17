@@ -1,5 +1,5 @@
 #include "Logger.hpp"
-#include <algo/String.hpp>
+#include <wisterialib/String.hpp>
 #include <drivers/DriverManager.hpp>
 #include <drivers/Uart.hpp>
 namespace kernel {

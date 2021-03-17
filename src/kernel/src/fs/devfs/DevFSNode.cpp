@@ -1,8 +1,8 @@
 #include "DevFSNode.hpp"
 #include "DevFS.hpp"
 
-#include <algo/String.hpp>
-#include <algo/Vector.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
 #include <drivers/base/CharacterDevice.hpp>
 #include <fs/base/VNode.hpp>
 

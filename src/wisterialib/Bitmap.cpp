@@ -1,15 +1,8 @@
-#include "Bitmap.hpp"
-
-#include "../types.hpp"
-
-#include "../memory/kmalloc.hpp"
-
-#include "../monitor.hpp"
+#include <Bitmap.hpp>
+#include <common.hpp>
 
 #define BITMAP_CHUNK_SIZE 32
 #define BITMAP_CHUNK_COUNT(sz) (sz / BITMAP_CHUNK_SIZE + ((sz % BITMAP_CHUNK_SIZE > 0) ? 1 : 0))
-
-namespace kernel {
 
 Bitmap::Bitmap(uint32_t location, size_t size)
     : m_array((uint32_t*)location)
@@ -90,6 +83,4 @@ size_t Bitmap::find_first_zero()
     }
 
     return BITMAP_NULL;
-}
-
 }

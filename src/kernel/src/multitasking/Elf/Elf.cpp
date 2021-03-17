@@ -1,8 +1,9 @@
 #include "Elf.hpp"
 #include "elfstructs.hpp"
 
-#include <algo/String.hpp>
+#include <wisterialib/String.hpp>
 #include <posix.hpp>
+#include <wisterialib/memory.hpp>
 #include <fs/vfs/vfs.hpp>
 #include <memory/vmm.hpp>
 #include <errors/KError.hpp>

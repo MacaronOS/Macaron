@@ -1,5 +1,5 @@
 #pragma once
-#include "../../algo/String.hpp"
+#include <wisterialib/String.hpp>
 #include <fs/vfs/vfs.hpp>
 #include <errors/KError.hpp>
 

@@ -1,11 +1,11 @@
 #pragma once
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 namespace kernel::memory {
 
 /*
 Layout represents an object which is responsible for keeping an initial memory layout.
-It's used by PMM and VMM and kmalloc.
+It's used by PMM and VMM and malloc.
 
 Basic Layout
 ----0x00100000-----

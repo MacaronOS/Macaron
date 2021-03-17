@@ -3,7 +3,7 @@
 #include "BochVBE.hpp"
 #include "base/Driver.hpp"
 #include "base/DriverEntity.hpp"
-#include <algo/Vector.hpp>
+#include <wisterialib/Vector.hpp>
 #include <drivers/pci/PCI.hpp>
 #include <drivers/pci/PCIDevice.hpp>
 

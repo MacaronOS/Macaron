@@ -1,11 +1,12 @@
 #pragma once
 
-#include "../algo/Vector.hpp"
+#include <wisterialib/Vector.hpp>
+#include <wisterialib/common.hpp>
+
 #include "../hardware/InterruptManager.hpp"
 #include "base/Driver.hpp"
 #include "../monitor.hpp"
 #include "../hardware/port.hpp"
-#include "../types.hpp"
 #include "base/DriverEntity.hpp"
 
 namespace kernel::drivers {

@@ -1,6 +1,6 @@
 #include "VNode.hpp"
 
-#include <algo/String.hpp>
+#include <wisterialib/String.hpp>
 
 namespace kernel::fs {
 

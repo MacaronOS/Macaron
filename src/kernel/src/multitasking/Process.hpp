@@ -1,6 +1,6 @@
 #pragma once
-#include "../algo/Deque.hpp"
-#include "../algo/StaticStack.hpp"
+#include <wisterialib/Deque.hpp>
+#include <wisterialib/StaticStack.hpp>
 #include "Thread.hpp"
 
 namespace kernel::multitasking {

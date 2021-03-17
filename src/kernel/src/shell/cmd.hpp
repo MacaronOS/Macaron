@@ -1,5 +1,5 @@
 #pragma once
-#include "../algo/String.hpp"
+#include <wisterialib/String.hpp>
 namespace kernel::shell::cmd {
 
 void init();

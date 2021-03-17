@@ -2,12 +2,12 @@
 
 #include <assert.hpp>
 #include <monitor.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
-#include <algo/String.hpp>
-#include <algo/Vector.hpp>
-#include <algo/extras.hpp>
-#include <memory/kmalloc.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
+#include <wisterialib/extras.hpp>
+#include <memory/malloc.hpp>
 
 namespace kernel::fs {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algo/Vector.hpp>
+#include <wisterialib/Vector.hpp>
 #include <drivers/base/CharacterDevice.hpp>
 #include <fs/base/VNode.hpp>
 

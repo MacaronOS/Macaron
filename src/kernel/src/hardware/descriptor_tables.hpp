@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 #define GDT_KERNEL_CODE_OFFSET 0x08
 #define GDT_KERNEL_DATA_OFFSET 0x10

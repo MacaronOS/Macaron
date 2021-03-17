@@ -1,5 +1,5 @@
 #pragma once
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 namespace kernel::multitasking {
 

@@ -1,9 +1,7 @@
 #pragma once
 #include "Array.hpp"
 #include "extras.hpp"
-#include "../types.hpp"
-
-namespace kernel {
+#include "common.hpp"
 
 template <typename StaticStack>
 class StaticStackIterator {
@@ -120,5 +118,3 @@ private:
     Array<T, S> m_data;
     size_t m_data_pointer { 0 };
 };
-
-}

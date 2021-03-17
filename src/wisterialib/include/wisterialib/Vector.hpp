@@ -1,12 +1,6 @@
 #pragma once
 #include "extras.hpp"
-
-#include "../memory/memory.hpp"
-#include "../types.hpp"
-
-#include <memory/kmalloc.hpp>
-
-namespace kernel {
+#include "common.hpp"
 
 template <typename T>
 class Vector {
@@ -17,7 +11,7 @@ public:
         : m_size(size)
         , m_capacity(size)
     {
-        m_data = (T*)kmalloc(m_capacity * sizeof(T));
+        m_data = (T*)malloc(m_capacity * sizeof(T));
     }
 
     Vector(const Vector& v)
@@ -41,7 +35,7 @@ public:
     {
         clear();
         if (m_data) {
-            kfree(m_data);
+            free(m_data);
             m_data = nullptr;
         }
     };
@@ -129,7 +123,7 @@ public:
 private:
     void realloc(size_t size)
     {
-        auto new_data = (T*)kmalloc(size * sizeof(T));
+        auto new_data = (T*)malloc(size * sizeof(T));
 
         for (size_t i = 0; i < m_size; i++) {
             new (&new_data[i]) T(move(m_data[i]));
@@ -139,7 +133,7 @@ private:
             m_data[i].~T();
         }
 
-        kfree(m_data);
+        free(m_data);
 
         m_data = new_data;
         m_capacity = size;
@@ -159,5 +153,3 @@ private:
     size_t m_size { 0 };
     size_t m_capacity { 0 };
 };
-
-}

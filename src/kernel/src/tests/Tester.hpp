@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../algo/Singleton.hpp"
-#include "../algo/Vector.hpp"
+#include <wisterialib/Singleton.hpp>
+#include <wisterialib/Vector.hpp>
 
 #include "Test.hpp"
 

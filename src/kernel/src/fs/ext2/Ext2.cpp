@@ -2,18 +2,18 @@
 #include "ext2fs.hpp"
 
 #include <monitor.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
-#include <algo/Bitmap.hpp>
-#include <algo/String.hpp>
-#include <algo/Vector.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
 #include <assert.hpp>
 #include <drivers/disk/Ata.hpp>
 #include <drivers/disk/DiskDriver.hpp>
 #include <fs/base/VNode.hpp>
 #include <fs/base/fs.hpp>
-#include <memory/kmalloc.hpp>
-#include <memory/memory.hpp>
+#include <memory/malloc.hpp>
+#include <wisterialib/memory.hpp>
 
 #define EXT2_MAGIC 0xEF53
 
@@ -56,7 +56,7 @@ bool Ext2::init()
 
     m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
-    m_bgd_table = (block_group_descriptor_t*)kmalloc(m_block_size);
+    m_bgd_table = (block_group_descriptor_t*)malloc(m_block_size);
 
     m_disk_driver.read(BGDT_LOCATION / BYTES_PER_SECTOR, m_block_size / BYTES_PER_SECTOR, m_bgd_table);
 
@@ -102,7 +102,7 @@ VNode* Ext2::finddir(VNode& directory, const String& filename)
 {
     auto& i_directory = ToExt2Inode(directory);
 
-    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
+    uint8_t* directory_content = (uint8_t*)malloc(i_directory.inode_struct()->size);
 
     read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
@@ -129,7 +129,7 @@ VNode* Ext2::finddir(VNode& directory, const String& filename)
         entry_pointer += entry.size;
     }
 
-    kfree(directory_content);
+    free(directory_content);
     return nullptr;
 }
 
@@ -137,7 +137,7 @@ Vector<String> Ext2::listdir(VNode& directory)
 {
     auto& i_directory = ToExt2Inode(directory);
 
-    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
+    uint8_t* directory_content = (uint8_t*)malloc(i_directory.inode_struct()->size);
 
     read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
@@ -157,7 +157,7 @@ Vector<String> Ext2::listdir(VNode& directory)
         entry_pointer += entry.size;
     }
 
-    kfree(directory_content);
+    free(directory_content);
     return filenames;
 }
 
@@ -179,7 +179,7 @@ VNode* Ext2::create(VNode& directory, const String& name, FileType type, file_pe
 
     // init directory entry, then append it
     uint32_t file_entry_size = sizeof(dir_entry_t) + name.size();
-    dir_entry_t* file_entry = (dir_entry_t*)kmalloc(file_entry_size);
+    dir_entry_t* file_entry = (dir_entry_t*)malloc(file_entry_size);
 
     file_entry[0].inode = free_inode;
     file_entry[0].size = file_entry_size;
@@ -197,7 +197,7 @@ VNode* Ext2::create(VNode& directory, const String& name, FileType type, file_pe
 bool Ext2::erase(VNode& directory, const VNode& file)
 {
     auto& i_directory = ToExt2Inode(directory);
-    uint8_t* directory_content = (uint8_t*)kmalloc(i_directory.inode_struct()->size);
+    uint8_t* directory_content = (uint8_t*)malloc(i_directory.inode_struct()->size);
 
     read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
 
@@ -215,14 +215,14 @@ bool Ext2::erase(VNode& directory, const VNode& file)
             save_inode_structure(i_directory);
             write_inode_content(i_directory, entry_pointer, i_directory.inode_struct()->size - entry_pointer - entry.size, (void*)(entry_pointer + entry.size));
 
-            kfree(directory_content);
+            free(directory_content);
             return true;
         }
 
         entry_pointer += entry.size;
     }
 
-    kfree(directory_content);
+    free(directory_content);
     return false;
 }
 
@@ -514,7 +514,7 @@ uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
     for (size_t i = preferd_block_group; i < m_bgd_table_size; i++) {
         if (m_bgd_table[i].unallocated_block_count) {
             // read bitmap
-            uint32_t* block_bitmap = (uint32_t*)kmalloc(m_block_size);
+            uint32_t* block_bitmap = (uint32_t*)malloc(m_block_size);
             read_block(m_bgd_table[i].block_bitmap_addr, block_bitmap);
 
             // find first free block in bitmap
@@ -528,10 +528,10 @@ uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
 
             // clear block
             if (fill_zeroes) {
-                uint8_t* block_buffer = (uint8_t*)kmalloc(m_block_size);
+                uint8_t* block_buffer = (uint8_t*)malloc(m_block_size);
                 memset(block_buffer, 0, m_block_size);
                 write_block(free_block_in_ext2, block_buffer);
-                kfree(block_buffer);
+                free(block_buffer);
             }
 
             return free_block_in_ext2;
@@ -543,7 +543,7 @@ uint32_t Ext2::occypy_block(uint32_t preferd_block_group, bool fill_zeroes)
 
 bool Ext2::free_block(uint32_t block)
 {
-    uint32_t* block_bitmap = (uint32_t*)kmalloc(m_block_size);
+    uint32_t* block_bitmap = (uint32_t*)malloc(m_block_size);
     read_block(m_bgd_table[(block - 1) / m_superblock.blocks_per_block_group].block_bitmap_addr, block_bitmap);
     Bitmap bit = Bitmap::wrap((uint32_t)block_bitmap, m_superblock.blocks_per_block_group);
     bit.set_false((block - 1) % m_superblock.inodes_per_block_group);
@@ -555,7 +555,7 @@ uint32_t Ext2::occypy_inode(uint32_t preferd_block_group)
     for (size_t i = preferd_block_group; i < m_bgd_table_size; i++) {
         if (m_bgd_table[i].unallocated_inodes_count) {
             // read bitmap
-            uint32_t* inode_bitmap = (uint32_t*)kmalloc(m_block_size);
+            uint32_t* inode_bitmap = (uint32_t*)malloc(m_block_size);
             read_block(m_bgd_table[i].inode_bitmap_addr, inode_bitmap);
 
             // find first free inode in bitmap
@@ -575,7 +575,7 @@ uint32_t Ext2::occypy_inode(uint32_t preferd_block_group)
 
 bool Ext2::free_inode(uint32_t inode)
 {
-    uint32_t* inode_bitmap = (uint32_t*)kmalloc(m_block_size);
+    uint32_t* inode_bitmap = (uint32_t*)malloc(m_block_size);
     read_block(m_bgd_table[(inode - 1) / m_superblock.inodes_per_block_group].inode_bitmap_addr, inode_bitmap);
     Bitmap bit = Bitmap::wrap((uint32_t)inode_bitmap, m_superblock.inodes_per_block_group);
     bit.set_false((inode - 1) % m_superblock.inodes_per_block_group);

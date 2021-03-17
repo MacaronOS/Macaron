@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../monitor.hpp"
-#include "../types.hpp"
 
+#include <wisterialib/common.hpp>
 #include <Logger.hpp>
 
 struct [[gnu::packed]] trapframe_t

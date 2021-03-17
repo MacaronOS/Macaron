@@ -2,12 +2,13 @@
 #include "base/Driver.hpp"
 #include "base/DriverEntity.hpp"
 
-#include "../algo/Singleton.hpp"
+#include <wisterialib/common.hpp>
+#include <wisterialib/Singleton.hpp>
+
 #include "../assert.hpp"
 #include "../errors/KError.hpp"
-#include "../types.hpp"
 
-#include <algo/Vector.hpp>
+#include <wisterialib/Vector.hpp>
 
 #define MAX_DRIVERS 32
 

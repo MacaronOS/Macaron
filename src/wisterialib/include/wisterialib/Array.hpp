@@ -1,7 +1,5 @@
 #pragma once
-#include "../types.hpp"
-
-namespace kernel {
+#include "common.hpp"
 
 template <typename T, size_t S>
 class Array {
@@ -21,5 +19,3 @@ public:
 private:
     T m_data[S];
 };
-
-}

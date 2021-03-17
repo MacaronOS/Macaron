@@ -1,15 +1,14 @@
-#include "String.hpp"
-#include "../memory/memory.hpp"
-#include "Vector.hpp"
-
-namespace kernel {
+#include <String.hpp>
+#include <Vector.hpp>
+#include <common.hpp>
+#include <memory.hpp>
 
 String::String(const String& str)
 {
     m_size = str.size();
     m_capacity = str.capacity();
 
-    m_string = (char*)kmalloc(m_capacity);
+    m_string = (char*)malloc(m_capacity);
     memcpy(m_string, str.m_string, m_size);
 }
 
@@ -36,7 +35,7 @@ String::~String()
     m_size = 0;
     m_capacity = 0;
     if (m_string) {
-        kfree(m_string);
+        free(m_string);
         m_string = nullptr;
     }
 }
@@ -54,7 +53,7 @@ String& String::operator=(const String& str)
 String& String::operator=(String&& str)
 {
     if (m_string) {
-        kfree(m_string);
+        free(m_string);
     }
     m_string = str.m_string;
     m_size = str.m_size;
@@ -80,9 +79,9 @@ String& String::operator=(const char* s)
 
 void String::realloc(size_t new_capacity)
 {
-    auto new_string = (char*)kmalloc(new_capacity);
+    auto new_string = (char*)malloc(new_capacity);
     memcpy(new_string, m_string, m_size);
-    kfree(m_string);
+    free(m_string);
     m_string = new_string;
     m_capacity = new_capacity;
 }
@@ -237,6 +236,4 @@ char* String::cstr() const
     }
     res[m_size] = '\0';
     return res;
-}
-
 }

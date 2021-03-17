@@ -3,8 +3,8 @@
 #include "Driver.hpp"
 
 #include <Logger.hpp>
-#include <algo/String.hpp>
-#include <types.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/common.hpp>
 
 namespace kernel::drivers {
 

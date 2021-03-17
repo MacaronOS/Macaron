@@ -6,19 +6,20 @@ include $(ROOT_DIR)/makefile.config
 SRCS_KERNEL:=$(shell find $(KERNEL_SRC_DIR)/* -type f -name *.cpp -or -name *.c -or -name *.s)
 RELATIVE_SRCS_KERNEL:=$(shell realpath --relative-to $(KERNEL_SRC_DIR) $(SRCS_KERNEL))
 OBJS_KERNEL:=$(RELATIVE_SRCS_KERNEL:%=$(KERNEL_BUILD_DIR)/%.o)
+INCLUDES_KERNEL:=-I$(KERNEL_SRC_DIR)/src/ -I$(WISTERIALIB_SRC_DIR)/include/
 
-$(KERNEL_BUILD_DIR)/$(TARGET_EXEC): $(OBJS_KERNEL)
-	$(CC) $(LDFLAGS) -T $(KERNEL_SRC_DIR)/linker.ld $(OBJS_KERNEL) -o $@ -lgcc
+$(KERNEL_BUILD_DIR)/$(TARGET_EXEC): $(OBJS_KERNEL) $(WISTERIALIB_BUILD_DIR)/$(WISTERIALIB)
+	$(CC) $(LDFLAGS) -T $(KERNEL_SRC_DIR)/linker.ld $(OBJS_KERNEL) $(WISTERIALIB_BUILD_DIR)/$(WISTERIALIB) -o $@ -lgcc
 
 # assembly
 $(KERNEL_BUILD_DIR)/%.s.o: $(KERNEL_SRC_DIR)/%.s
 	$(MKDIR_P) $(dir $@)
-	@ $(AS) $(ASFLAGS) $< -o $@
+	$(AS) $(ASFLAGS) $< -o $@
 
 # cpp source
 $(KERNEL_BUILD_DIR)/%.cpp.o: $(KERNEL_SRC_DIR)/%.cpp
 	$(MKDIR_P) $(dir $@)
-	$(CPPC) $(CPPFLAGS) -ggdb $(CFLAGS) -I$(KERNEL_SRC_DIR)/src/ -c $< -o $@
+	$(CPPC) $(CPPFLAGS) -ggdb $(CFLAGS) $(INCLUDES_KERNEL) -c $< -o $@
 
 kernel:	$(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 

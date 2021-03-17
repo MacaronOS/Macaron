@@ -1,5 +1,5 @@
 #pragma once
-#include "../algo/extras.hpp"
+#include <wisterialib/extras.hpp>
 #include "errors.hpp"
 
 namespace kernel {

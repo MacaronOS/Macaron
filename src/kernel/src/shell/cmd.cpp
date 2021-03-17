@@ -1,5 +1,5 @@
 #include "cmd.hpp"
-#include "../algo/String.hpp"
+#include <wisterialib/String.hpp>
 #include "../fs/vfs/vfs.hpp"
 #include "../monitor.hpp"
 #include "../posix.hpp"
@@ -52,11 +52,11 @@ void cat(const String& path)
         return;
     }
 
-    char* buff = (char*)kmalloc(file_size.result() + 1);
+    char* buff = (char*)malloc(file_size.result() + 1);
     auto size = s_vfs->read(fd.result(), buff, file_size.result());
     buff[file_size.result()] = '\0';
     term_print(buff);
-    kfree(buff);
+    free(buff);
 
     s_vfs->close(fd.result());
 }

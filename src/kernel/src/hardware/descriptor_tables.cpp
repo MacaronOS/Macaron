@@ -1,6 +1,7 @@
+#include <wisterialib/common.hpp>
+
 #include "descriptor_tables.hpp"
-#include "../memory/memory.hpp"
-#include "../types.hpp"
+#include <wisterialib/memory.hpp>
 #include "port.hpp"
 
 // Lets us access our ASM functions from our C code.

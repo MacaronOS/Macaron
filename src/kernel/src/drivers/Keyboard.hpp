@@ -1,5 +1,5 @@
 #pragma once
-#include "../algo/Vector.hpp"
+#include <wisterialib/Vector.hpp>
 #include "../hardware/InterruptManager.hpp"
 #include "base/Driver.hpp"
 

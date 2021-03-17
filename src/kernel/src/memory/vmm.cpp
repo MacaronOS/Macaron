@@ -1,13 +1,13 @@
 #include "vmm.hpp"
 #include "Layout.hpp"
-#include "memory.hpp"
+#include <wisterialib/memory.hpp>
 #include "pagingstructs.hpp"
 #include "pmm.hpp"
 
 #include <Logger.hpp>
 #include <assert.hpp>
 #include <monitor.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 #include <errors/KError.hpp>
 #include <multitasking/TaskManager.hpp>

@@ -1,9 +1,9 @@
 #pragma once
 #include "VNode.hpp"
 
-#include <algo/String.hpp>
-#include <algo/Vector.hpp>
-#include <types.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
+#include <wisterialib/common.hpp>
 
 #include <posix.hpp>
 

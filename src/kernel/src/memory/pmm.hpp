@@ -1,10 +1,10 @@
 #pragma once
 
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 #include <multiboot.hpp>
 
-#include <algo/Bitmap.hpp>
-#include <algo/Singleton.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/Singleton.hpp>
 
 namespace kernel::memory {
 

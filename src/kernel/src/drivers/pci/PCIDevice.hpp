@@ -2,9 +2,9 @@
 
 #include "PCI.hpp"
 
-#include <algo/Vector.hpp>
+#include <wisterialib/Vector.hpp>
 #include <drivers/base/Driver.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 namespace kernel::drivers {
 

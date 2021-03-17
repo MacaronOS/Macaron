@@ -5,7 +5,7 @@
 #include <monitor.hpp>
 #include <posix.hpp>
 
-#include <algo/extras.hpp>
+#include <wisterialib/extras.hpp>
 
 namespace kernel::fs {
 using namespace Logger;

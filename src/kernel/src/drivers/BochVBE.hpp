@@ -6,7 +6,7 @@
 
 #include <drivers/pci/PCIDevice.hpp>
 
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 namespace kernel::drivers {
 

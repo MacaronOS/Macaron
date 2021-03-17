@@ -3,9 +3,9 @@
 #include "pagingstructs.hpp"
 
 #include <assert.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
-#include <algo/Singleton.hpp>
+#include <wisterialib/Singleton.hpp>
 #include <errors/KError.hpp>
 #include <hardware/InterruptManager.hpp>
 #include <multitasking/TaskManager.hpp>

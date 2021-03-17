@@ -3,13 +3,13 @@
 #include "ext2fs.hpp"
 #include "Ext2Inode.hpp"
 
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
 #include <fs/base/fs.hpp>
 #include <fs/base/VNode.hpp>
-#include <algo/Bitmap.hpp>
-#include <algo/String.hpp>
-#include <algo/Vector.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
 #include <drivers/disk/Ata.hpp>
 #include <drivers/disk/DiskDriver.hpp>
 

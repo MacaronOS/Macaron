@@ -1,13 +1,12 @@
 #pragma once
 
-#include "types.hpp"
-#include "algo/String.hpp"
+#include <wisterialib/common.hpp>
+#include <wisterialib/String.hpp>
 
 void term_init();
 
 void term_print(const char* str);
 
-using kernel::String;
 void term_print(const String&);
 
 void term_printn(int64_t numb, uint32_t s);

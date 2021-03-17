@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../monitor.hpp"
-
-namespace kernel {
+#include "common.hpp"
 
 template <typename T>
 class DequeNode {
@@ -241,4 +239,3 @@ private:
 
     size_t m_size {};
 };
-}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algo/String.hpp>
+#include <wisterialib/String.hpp>
 #include <drivers/Uart.hpp>
 
 namespace kernel {

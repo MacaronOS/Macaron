@@ -1,6 +1,6 @@
 #pragma once
-#include "../algo/Deque.hpp"
-#include "../algo/Singleton.hpp"
+#include <wisterialib/Deque.hpp>
+#include <wisterialib/Singleton.hpp>
 #include "../assert.hpp"
 #include "../fs/vfs/vfs.hpp"
 #include "../memory/vmm.hpp"

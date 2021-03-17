@@ -1,6 +1,6 @@
 #pragma once
 #include "../monitor.hpp"
-#include "../algo/String.hpp"
+#include <wisterialib/String.hpp>
 
 namespace kernel::tests {
 

@@ -1,8 +1,8 @@
 #include "monitor.hpp"
 
-#include "algo/String.hpp"
+#include <wisterialib/String.hpp>
 #include "hardware/port.hpp"
-#include "types.hpp"
+#include <wisterialib/common.hpp>
 
 volatile uint16_t* vga_buffer = (uint16_t*)0xC00B8000;
 
@@ -82,7 +82,6 @@ void term_print(const char* str)
     }
 }
 
-using kernel::String;
 void term_print(const String& str)
 {
     for (size_t i = 0; i < str.size(); i++) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../types.hpp"
+#include <wisterialib/common.hpp>
 #include "DiskDriver.hpp"
 
 #define WORDS_PER_SECTOR 256

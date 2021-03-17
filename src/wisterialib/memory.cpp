@@ -1,7 +1,5 @@
-#include "memory.hpp"
-#include "../monitor.hpp"
-#include "../types.hpp"
-#include "../assert.hpp"
+#include <memory.hpp>
+#include <common.hpp>
 
 void* memset(void* ptr, int value, size_t num)
 {

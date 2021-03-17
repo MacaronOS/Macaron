@@ -1,8 +1,9 @@
 #include "Ata.hpp"
 
+#include <wisterialib/common.hpp>
+
 #include "../../hardware/port.hpp"
 #include "../../monitor.hpp"
-#include "../../types.hpp"
 
 // comand port commands
 #define IDENTIFY_COMMAND 0xEC

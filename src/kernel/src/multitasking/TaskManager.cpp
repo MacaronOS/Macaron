@@ -7,7 +7,7 @@
 #include <drivers/PIT.hpp>
 #include <fs/vfs/vfs.hpp>
 #include <hardware/descriptor_tables.hpp>
-#include <memory/kmalloc.hpp>
+#include <memory/malloc.hpp>
 
 namespace kernel::multitasking {
 
@@ -92,7 +92,7 @@ int TaskManager::sys_fork_handler()
     new_thread->process = new_proc;
     new_thread->state = ThreadState::Running;
     new_thread->user_stack = old_thread->user_stack;
-    new_thread->kernel_stack = kmalloc_4(KERNEL_STACK_SIZE);
+    new_thread->kernel_stack = malloc_4(KERNEL_STACK_SIZE);
 
     // copy the trapframe
     trapframe_t* trapframe = (trapframe_t*)((uint32_t)new_thread->kernel_stack + KERNEL_STACK_SIZE - sizeof(trapframe_t));
@@ -130,8 +130,8 @@ void TaskManager::add_kernel_thread(void (*func)())
 {
     Thread* new_thread = new Thread;
     new_thread->process = kernel_process();
-    new_thread->kernel_stack = kmalloc_4(KERNEL_STACK_SIZE);
-    new_thread->user_stack = kmalloc_4(USER_STACK_SIZE);
+    new_thread->kernel_stack = malloc_4(KERNEL_STACK_SIZE);
+    new_thread->user_stack = malloc_4(USER_STACK_SIZE);
 
     // setup initial trapframe
     trapframe_t* trapframe = (trapframe_t*)((uint32_t)new_thread->kernel_stack + KERNEL_STACK_SIZE - sizeof(trapframe_t));
@@ -182,7 +182,7 @@ void TaskManager::setup_process(const pid_t pid, const String& filepath)
     if (proc.m_threads.size() < 1) {
         auto new_thread = new Thread;
         new_thread->process = &proc;
-        new_thread->kernel_stack = kmalloc_4(KERNEL_STACK_SIZE);
+        new_thread->kernel_stack = malloc_4(KERNEL_STACK_SIZE);
         proc.m_threads.push_back(new_thread);
         m_threads.push_front(new_thread);
     }

@@ -1,8 +1,6 @@
 #pragma once
-#include "../types.hpp"
+#include "common.hpp"
 #include "Vector.hpp"
-
-namespace kernel {
 
 class String {
 
@@ -53,5 +51,3 @@ private:
     size_t m_size {};
     size_t m_capacity {};
 };
-
-}

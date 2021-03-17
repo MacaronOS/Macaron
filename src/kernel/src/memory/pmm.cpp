@@ -1,12 +1,12 @@
 #include "pmm.hpp"
 #include "Layout.hpp"
-#include "memory.hpp"
+#include <wisterialib/memory.hpp>
 
 #include <multiboot.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
-#include <algo/Bitmap.hpp>
-#include <algo/Singleton.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/Singleton.hpp>
 
 namespace kernel::memory {
 
@@ -22,7 +22,7 @@ PMM::PMM(multiboot_info_t* multiboot_info)
     const uint32_t blocks_size = mem_size / FRAME_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
-    m_pmmap = kernel::Bitmap::wrap(Layout::GetLocationVirt(LayoutElement::PMMBitmapStart), blocks_size);
+    m_pmmap = Bitmap::wrap(Layout::GetLocationVirt(LayoutElement::PMMBitmapStart), blocks_size);
     m_pmmap.fill();
 
     for (

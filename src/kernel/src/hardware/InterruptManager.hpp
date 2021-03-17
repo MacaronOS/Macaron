@@ -1,8 +1,8 @@
 #pragma once
-#include "../types.hpp"
+#include <wisterialib/common.hpp>
+#include <wisterialib/Singleton.hpp>
 #include "trapframe.hpp"
 #include "../assert.hpp"
-#include "../algo/Singleton.hpp"
 
 typedef void (*interrupt_handler_function)(trapframe_t*);
 

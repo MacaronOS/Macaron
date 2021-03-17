@@ -1,11 +1,11 @@
 #pragma once
 
 #include <assert.hpp>
-#include <types.hpp>
+#include <wisterialib/common.hpp>
 
-#include <algo/Array.hpp>
-#include <algo/Singleton.hpp>
-#include <algo/StaticStack.hpp>
+#include <wisterialib/Array.hpp>
+#include <wisterialib/Singleton.hpp>
+#include <wisterialib/StaticStack.hpp>
 
 #include <errors/KError.hpp>
 #include <fs/base/VNode.hpp>

@@ -1,7 +1,7 @@
 #include "vfs.test.hpp"
 #include "../../fs/vfs/vfs.hpp"
 #include "../../monitor.hpp"
-#include "../../algo/String.hpp"
+#include <wisterialib/String.hpp>
 #include "../../posix.hpp"
 
 namespace kernel::tests {

@@ -1,6 +1,6 @@
 #include "Shell.hpp"
-#include "../algo/StaticStack.hpp"
-#include "../algo/String.hpp"
+#include <wisterialib/StaticStack.hpp>
+#include <wisterialib/String.hpp>
 #include "../drivers/DriverManager.hpp"
 #include "../drivers/Keyboard.hpp"
 #include "../fs/base/VNode.hpp"

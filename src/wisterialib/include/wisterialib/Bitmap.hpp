@@ -1,10 +1,8 @@
 #pragma once
 
-#include "../types.hpp"
+#include "common.hpp"
 
 #define BITMAP_NULL -1
-
-namespace kernel {
 
 class Bitmap {
 public:
@@ -32,5 +30,3 @@ private:
     size_t m_memory_size { 0 }; // the size of the bitmap in memory
     uint32_t* m_array { nullptr };
 };
-
-}
