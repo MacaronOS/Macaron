@@ -1,8 +1,10 @@
 #include "cmd.hpp"
+
 #include <wisterialib/String.hpp>
+#include <wisterialib/posix/defines.hpp>
+
 #include "../fs/vfs/vfs.hpp"
 #include "../monitor.hpp"
-#include "../posix.hpp"
 
 namespace kernel::shell::cmd {
 static fs::VFS* s_vfs;
@@ -76,7 +78,7 @@ void echo(const String& msg, const String& path, bool append)
             s_vfs->write(fd.result(), msg.cstr(), msg.size());
             s_vfs->truncate(fd.result(), msg.size());
         }
-        s_vfs->close(fd.result()); 
+        s_vfs->close(fd.result());
     }
 }
 

@@ -1,8 +1,10 @@
 #pragma once
 #include <wisterialib/extras.hpp>
-#include "errors.hpp"
+#include <wisterialib/posix/errors.hpp>
 
 namespace kernel {
+
+typedef uint8_t k_error_t;
 
 class KError {
 public:

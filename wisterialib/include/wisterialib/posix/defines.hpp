@@ -19,13 +19,7 @@
 #define PROT_READ 0x1
 #define PROT_WRITE 0x2
 #define PROT_EXEC 0x4
-#define PROT_NONE 0x0 
+#define PROT_NONE 0x0
 
-struct MmapParams {
-    uint32_t start;
-    uint32_t size;
-    int prot;
-    int flags;
-    int fd;
-    uint32_t offset;
-};
+
+

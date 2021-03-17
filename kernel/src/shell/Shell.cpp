@@ -1,12 +1,14 @@
 #include "Shell.hpp"
+#include "cmd.hpp"
+
 #include <wisterialib/StaticStack.hpp>
 #include <wisterialib/String.hpp>
+#include <wisterialib/posix/defines.hpp>
+
 #include "../drivers/DriverManager.hpp"
 #include "../drivers/Keyboard.hpp"
 #include "../fs/base/VNode.hpp"
 #include "../fs/vfs/vfs.hpp"
-#include "../posix.hpp"
-#include "cmd.hpp"
 
 namespace kernel::shell {
 

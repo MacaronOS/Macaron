@@ -1,4 +1,5 @@
-#include <libc/syscalls.h>
+#include <libc/syscalls.hpp>
+#include <wisterialib/posix/defines.hpp>
 
 int main()
 {
@@ -7,7 +8,7 @@ int main()
         return 0;
     }
 
-    volatile unsigned int* pixels = mmap(0, 1024 * 768 * 4 * 2, PROT_NONE, MAP_SHARED, fd, 0);
+    volatile unsigned int* pixels = (unsigned int*)mmap(0, 1024 * 768 * 4 * 2, PROT_NONE, MAP_SHARED, fd, 0);
     if ((pixels == (void *) -1)) {
         return 0;
     }

@@ -2,11 +2,12 @@
 #include "elfstructs.hpp"
 
 #include <wisterialib/String.hpp>
-#include <posix.hpp>
 #include <wisterialib/memory.hpp>
+#include <wisterialib/posix/defines.hpp>
+
+#include <errors/KError.hpp>
 #include <fs/vfs/vfs.hpp>
 #include <memory/vmm.hpp>
-#include <errors/KError.hpp>
 
 namespace kernel::multitasking {
 

@@ -5,8 +5,6 @@
 #include <wisterialib/Vector.hpp>
 #include <wisterialib/common.hpp>
 
-#include <posix.hpp>
-
 namespace kernel::fs {
 
 class FS {

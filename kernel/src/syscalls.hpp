@@ -2,27 +2,11 @@
 #include "hardware/InterruptManager.hpp"
 #include "hardware/trapframe.hpp"
 
+#include <wisterialib/posix/shared.hpp>
+
 namespace kernel::syscalls {
 
-enum class SyscallSelector {
-    Putc = 0,
-    Exit,
-    Fork,
-    Read,
-    Write,
-    Open,
-    Close,
-
-    Execve = 9,
-
-    Printd,
-
-    Mmap = 90,
-
-    END,
-};
-
-constexpr uint8_t syscall_count = (uint8_t)SyscallSelector::END;
+constexpr uint8_t syscall_count = (uint8_t)Syscall::END;
 
 class SyscallsManager : public InterruptHandler {
 public:
@@ -30,7 +14,7 @@ public:
     static void initialize();
 
     void handle_interrupt(trapframe_t* tf) override;
-    void register_syscall(SyscallSelector ss, uint32_t syscall_ptr);
+    void register_syscall(Syscall ss, uint32_t syscall_ptr);
 
 private:
     uint32_t m_syscalls[syscall_count];

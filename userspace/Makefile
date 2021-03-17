@@ -12,23 +12,18 @@ $(1)_SRCS := $$(shell find $(1) -name *.cpp -or -name *.c -or -name *.s)
 $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($(1)_SRCS))
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
-$$($(1)_LIB): $$($(1)_OBJS)
-	i686-elf-ar rcs $$($(1)_LIB) $$($(1)_OBJS)
-
-# c source
-$$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
-	mkdir -p $$(dir $$@)
-	$(CC) $$(CFLAGS) -c $$< -o $$@
+$$($(1)_LIB): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
+	$$(AR) rcs $$($(1)_LIB) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
 
 # assembly
 $$(USERSPACE_BUILD_DIR)/%.s.o: $$(USERSPACE_SRC_DIR)/%.s
 	mkdir -p $$(dir $$@)
-	$(AS) $$(ASFLAGS) $$< -o $$@
+	$$(AS) $$(ASFLAGS) $$< -o $$@
 
 # cpp source
 $$(USERSPACE_BUILD_DIR)/%.cpp.o: $$(USERSPACE_SRC_DIR)/%.cpp
 	mkdir -p $$(dir $$@)
-	$(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$$(CPPC) $$(CFLAGS) $$(CPPFLAGS) -I$$(WISTERIALIB_SRC_DIR)/include/ -c $$< -o $$@
 endef
 
 ulibs := $(shell find $(USERSPACE_SRC_DIR)/libs/* -maxdepth 0 -type d ! -path "build")
@@ -53,8 +48,8 @@ $(1)_SRCS := $$(shell find $(1) -name *.cpp -or -name *.c -or -name *.s)
 $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($(1)_SRCS))
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
-$$($(1)_APP): $$($(1)_OBJS)
-	$(CC) -lc -L$(LIBRARIES_FOLDER) $$(LINKER_FLAGS) $$($(1)_OBJS) -lc -L$(LIBRARIES_FOLDER) -o $$@ -lgcc
+$$($(1)_APP): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
+	$(CC) -lc -L$(LIBRARIES_FOLDER) $$(LINKER_FLAGS) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) -lc -L$$(LIBRARIES_FOLDER) -o $$@ -lgcc
 
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c
@@ -67,9 +62,9 @@ $$(USERSPACE_BUILD_DIR)/%.s.o: %.s
 	$(AS) $$(ASFLAGS) $$< -o $$@
 
 # cpp source
-$$(USERSPACE_BUILD_DIR)/$(1)/%.cpp.o: %.cpp
+$$(USERSPACE_BUILD_DIR)/%.cpp.o: $$(USERSPACE_SRC_DIR)/%.cpp
 	mkdir -p $$(dir $$@)
-	$(CPPC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$$(CPPC) $$(CFLAGS) $$(CPPFLAGS) -I$$(USERSPACE_SRC_DIR)/libs/ -I$$(WISTERIALIB_SRC_DIR)/include/ -c $$< -o $$@
 endef
 
 uapps := $(shell find $(USERSPACE_SRC_DIR)/apps/* -maxdepth 0 -type d ! -path "build")

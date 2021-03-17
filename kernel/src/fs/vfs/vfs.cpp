@@ -3,9 +3,9 @@
 #include <Logger.hpp>
 #include <assert.hpp>
 #include <monitor.hpp>
-#include <posix.hpp>
 
 #include <wisterialib/extras.hpp>
+#include <wisterialib/posix/defines.hpp>
 
 namespace kernel::fs {
 using namespace Logger;

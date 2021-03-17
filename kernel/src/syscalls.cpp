@@ -6,9 +6,11 @@
 #include "monitor.hpp"
 #include "multitasking/TaskManager.hpp"
 
-#include <errors/errors.hpp>
+#include <wisterialib/posix/defines.hpp>
+#include <wisterialib/posix/errors.hpp>
+#include <wisterialib/posix/shared.hpp>
+
 #include <memory/vmm.hpp>
-#include <posix.hpp>
 
 extern "C" void switch_to_user_mode();
 
@@ -90,15 +92,15 @@ SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
     for (size_t syscall_index = 0; syscall_index < syscall_count; syscall_index++) {
-        m_syscalls[syscall_index] = (uint8_t)SyscallSelector::END;
+        m_syscalls[syscall_index] = (uint8_t)Syscall::END;
     }
 
-    register_syscall(SyscallSelector::Putc, (uint32_t)sys_putc);
-    register_syscall(SyscallSelector::Exit, (uint32_t)sys_exit);
-    register_syscall(SyscallSelector::Fork, (uint32_t)sys_fork);
-    register_syscall(SyscallSelector::Open, (uint32_t)sys_open);
-    register_syscall(SyscallSelector::Execve, (uint32_t)sys_execve);
-    register_syscall(SyscallSelector::Mmap, (uint32_t)sys_mmap);
+    register_syscall(Syscall::Putc, (uint32_t)sys_putc);
+    register_syscall(Syscall::Exit, (uint32_t)sys_exit);
+    register_syscall(Syscall::Fork, (uint32_t)sys_fork);
+    register_syscall(Syscall::Open, (uint32_t)sys_open);
+    register_syscall(Syscall::Execve, (uint32_t)sys_execve);
+    register_syscall(Syscall::Mmap, (uint32_t)sys_mmap);
 }
 
 void SyscallsManager::initialize()
@@ -106,14 +108,14 @@ void SyscallsManager::initialize()
     new SyscallsManager();
 }
 
-void SyscallsManager::register_syscall(SyscallSelector ss, uint32_t syscall_ptr)
+void SyscallsManager::register_syscall(Syscall ss, uint32_t syscall_ptr)
 {
     m_syscalls[(uint8_t)ss] = syscall_ptr;
 }
 
 void SyscallsManager::handle_interrupt(trapframe_t* regs)
 {
-    if (regs->eax >= syscall_count || m_syscalls[regs->eax] == (uint8_t)SyscallSelector::END) {
+    if (regs->eax >= syscall_count || m_syscalls[regs->eax] == (uint8_t)Syscall::END) {
         return;
     }
     int ret;

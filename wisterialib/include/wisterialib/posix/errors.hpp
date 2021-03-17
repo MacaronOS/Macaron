@@ -1,5 +1,4 @@
 #pragma once
-#include <wisterialib/common.hpp>
 
 #define	EPERM 1		/* Not super-user */
 #define	ENOENT 2	/* No such file or directory */
@@ -123,5 +122,3 @@
 #define ECASECLASH 137  /* Filename exists with different case */
 #define EILSEQ 138
 #define EOVERFLOW 139	/* Value too large for defined data type */
-
-typedef uint8_t k_error_t;
