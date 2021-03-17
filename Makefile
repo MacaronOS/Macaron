@@ -1,7 +1,7 @@
 include makefile.config
-include src/kernel/Makefile
-include src/userspace/Makefile
-include src/wisterialib/Makefile
+include kernel/Makefile
+include userspace/Makefile
+include wisterialib/Makefile
 
 run: build
 	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
