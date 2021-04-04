@@ -3,6 +3,8 @@ include kernel/Makefile
 include userspace/Makefile
 include wisterialib/Makefile
 
+all: run
+
 run: build
 	$(QEMU) $(QEMUFLAGS) -kernel $(KERNEL_BUILD_DIR)/$(TARGET_EXEC)
 
