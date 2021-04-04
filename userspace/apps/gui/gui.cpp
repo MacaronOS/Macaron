@@ -9,13 +9,27 @@ int main()
     }
 
     volatile unsigned int* pixels = (unsigned int*)mmap(0, 1024 * 768 * 4 * 2, PROT_NONE, MAP_SHARED, fd, 0);
-    if ((pixels == (void *) -1)) {
+    if (pixels == (void*)-1) {
         return 0;
     }
 
     for (int i = 0; i < 1024 * 768; i++) {
         pixels[i] = 0x0ffff00;
     }
-    
+
+    if (fork()) {
+        while (1) {
+            for (uint32_t pixel = 0 ; pixel < 0xfffffff ; pixel++) {
+                for (int i = 0; i < 1024 * 768; i++) {
+                    pixels[i] = pixel;
+                }
+            }
+        }
+    } else {
+        while (1) {
+            putc('f');
+        }
+    }
+
     return 0;
 }

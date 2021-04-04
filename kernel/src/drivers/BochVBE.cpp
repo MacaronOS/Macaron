@@ -6,11 +6,15 @@
 #include <assert.hpp>
 #include <hardware/port.hpp>
 #include <memory/vmm.hpp>
+#include <memory/pmm.hpp>
+#include <multitasking/TaskManager.hpp>
+
 #include <wisterialib/common.hpp>
 
 namespace kernel::drivers {
 
 using namespace memory;
+using namespace multitasking;
 
 constexpr uint32_t BochVBEIoPortIndex = 0x01CE;
 constexpr uint32_t BochVBEIoPortData = 0x01CF;
@@ -41,7 +45,8 @@ bool BochVBE::install()
     write(IndexRegister::Bank, 0);
 
     auto addr = m_pci_device->read_base_register(0) & 0xfffffff0;
-    VMM::the().map_virt_to_phys(VMM::the().kernel_page_directory(), addr, addr, 1024 * 768 * 4 * 2);
+    PMM::the().occypy_addr_range(addr, 1024 * 768 * 4 * 2);
+    VMM::the().map(VMM::the().current_page_directory(), addr, addr, 1024 * 768 * 4 * 2, Flags::Present | Flags::User | Flags::Write);
 
     m_pixels = reinterpret_cast<uint32_t*>(addr);
     m_pixels_length = 1024 * 768 * 4 * 2;
@@ -53,18 +58,19 @@ bool BochVBE::install()
     }
 
     for (; i < 1024 * 768 / 3 * 2; i++) {
-        m_pixels[i] = 0x000000ff;
+        m_pixels[i] = 0x0000ffff;
     }
 
     for (; i < 2 * 1024 * 768; i++) {
-        m_pixels[i] = 0x00ff0000;
+        m_pixels[i] = 0x00ff00f0;
     }
+
     return true;
 }
 
 bool BochVBE::mmap(uint32_t addr, uint32_t size)
 {
-    VMM::the().map_virt_to_phys(VMM::the().current_page_directory(), addr, (uint32_t)m_pixels, min(m_pixels_length, size));
+    TaskManager::the().cur_process()->map(addr, (uint32_t)m_pixels, min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
     return true;
 }
 

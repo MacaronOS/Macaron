@@ -10,8 +10,6 @@
 #include <wisterialib/posix/errors.hpp>
 #include <wisterialib/posix/shared.hpp>
 
-#include <memory/vmm.hpp>
-
 extern "C" void switch_to_user_mode();
 
 namespace kernel::syscalls {
@@ -23,7 +21,7 @@ using namespace fs;
 
 static int sys_putc(char a)
 {
-    Log() << "handling putc\n";
+    Log() << "handling putc " << a << "\n";
     term_putc(a);
     return 1;
 }
@@ -59,11 +57,10 @@ static int sys_execve(const char* filename, const char* const* argv, const char*
 static int sys_mmap(MmapParams* params)
 {
     Log() << "handling mmap\n";
-
-    const uint32_t cur_page_dir = VMM::the().current_page_directory();
+    auto cur_process = TaskManager::the().cur_process();
 
     if (params->flags & MAP_ANONYMOUS) {
-        auto mem = VMM::the().allocate_space(cur_page_dir, params->size);
+        auto mem = cur_process->allocate_space(params->size, Flags::Present | Flags::Write | Flags::User);
         if (!mem) {
             // TODO: implement errno
             return -1;
@@ -72,12 +69,13 @@ static int sys_mmap(MmapParams* params)
     } else if (params->fd) {
         uint32_t mem = params->start;
         if (!mem) {
-            auto free_space = VMM::the().find_free_space(cur_page_dir, params->size);
+            auto free_space = cur_process->find_free_space(params->size);
             if (!free_space) {
                 return -1;
             }
             mem = free_space.result();
         }
+        Log() << "FREE SPACE FOR MMAP " << mem << "\n";
         auto error_happened = VFS::the().mmap(params->fd, mem, params->size);
         if (error_happened) {
             return -1;
@@ -91,8 +89,8 @@ static int sys_mmap(MmapParams* params)
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
-    for (size_t syscall_index = 0; syscall_index < syscall_count; syscall_index++) {
-        m_syscalls[syscall_index] = (uint8_t)Syscall::END;
+    for (uint32_t& m_syscall : m_syscalls) {
+        m_syscall = (uint8_t)Syscall::END;
     }
 
     register_syscall(Syscall::Putc, (uint32_t)sys_putc);

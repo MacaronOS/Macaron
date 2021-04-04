@@ -1,19 +1,21 @@
 #pragma once
-#include <wisterialib/String.hpp>
+
 #include <fs/vfs/vfs.hpp>
 #include <errors/KError.hpp>
+#include <memory/Region.hpp>
+
+#include <wisterialib/List.hpp>
+#include <wisterialib/String.hpp>
 
 namespace kernel::multitasking {
 
 class Elf {
 public:
-    Elf() = default;
-
     struct ExecData {
-        uint32_t entry_point; // needed by eip 
-        uint32_t vaddr_end; // needed to calculate the heap and stack
+        uint32_t entry_point {};
+        List<kernel::memory::Region> regions {};
     };
-    KErrorOr<Elf::ExecData> load_exec(const String& exec_path, uint32_t page_directory);
+    static KErrorOr<Elf::ExecData> load_exec(const String& exec_path, uint32_t page_directory);
 };
 
 }

@@ -1,20 +1,21 @@
 #include "vmm.hpp"
 #include "Layout.hpp"
-#include <wisterialib/memory.hpp>
 #include "pagingstructs.hpp"
 #include "pmm.hpp"
 
 #include <Logger.hpp>
 #include <assert.hpp>
-#include <monitor.hpp>
-#include <wisterialib/common.hpp>
-
 #include <errors/KError.hpp>
+#include <monitor.hpp>
 #include <multitasking/TaskManager.hpp>
+
+#include <wisterialib/common.hpp>
+#include <wisterialib/memory.hpp>
 
 namespace kernel::memory {
 
 using namespace Logger;
+using namespace multitasking;
 
 template <>
 VMM* Singleton<VMM>::s_t = nullptr;
@@ -26,7 +27,6 @@ VMM::VMM()
     , m_buffer_1(Layout::GetLocationVirt(LayoutElement::PagingBuffer1))
     , m_buffer_2(Layout::GetLocationVirt(LayoutElement::PagingBuffer2))
 {
-    set_page_directory(m_kernel_directory_phys);
 }
 
 void VMM::set_page_directory(uint32_t page_directory_phys)
@@ -35,211 +35,172 @@ void VMM::set_page_directory(uint32_t page_directory_phys)
     m_cur_page_dir_phys = page_directory_phys;
 }
 
-void VMM::create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr)
+void VMM::psized_map(uint32_t pdir_phys, uint32_t page, uint32_t frame, uint32_t pages, uint32_t flags)
 {
-    auto page_directory_virt = PageBinder<page_directory_t*>(page_directory_phys, m_buffer_1);
+    auto pdir_virt = PageBinder<PageDir*>(pdir_phys, m_buffer_1);
 
-    if (!page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].__bits) {
-        page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].page_table_base_adress = create_page_table() / PAGE_SIZE;
-        page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].present = true;
-        page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].rw = true;
-        page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].user_mode = true;
-    }
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
 
-    uint32_t page_table_phys = page_directory_virt.get()->entries[frame_virt_addr / PAGE_SIZE / 1024].page_table_base_adress * PAGE_SIZE;
-    auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
+    create_ptable_if_neccesary(pdir_virt.get()->entries[pdir_index], flags);
 
-    if (page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].__bits) {
-        return;
-    }
+    auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
 
-    page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].frame_adress = PMM::the().allocate_frame();
-    page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].present = true;
-    page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].rw = true;
-    page_table_virt.get()->entries[frame_virt_addr / PAGE_SIZE % 1024].user_mode = true;
-}
-
-void VMM::map_virt_to_phys(uint32_t page_dir_phys, uint32_t virt_addr, uint32_t phys_addr, uint32_t size)
-{
-    uint32_t virt_start = virt_addr / PAGE_SIZE;
-    uint32_t phys_start = phys_addr / FRAME_SIZE;
-
-    uint32_t virt_end = (virt_addr + size + PAGE_SIZE - 1) / PAGE_SIZE;
-    uint32_t phys_end = (phys_addr + size + FRAME_SIZE - 1) / FRAME_SIZE;
-
-    uint32_t cnt_pages = max(virt_end - virt_start, phys_end - phys_start) + 1;
-    for (int page = 0; page < cnt_pages; page++) {
-        map_page_to_frame(page_dir_phys, virt_start + page, phys_start + page);
-    }
-}
-
-void VMM::map_page_to_frame(uint32_t page_dir_phys, uint32_t page, uint32_t frame)
-{
-    PMM::the().occypy_frame(frame);
-    auto page_directory_virt = PageBinder<page_directory_t*>(page_dir_phys, m_buffer_1);
-
-    if (!page_directory_virt.get()->entries[page / 1024].__bits) {
-        page_directory_virt.get()->entries[page / 1024].page_table_base_adress = create_page_table() / PAGE_SIZE;
-        page_directory_virt.get()->entries[page / 1024].present = true;
-        page_directory_virt.get()->entries[page / 1024].rw = true;
-        page_directory_virt.get()->entries[page / 1024].user_mode = true;
-    }
-
-    uint32_t page_table_phys = page_directory_virt.get()->entries[page / 1024].page_table_base_adress * PAGE_SIZE;
-    auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
-
-    page_table_virt.get()->entries[page % 1024].frame_adress = frame;
-    page_table_virt.get()->entries[page % 1024].present = true;
-    page_table_virt.get()->entries[page % 1024].rw = true;
-    page_table_virt.get()->entries[page % 1024].user_mode = true;
-}
-
-void VMM::clear_user_directory_pages(uint32_t src_page_directory_phys)
-{
-    auto page_dir_virt = PageBinder<page_directory_t*>(src_page_directory_phys, m_buffer_2);
-
-    for (size_t i = 0; i < 1024; i++) {
-        if (i == 768 || i == 769) {
-            continue; // skip kernel page tables
-        }
-        if (page_dir_virt.get()->entries[i].__bits) {
-            clear_user_table_pages(page_dir_virt.get()->entries[i].page_table_base_adress * 4096);
+    for (; pages > 0; pages--, page++, frame++) {
+        ptable_virt.get()->entries[pt_index].frame_adress = frame;
+        ptable_virt.get()->entries[pt_index]._bits |= (flags & 0x7);
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+            create_ptable_if_neccesary(pdir_virt.get()->entries[pdir_index], flags);
+            ptable_virt.rebind(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE);
         }
     }
 }
 
-uint32_t VMM::clone_page_directory(uint32_t src_page_directory_phys)
+void VMM::psized_unmap(uint32_t pdir_phys, uint32_t page, uint32_t pages)
 {
-    if (!src_page_directory_phys) {
-        src_page_directory_phys = (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET;
-    }
+    auto pdir_virt = PageBinder<PageDir*>(pdir_phys, m_buffer_1);
 
-    uint32_t dest_page_dir_phys = PMM::the().allocate_frame() * FRAME_SIZE;
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
 
-    auto dest_page_dir_virt = PageBinder<page_directory_t*>(dest_page_dir_phys, m_buffer_1);
-    auto src_page_dir_virt = PageBinder<page_directory_t*>(src_page_directory_phys, m_buffer_2);
+    auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
 
-    memset(dest_page_dir_virt.get(), 0, sizeof(page_directory_t));
-
-    // map kernel tables to the same location
-    dest_page_dir_virt.get()->entries[768] = src_page_dir_virt.get()->entries[768];
-    dest_page_dir_virt.get()->entries[769] = src_page_dir_virt.get()->entries[769];
-
-    for (size_t i = 0; i < 768; i++) {
-        if (src_page_dir_virt.get()->entries[i].__bits) {
-            dest_page_dir_virt.get()->entries[i] = src_page_dir_virt.get()->entries[i];
-            dest_page_dir_virt.get()->entries[i].page_table_base_adress = clone_page_table(src_page_dir_virt.get()->entries[i].page_table_base_adress * PAGE_SIZE) / PAGE_SIZE;
+    for (; pages > 0; pages--, page++) {
+        ptable_virt.get()->entries[pt_index]._bits = 0;
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+            ptable_virt.rebind(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE);
         }
     }
-
-    return dest_page_dir_phys;
 }
 
-KErrorOr<uint32_t> VMM::find_free_space(uint32_t page_directory_phys, uint32_t size)
+void VMM::psized_copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages)
 {
-    auto page_dir_virt = PageBinder<page_directory_t*>(page_directory_phys, m_buffer_1);
+    auto pdir_virt_to = PageBinder<PageDir*>(pdir_phys_to, m_buffer_1);
+    auto pdir_virt_from = PageBinder<PageDir*>(pdir_phys_from, m_buffer_2);
 
-    const uint32_t size_in_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
+
+    create_ptable_if_neccesary(pdir_virt_to.get()->entries[pdir_index], pdir_virt_from.get()->entries[pdir_index]._bits & 0x7);
+
+    for (; pages > 0; pages--, page++) {
+
+        auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
+        auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+        ptable_virt_to.get()->entries[pt_index] = ptable_virt_from.get()->entries[pt_index];
+        ptable_virt_to.get()->entries[pt_index].frame_adress = clone_frame(ptable_virt_from.get()->entries[pt_index].frame_adress * PAGE_SIZE) / PAGE_SIZE;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+            create_ptable_if_neccesary(pdir_virt_to.get()->entries[pdir_index], pdir_virt_from.get()->entries[pdir_index]._bits & 0x7);
+        }
+    }
+}
+
+void VMM::psized_free(uint32_t pdir_phys, uint32_t page, uint32_t pages)
+{
+    auto pdir_virt = PageBinder<PageDir*>(pdir_phys, m_buffer_1);
+
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
+
+    auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+
+    for (; pages > 0; pages--, page++) {
+        free_frame(ptable_virt.get()->entries[pt_index].frame_adress);
+        ptable_virt.get()->entries[pt_index]._bits = 0;
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+            ptable_virt.rebind(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE);
+        }
+    }
+}
+
+void VMM::psized_allocate_space_from(uint32_t pdir_phys, uint32_t page, uint32_t pages, uint32_t flags)
+{
+    auto pdir_virt = PageBinder<PageDir*>(pdir_phys, m_buffer_1);
+
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
+
+    create_ptable_if_neccesary(pdir_virt.get()->entries[pdir_index], flags);
+
+    auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+
+    for (; pages > 0; pages--, page++) {
+        if (!ptable_virt.get()->entries[pt_index]._bits) {
+            ptable_virt.get()->entries[pt_index].frame_adress = PMM::the().allocate_frame();
+            ptable_virt.get()->entries[pt_index]._bits |= (flags & 0x7);
+        }
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+            create_ptable_if_neccesary(pdir_virt.get()->entries[pdir_index], flags);
+            ptable_virt.rebind(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE);
+        }
+    }
+}
+
+KErrorOr<uint32_t> VMM::psized_allocate_space(uint32_t page_directory_phys, uint32_t pages, uint32_t flags)
+{
+    auto free_page_start = psized_find_free_space(page_directory_phys, pages);
+
+    if (free_page_start) {
+        psized_allocate_space_from(page_directory_phys, free_page_start.result(), pages, flags);
+    }
+
+    return free_page_start;
+}
+
+KErrorOr<uint32_t> VMM::psized_find_free_space(uint32_t page_directory_phys, uint32_t pages)
+{
+    auto page_dir_virt = PageBinder<PageDir*>(page_directory_phys, m_buffer_1);
+    auto page_table_virt = PageBinder<PageTable*>(page_dir_virt.get()->entries[0].pt_base * 4096, m_buffer_2);
 
     uint32_t cur_pages = 0;
     uint32_t cur_page = 0;
 
-    for (size_t i = 0; i < 1024 && cur_pages < size_in_pages; i++) {
-        if (!page_dir_virt.get()->entries[i].__bits) {
+    for (size_t i = 0; i < 1024 && cur_pages < pages; i++) {
+        if (!page_dir_virt.get()->entries[i]._bits) {
             cur_pages += 1024;
         } else {
-            auto page_table_virt = PageBinder<page_table_t*>(page_dir_virt.get()->entries[i].page_table_base_adress * 4096, m_buffer_2);
+            page_table_virt.rebind(page_dir_virt.get()->entries[i].pt_base * 4096);
             for (size_t j = 0; j < 1024; j++) {
-                if (!page_table_virt.get()->entries[j].__bits) {
+                if (!page_table_virt.get()->entries[j]._bits) {
                     cur_pages++;
-                    if (cur_pages >= size_in_pages) {
+                    if (cur_pages >= pages) {
                         break;
                     }
                 } else {
-                    cur_page = i * 1024 + j;
+                    cur_page = i * 1024 + j + 1;
                     cur_pages = 0;
                 }
             }
         }
     }
 
-    if (cur_pages < size_in_pages) {
+    if (cur_pages < pages) {
         return KError(ENOMEM);
     }
 
-    return cur_page * PAGE_SIZE;
-}
-
-KErrorOr<uint32_t> VMM::allocate_space(uint32_t page_directory_phys, uint32_t size)
-{
-    auto free_space = find_free_space(page_directory_phys, size);
-    
-    if (free_space) {
-        for (size_t addr = free_space.result(); addr < free_space.result() + size; addr += FRAME_SIZE) {
-            create_frame(page_directory_phys, addr);
-        }
-    }
-
-    return free_space;
-}
-
-uint32_t VMM::create_page_table()
-{
-    uint32_t page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
-    auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
-
-    memset(page_table_virt.get(), 0, sizeof(page_table_t));
-
-    return page_table_phys;
-}
-
-uint32_t VMM::clone_page_table(uint32_t src_page_table_phys)
-{
-    // allocate space for the new page table
-    uint32_t dest_page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
-
-    auto dest_page_table_virt = PageBinder<page_table_t*>(dest_page_table_phys, m_buffer_1);
-    auto src_page_table_virt = PageBinder<page_table_t*>(src_page_table_phys, m_buffer_2);
-
-    memset(dest_page_table_virt.get(), 0, sizeof(page_table_t));
-
-    for (size_t i = 0; i < 1024; i++) {
-        if (src_page_table_virt.get()->entries[i].__bits) {
-            dest_page_table_virt.get()->entries[i] = src_page_table_virt.get()->entries[i];
-            dest_page_table_virt.get()->entries[i].frame_adress = clone_frame(src_page_table_virt.get()->entries[i].frame_adress * PAGE_SIZE) / PAGE_SIZE;
-        }
-    }
-
-    return dest_page_table_phys;
-}
-
-uint32_t VMM::clone_frame(uint32_t src_frame_phys)
-{
-    uint32_t dest_frame_phys = PMM::the().allocate_frame() * FRAME_SIZE;
-
-    auto src_page = PageBinder<void*>(src_frame_phys, m_buffer_1);
-    auto dest_page = PageBinder<void*>(dest_frame_phys, m_buffer_2);
-
-    memcpy(dest_page.get(), src_page.get(), PAGE_SIZE);
-
-    return dest_frame_phys;
-}
-
-void VMM::clear_user_table_pages(uint32_t src_page_table_phys)
-{
-    auto page_table_virt = PageBinder<page_table_t*>(src_page_table_phys, m_buffer_1);
-    for (int i = 0; i < 1024; i++) {
-        PMM::the().free_frame(page_table_virt.get()->entries[i].frame_adress);
-        page_table_virt.get()->entries[i].__bits = 0;
-    }
+    return cur_page;
 }
 
 void VMM::handle_interrupt(trapframe_t* tf)
 {
-    term_print("\nPage fault! Info:\n");
+    Log() << "\nPage fault! Info:\n";
 
-    term_print("Virtual address: ");
-    term_printd(get_cr2());
+    Log() << "Virtual address: ";
+    Log() << get_cr2();
 
     static PageFaultFlag flags[] = {
         PageFaultFlag::Present,
@@ -257,19 +218,17 @@ void VMM::handle_interrupt(trapframe_t* tf)
         "InstructionFetch",
     };
 
-    term_print("\nFlags: ");
+    Log() << "\nFlags: ";
 
     for (auto flag : flags) {
         if (tf->err_code & (1 << static_cast<uint32_t>(flag))) {
-            term_print(descr[static_cast<uint32_t>(flag)]);
-            term_print(" ");
+            Log() << descr[static_cast<uint32_t>(flag)] << " ";
         }
     }
 
     if (multitasking::TaskManager::s_initialized) {
-        term_print("\nPID:");
-        term_printd(multitasking::TaskManager::the().cur_thread()->process->id);
-        term_print("\n");
+
+        Log() << "\nPID: " << multitasking::TaskManager::the().cur_process()->id() << "\n";
     }
 
     STOP();
@@ -277,24 +236,26 @@ void VMM::handle_interrupt(trapframe_t* tf)
 
 void VMM::inspect_page_diriectory(uint32_t page_directory_phys)
 {
-    auto page_dir_virt = PageBinder<page_directory_t*>(page_directory_phys, m_buffer_2);
+    Log() << "inspecting\n";
+    auto page_dir_virt = PageBinder<PageDir*>(page_directory_phys, m_buffer_2);
 
     for (size_t i = 0; i < 1024; i++) {
         if (i == 768 || i == 769) {
             continue; // skip kernel page tables
         }
-        if (page_dir_virt.get()->entries[i].__bits) {
-            inspect_page_table(page_dir_virt.get()->entries[i].page_table_base_adress * 4096, i);
+        if (page_dir_virt.get()->entries[i]._bits) {
+            inspect_page_table(page_dir_virt.get()->entries[i].pt_base * 4096, i);
         }
     }
+    Log() << "inspecting done\n";
 }
 
 void VMM::inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index)
 {
-    auto page_table_virt = PageBinder<page_table_t*>(page_table_phys, m_buffer_1);
+    auto page_table_virt = PageBinder<PageTable*>(page_table_phys, m_buffer_1);
 
     for (size_t i = 0; i < 1024; i++) {
-        if (page_table_virt.get()->entries[i].__bits) {
+        if (page_table_virt.get()->entries[i]._bits) {
             Log() << "Page: " << (page_table_index * 1024 + i) * 4096 << " , Frame: " << page_table_virt.get()->entries[i].frame_adress * 4096 << "\n";
         }
     }

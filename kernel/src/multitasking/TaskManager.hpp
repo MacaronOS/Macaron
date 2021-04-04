@@ -1,23 +1,27 @@
 #pragma once
-#include <wisterialib/Deque.hpp>
-#include <wisterialib/Singleton.hpp>
 #include "../assert.hpp"
 #include "../fs/vfs/vfs.hpp"
 #include "../memory/vmm.hpp"
 
 #include "Process.hpp"
 #include "Thread.hpp"
-#include "Elf/Elf.hpp"
+
+#include <wisterialib/List.hpp>
+#include <wisterialib/Singleton.hpp>
 
 namespace kernel::multitasking {
 
 #define DEFAULT_BSS_SIZE 4096
 #define DEFAULT_HEAP_SIZE 4096
 
+class ProcessStorage;
+class Process;
+class Thread;
+
 class TaskManager : public Singleton<TaskManager> {
+    friend class Process;
 public:
     TaskManager();
-
     bool run();
 
     // syscalls handlers
@@ -26,25 +30,18 @@ public:
     int sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp);
 
     void create_process(const String& filepath);
-    void destroy_current_process();
-    void destroy_prcoess(const pid_t process);
-    void destroy_thread();
 
-    Thread* cur_thread() { return *m_cur_thread; }
+    Thread* cur_thread();
+    Process* cur_process();
 
 private:
-    Process* kernel_process() { return m_kernel_process; }
-    void add_kernel_thread(void (*func)());
     void schedule(trapframe_t* tf);
 
-    void setup_process(const pid_t pid, const String& filepath);
-
-private:
-    Elf m_elf {};
-    Process* m_kernel_process;
-    ProcessStorage m_process_storage {};
-    Deque<Thread*> m_threads {};
-    DequeIterator<Deque<Thread*>> m_cur_thread { m_threads.end() };
+public:
+    // TODO: support kernel processes / threads
+    ProcessStorage* m_process_storage {};
+    List<Thread*> m_threads {};
+    List<Thread*>::Iterator<ListNode<Thread*>> m_cur_thread { m_threads.end() };
 };
 
 }

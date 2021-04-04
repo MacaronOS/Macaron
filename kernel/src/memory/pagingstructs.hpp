@@ -3,7 +3,7 @@
 
 namespace kernel::memory {
 
-// https://wiki.osdev.org/Exceptions#Page_Fault 
+// https://wiki.osdev.org/Exceptions#Page_Fault
 enum class PageFaultFlag {
     Present, // the page fault was caused by a page-protection violation. When not set, it was caused by a non-present page
     Write, // the page fault was caused by a write access. When not set, it was caused by a read access.
@@ -24,12 +24,12 @@ typedef union {
         uint32_t available : 3;
         uint32_t frame_adress : 20;
     };
-    uint32_t __bits;
-} page_table_entry_t;
+    uint32_t _bits;
+} PTEntry;
 
 typedef struct {
-    page_table_entry_t entries[1024];
-} page_table_t;
+    PTEntry entries[1024];
+} PageTable;
 
 typedef union {
     struct {
@@ -43,13 +43,13 @@ typedef union {
         uint32_t page_size : 1; // 0 - 4kb, 1 - 4mb
         uint32_t global_page : 1; // ignored
         uint32_t available : 3;
-        uint32_t page_table_base_adress : 20;
+        uint32_t pt_base : 20;
     };
-    uint32_t __bits;
-} page_directory_entry_t;
+    uint32_t _bits;
+} PDEntry;
 
 typedef struct {
-    page_directory_entry_t entries[1024];
-} page_directory_t;
+    PDEntry entries[1024];
+} PageDir;
 
 }

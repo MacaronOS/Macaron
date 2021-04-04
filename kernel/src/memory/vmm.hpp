@@ -1,14 +1,17 @@
 #pragma once
 #include "Layout.hpp"
 #include "pagingstructs.hpp"
+#include "pmm.hpp"
+#include "Region.hpp"
 
 #include <assert.hpp>
-#include <wisterialib/common.hpp>
-
-#include <wisterialib/Singleton.hpp>
 #include <errors/KError.hpp>
 #include <hardware/InterruptManager.hpp>
 #include <multitasking/TaskManager.hpp>
+
+#include <wisterialib/Singleton.hpp>
+#include <wisterialib/common.hpp>
+#include <wisterialib/memory.hpp>
 
 #define PAGE_SIZE 4096
 
@@ -23,63 +26,6 @@ extern "C" uint32_t get_cr2();
 extern "C" uint32_t boot_page_directory;
 extern "C" uint32_t boot_page_table1;
 extern "C" uint32_t boot_page_table2;
-
-class VMM : public Singleton<VMM>, InterruptHandler {
-public:
-    VMM();
-
-    uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }
-    uint32_t current_page_directory() const { return m_cur_page_dir_phys; }
-
-    void set_page_directory(uint32_t page_directory_phys);
-
-    // allocates an actual frame then maps it to the frame_virt_addr
-    void create_frame(uint32_t page_directory_phys, uint32_t frame_virt_addr);
-
-    // maps virtual address to physical addres
-    void map_virt_to_phys(uint32_t page_dir_phys, uint32_t virt_addr, uint32_t phys_addr, uint32_t size);
-
-    // maps page to frame
-    void map_page_to_frame(uint32_t page_dir_phys, uint32_t page, uint32_t frame);
-
-    // removes all entries in all page tables except the kernel ones
-    // also clears corresponding frames
-    void clear_user_directory_pages(uint32_t src_page_directory_phys);
-
-    // clones an entire page directory. also makes a copy of each frame
-    uint32_t clone_page_directory(uint32_t src_page_directory_phys = 0);
-
-    // allocates virtual space, returns adress
-    KErrorOr<uint32_t> allocate_space(uint32_t page_directory_phys, uint32_t size);
-
-    // find free spcae in page tables space (no mapping will happen)
-    KErrorOr<uint32_t> find_free_space(uint32_t page_directory_phys, uint32_t size);
-
-    // interrupt handler functions:
-    void handle_interrupt(trapframe_t* tf) override;
-
-    // debug purpose
-    void inspect_page_diriectory(uint32_t page_directory_phys);
-    void inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index);
-
-private:
-    uint32_t create_page_table();
-
-    // clone helping functions
-    uint32_t clone_page_table(uint32_t src_page_table_phys);
-    uint32_t clone_frame(uint32_t src_frame_phys);
-
-    // unmaping helping functions
-    void clear_user_table_pages(uint32_t src_page_table_phys);
-
-private:
-    // virtual addresses of buffers
-    uint32_t m_buffer_1;
-    uint32_t m_buffer_2;
-
-    uint32_t m_kernel_directory_phys { clone_page_directory(0) }; // temp decision
-    uint32_t m_cur_page_dir_phys;
-};
 
 template <typename T>
 class [[nodiscard]] PageBinder {
@@ -101,6 +47,11 @@ public:
         return reinterpret_cast<T>(m_buff_virt);
     }
 
+    void rebind(uint32_t phys)
+    {
+        map_to_buffer(phys);
+    }
+
 private:
     void map_to_buffer(uint32_t phys)
     {
@@ -118,18 +69,18 @@ private:
         return get_buffer_pte().frame_adress * PAGE_SIZE;
     }
 
-    page_table_entry_t& get_buffer_pte()
+    PTEntry& get_buffer_pte()
     {
         // at first, calculating a page table which locates buffer.
-        // as buffers are in a higher half and they were initialy shifted
+        // as buffers are in a higher half and they were initially shifted
         // by HIGHER_HALF_OFFSET=0xC0000000, we know, that the page table is one of 2 - 768 or 769
 
-        static page_table_t* page_tables[] = {
-            (page_table_t*)&boot_page_table1,
-            (page_table_t*)&boot_page_table2,
+        static PageTable* page_tables[] = {
+            (PageTable*)&boot_page_table1,
+            (PageTable*)&boot_page_table2,
         };
 
-        page_table_t* pt = page_tables[m_buff_virt / PAGE_SIZE / 1024 - 768];
+        PageTable* pt = page_tables[m_buff_virt / PAGE_SIZE / 1024 - 768];
 
         // now, find what offset has this buffer withing the page table
         return pt->entries[m_buff_virt / PAGE_SIZE % 1024];
@@ -138,6 +89,140 @@ private:
 private:
     uint32_t m_buff_virt;
     uint32_t m_buffered_phys_address;
+};
+
+class VMM : public Singleton<VMM>, InterruptHandler {
+public:
+    VMM();
+
+    uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }
+    uint32_t current_page_directory() const { return m_cur_page_dir_phys; }
+
+    void set_page_directory(uint32_t page_directory_phys);
+
+    /*
+        psized - page sized
+    */
+    void psized_map(uint32_t pdir_phys, uint32_t page, uint32_t frame, uint32_t pages, uint32_t flags);
+    void psized_unmap(uint32_t pdir_phys, uint32_t page, uint32_t pages);
+    void psized_copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages);
+    void psized_free(uint32_t pdir_phys, uint32_t page, uint32_t pages);
+    void psized_allocate_space_from(uint32_t pdir_phys, uint32_t page, uint32_t pages, uint32_t flags);
+
+    KErrorOr<uint32_t> psized_allocate_space(uint32_t page_directory_phys, uint32_t pages, uint32_t flags);
+    KErrorOr<uint32_t> psized_find_free_space(uint32_t page_directory_phys, uint32_t pages);
+
+    inline void map(uint32_t pdir_phys, uint32_t virt_addr, uint32_t phys_addr, uint32_t size, uint32_t flags)
+    {
+        psized_map(pdir_phys, virt_addr / PAGE_SIZE, phys_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE, flags);
+    }
+
+    inline void unmap(uint32_t pdir_phys, uint32_t virt_addr, uint32_t size)
+    {
+        psized_unmap(pdir_phys, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE);
+    }
+
+    inline void copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t virt_addr, uint32_t size)
+    {
+        psized_copy(pdir_phys_to, pdir_phys_from, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE);
+    }
+
+    inline void free(uint32_t pdir_phys, uint32_t virt_addr, uint32_t size)
+    {
+        psized_free(pdir_phys, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE);
+    }
+
+    inline void allocate_space_from(uint32_t pdir_phys, uint32_t virt_addr, uint32_t size, uint32_t flags)
+    {
+        psized_allocate_space_from(pdir_phys, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE, flags);
+    }
+
+    inline KErrorOr<uint32_t> allocate_space(uint32_t pdir_phys, uint32_t size, uint32_t flags)
+    {
+        auto res = psized_allocate_space(pdir_phys, (size + PAGE_SIZE - 1) / PAGE_SIZE, flags);
+        if (res) {
+            return res.result() * PAGE_SIZE;
+        }
+        return res;
+    }
+
+    KErrorOr<uint32_t> find_free_space(uint32_t pdir_phys, uint32_t size)
+    {
+        auto res = psized_find_free_space(pdir_phys, (size + PAGE_SIZE - 1) / PAGE_SIZE);
+        if (res) {
+            return res.result() * PAGE_SIZE;
+        }
+        return res;
+    }
+
+    inline uint32_t create_page_directory()
+    {
+        auto pd_phys = PMM::the().allocate_frame() * PAGE_SIZE;
+        auto pd_virt = PageBinder<PageDir*>(pd_phys, m_buffer_2);
+        memset(pd_virt.get(), 0, sizeof(PageDir));
+
+        // kernel page tables, that has been filled in boot.s, they are used in PageBinder, so
+        // they should be merged in every page directory
+        pd_virt.get()->entries[768].pt_base = ((uint32_t)&boot_page_table1 - HIGHER_HALF_OFFSET) / FRAME_SIZE;
+        pd_virt.get()->entries[768].present = true;
+        pd_virt.get()->entries[768].rw = true;
+        pd_virt.get()->entries[768].user_mode = true;
+
+        pd_virt.get()->entries[769].pt_base = ((uint32_t)&boot_page_table2 - HIGHER_HALF_OFFSET) / FRAME_SIZE;
+        pd_virt.get()->entries[769].present = true;
+        pd_virt.get()->entries[769].rw = true;
+        pd_virt.get()->entries[769].user_mode = true;
+
+        return pd_phys;
+    }
+
+    // interrupt handler functions:
+    void handle_interrupt(trapframe_t* tf) override;
+
+    // debug purpose
+    void inspect_page_diriectory(uint32_t page_directory_phys);
+    void inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index);
+
+private:
+    inline uint32_t create_page_table()
+    {
+        uint32_t page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
+        auto page_table_virt = PageBinder<PageTable*>(page_table_phys, m_buffer_2);
+        memset(page_table_virt.get(), 0, sizeof(PageTable));
+        return page_table_phys;
+    }
+
+    inline void create_ptable_if_neccesary(PDEntry& pde, uint32_t flags) {
+        if (!pde._bits) {
+            pde.pt_base = create_page_table() / PAGE_SIZE;
+            pde._bits |= (flags & 0x7);
+        }
+    }
+
+    inline uint32_t clone_frame(uint32_t src_frame_phys)
+    {
+        uint32_t dest_frame_phys = PMM::the().allocate_frame() * FRAME_SIZE;
+
+        auto src_page = PageBinder<void*>(src_frame_phys, m_buffer_1);
+        auto dest_page = PageBinder<void*>(dest_frame_phys, m_buffer_2);
+
+        memcpy(dest_page.get(), src_page.get(), PAGE_SIZE);
+
+        return dest_frame_phys;
+    }
+
+    inline void free_frame(uint32_t frame)
+    {
+        PMM::the().free_frame(frame);
+    }
+
+private:
+    // virtual addresses of buffers
+    uint32_t m_buffer_1;
+    uint32_t m_buffer_2;
+
+    uint32_t m_kernel_directory_phys { (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET };
+    uint32_t m_cur_page_dir_phys { (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET };
 };
 
 }

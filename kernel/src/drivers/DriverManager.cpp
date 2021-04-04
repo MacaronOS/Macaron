@@ -3,9 +3,9 @@
 #include "BochVBE.hpp"
 #include "base/Driver.hpp"
 #include "base/DriverEntity.hpp"
-#include <wisterialib/Vector.hpp>
 #include <drivers/pci/PCI.hpp>
 #include <drivers/pci/PCIDevice.hpp>
+#include <wisterialib/Vector.hpp>
 
 #include <Logger.hpp>
 
@@ -49,9 +49,9 @@ Vector<Driver*> DriverManager::get_by_type(Driver::DriverType type)
 void DriverManager::install_all()
 {
     // install regular drivers
-    for (uint8_t driver_index = 0; driver_index < drivers_count; driver_index++) {
-        if (m_drivers[driver_index]) {
-            m_drivers[driver_index]->install();
+    for (auto& driver : m_drivers) {
+        if (driver) {
+            driver->install();
         }
     }
 
