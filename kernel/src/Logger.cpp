@@ -1,7 +1,7 @@
 #include "Logger.hpp"
-#include <wisterialib/String.hpp>
 #include <drivers/DriverManager.hpp>
 #include <drivers/Uart.hpp>
+#include <wisterialib/String.hpp>
 namespace kernel {
 
 using namespace drivers;
@@ -86,8 +86,15 @@ namespace Logger {
         return log;
     }
 
-    const Log& operator<<(const Log& log, int value) {
+    const Log& operator<<(const Log& log, int value)
+    {
         printd((int64_t)value);
+        return log;
+    }
+
+    const Log& operator<<(const Log& log, char value)
+    {
+        putc(value);
         return log;
     }
 }
