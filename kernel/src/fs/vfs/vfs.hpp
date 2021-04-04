@@ -64,6 +64,11 @@ public:
     KErrorOr<size_t> truncate(fd_t fd, size_t offset);
     KError mmap(fd_t fd, uint32_t addr, uint32_t size);
 
+    // sockets
+    KErrorOr<fd_t> socket(int domain, int type, int protocol);
+    KError bind(fd_t sockfd, const String& path);
+    KError connect(fd_t sockfd, const String& path);
+
     // custom WisteriaOS api fuctions
     KErrorOr<size_t> file_size(fd_t fd);
     Vector<String> listdir(const String& path);

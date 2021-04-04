@@ -2,12 +2,13 @@
 
 #include <assert.hpp>
 #include <monitor.hpp>
-#include <wisterialib/common.hpp>
+#include <memory/malloc.hpp>
+#include <net/LocalSocket.hpp>
 
+#include <wisterialib/common.hpp>
 #include <wisterialib/String.hpp>
 #include <wisterialib/Vector.hpp>
 #include <wisterialib/extras.hpp>
-#include <memory/malloc.hpp>
 
 namespace kernel::fs {
 
@@ -76,12 +77,18 @@ public:
     size_t ref_count() const { return m_ref_count; }
     void inc_ref_count() { m_ref_count++; }
 
+    // Socket funcs
+    net::LocalSocket* socket() { return m_socket; }
+    void bind_socket() { m_socket = new net::LocalSocket(); }
+
 private:
     FS* m_fs { nullptr };
     uint32_t m_vnode { 0 };
     Vector<Mountpoint> m_mountpoints {};
     bool m_dirty { false };
     size_t m_ref_count { 0 };
+
+    net::LocalSocket* m_socket { nullptr };
 };
 
 class VNodeStorage {

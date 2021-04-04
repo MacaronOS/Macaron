@@ -121,6 +121,7 @@ VNode* Ext2::finddir(VNode& directory, const String& filename)
             if (!file) {
                 file = new Ext2Inode(this, entry.inode);
                 *ToExt2Inode(file)->inode_struct() = get_inode_structure(entry.inode);
+                m_file_storage.push(file);
             }
 
             return file;

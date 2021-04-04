@@ -86,11 +86,27 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        size_t read_bytes = file_descr->vnode()->fs()->read(*file_descr->vnode(), file_descr->offset(), size, buffer);
+
+    auto vnode = file_descr->vnode();
+    if (!vnode) {
+        return KError(ENOENT);
+    }
+
+    auto socket = vnode->socket();
+    auto fs = vnode->fs();
+    auto offset = file_descr->offset();
+
+    if (socket) {
+        file_descr->set_offset(socket->read(offset, size, (uint8_t*)buffer));
+        return size;
+    }
+
+    if (fs) {
+        size_t read_bytes = fs->read(*vnode, offset, size, buffer);
         file_descr->inc_offset(read_bytes);
         return read_bytes;
     }
+
     return KError(ENOENT);
 }
 
@@ -100,11 +116,27 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        size_t write_bytes = file_descr->vnode()->fs()->write(*file_descr->vnode(), file_descr->offset(), size, buffer);
+
+    auto vnode = file_descr->vnode();
+    if (!vnode) {
+        return KError(ENOENT);
+    }
+
+    auto socket = vnode->socket();
+    auto fs = vnode->fs();
+    auto offset = file_descr->offset();
+
+    if (socket) {
+        socket->write(size, (uint8_t*)buffer);
+        return size;
+    }
+
+    if (fs) {
+        size_t write_bytes = fs->write(*vnode, offset, size, buffer);
         file_descr->inc_offset(write_bytes);
         return write_bytes;
     }
+
     return KError(ENOENT);
 }
 
@@ -246,6 +278,66 @@ KError VFS::mmap(fd_t fd, uint32_t addr, uint32_t size)
         return KError(0);
     }
     return KError(ENOENT);
+}
+
+KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
+{
+    if (domain != AF_LOCAL) {
+        return KError(EPROTONOSUPPORT);
+    }
+    if (type != SOCK_STREAM) {
+        return KError(EINVAL);
+    }
+
+    auto free_fd = m_free_fds.top_and_pop();
+    m_file_descriptors[free_fd].set_offset(0);
+    return free_fd;
+}
+
+KError VFS::bind(fd_t sockfd, const String& path)
+{
+    auto* file_descr = get_file_descriptor(sockfd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    auto relation = resolve_relation(path);
+    if (!relation) {
+        return relation.error();
+    }
+
+    auto file = relation.result().file;
+    if (!file) {
+        file = create(*relation.result().directory, path.split("/").back(), FileType::Socket, 1);
+    } else {
+        // TODO: check if the file has the Socket type
+    }
+
+    file->bind_socket();
+    file_descr->set_file(file);
+
+    return KError(0);
+}
+
+KError VFS::connect(fd_t sockfd, const String& path)
+{
+    auto* file_descr = get_file_descriptor(sockfd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    auto relation = resolve_relation(path);
+    if (!relation) {
+        return relation.error();
+    }
+
+    if (!relation.result().file) {
+        return KError(ENOENT);
+    }
+
+    file_descr->set_file(relation.result().file);
+
+    return KError(0);
 }
 
 VNode* VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)

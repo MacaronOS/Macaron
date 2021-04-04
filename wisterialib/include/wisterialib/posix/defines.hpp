@@ -21,5 +21,8 @@
 #define PROT_EXEC 0x4
 #define PROT_NONE 0x0
 
+#define AF_LOCAL 1
+#define AF_UNIX AF_LOCAL
 
+#define SOCK_STREAM 1
 

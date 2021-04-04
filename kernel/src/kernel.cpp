@@ -1,11 +1,4 @@
 #include "Logger.hpp"
-#include <wisterialib/Array.hpp>
-#include <wisterialib/Bitmap.hpp>
-#include <wisterialib/Deque.hpp>
-#include <wisterialib/Singleton.hpp>
-#include <wisterialib/StaticStack.hpp>
-#include <wisterialib/String.hpp>
-#include <wisterialib/Vector.hpp>
 #include "assert.hpp"
 #include "drivers/DriverManager.hpp"
 #include "drivers/Keyboard.hpp"
@@ -21,7 +14,6 @@
 #include "hardware/descriptor_tables.hpp"
 #include "memory/Layout.hpp"
 #include "memory/malloc.hpp"
-#include <wisterialib/memory.hpp>
 #include "memory/pmm.hpp"
 #include "memory/vmm.hpp"
 #include "monitor.hpp"
@@ -30,6 +22,16 @@
 #include "shell/Shell.hpp"
 #include "syscalls.hpp"
 #include "tests/tests.hpp"
+#include <wisterialib/Array.hpp>
+#include <wisterialib/Bitmap.hpp>
+#include <wisterialib/List.hpp>
+#include <wisterialib/ObjectPool.hpp>
+#include <wisterialib/Singleton.hpp>
+#include <wisterialib/StaticStack.hpp>
+#include <wisterialib/String.hpp>
+#include <wisterialib/Vector.hpp>
+#include <wisterialib/memory.hpp>
+#include <wisterialib/posix/defines.hpp>
 
 using namespace kernel;
 using namespace drivers;
@@ -40,6 +42,7 @@ using namespace devfs;
 using namespace multitasking;
 using namespace syscalls;
 using namespace memory;
+using namespace Logger;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -86,6 +89,18 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
     VFS::the().mount(VFS::the().root(), devfs->root(), "dev");
 
+    auto sock1 = VFS::the().socket(AF_LOCAL, SOCK_STREAM, 1);
+    auto sock2 = VFS::the().socket(AF_LOCAL, SOCK_STREAM, 1);
+
+    auto bind = VFS::the().bind(sock1.result(), "/ext2/lol.sock");
+    auto connect = VFS::the().connect(sock2.result(), "/ext2/lol.sock");
+
+    char* message = "message";
+    auto write = VFS::the().write(sock1.result(), message, 8);
+    char* buf = (char*)malloc(8);
+    VFS::the().read(sock2.result(), buf, 8);
+    Log() << buf;
+
 #ifdef Wisteria_TEST
     test_main();
 #else
@@ -93,7 +108,6 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     // kernel::shell::run();
 
     // start up userspace process is going to be main
-
     TaskManager::initialize();
     TaskManager::the().create_process("/ext2/apps/main.app");
     TaskManager::the().run();
