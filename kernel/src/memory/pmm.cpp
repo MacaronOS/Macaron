@@ -1,12 +1,12 @@
 #include "pmm.hpp"
 #include "Layout.hpp"
-#include <wisterialib/memory.hpp>
 
 #include <multiboot.hpp>
-#include <wisterialib/common.hpp>
 
+#include <wisterialib/common.hpp>
 #include <wisterialib/Bitmap.hpp>
 #include <wisterialib/Singleton.hpp>
+#include <wisterialib/memory.hpp>
 
 namespace kernel::memory {
 
@@ -26,7 +26,7 @@ PMM::PMM(multiboot_info_t* multiboot_info)
     m_pmmap.fill();
 
     for (
-        multiboot_memory_map_t* mmap = reinterpret_cast<multiboot_memory_map_t*>(m_multiboot_info->mmap_addr + HIGHER_HALF_OFFSET);
+        auto* mmap = reinterpret_cast<multiboot_memory_map_t*>(m_multiboot_info->mmap_addr + HIGHER_HALF_OFFSET);
         mmap < (multiboot_memory_map_t*)(m_multiboot_info->mmap_addr + HIGHER_HALF_OFFSET + m_multiboot_info->mmap_length);
         mmap++) {
         if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
@@ -39,6 +39,9 @@ PMM::PMM(multiboot_info_t* multiboot_info)
 
     // and the same for the pmmap location
     occupy_range(Layout::GetLocationPhys(LayoutElement::PMMBitmapStart), Layout::GetLocationPhys(LayoutElement::PMMBitmapStart) + m_pmmap.memory_size() - 1);
+
+    auto pmmap_end = (Layout::GetLocationVirt(LayoutElement::PMMBitmapStart) + m_pmmap.memory_size() + FRAME_SIZE - 1) / FRAME_SIZE * FRAME_SIZE;
+    Layout::SetLocationVirt(LayoutElement::PMMBitmapEnd, pmmap_end);
 }
 
 uint32_t PMM::allocate_frame()

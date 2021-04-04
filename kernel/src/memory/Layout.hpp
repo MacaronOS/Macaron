@@ -26,6 +26,7 @@ PagingBuffer2 - one of the 2 PAGE SIZED buffers, which is used for temporaly map
 .....4KB......
 PMMBitmapStart - the bitmap, which is used in PMM. Keeps information about availability of each frame
 ..............
+PMMBitmapEnd - not inclusive
 -------------------
 
 It's also worth mentioning, that when kernel is being booted, it sets up paging and mapps
@@ -48,11 +49,14 @@ enum class LayoutElement {
     PagingBuffer1,
     PagingBuffer2,
     PMMBitmapStart,
+    PMMBitmapEnd,
 };
 
 namespace Layout {
     uint32_t GetLocationPhys(LayoutElement element);
     uint32_t GetLocationVirt(LayoutElement element);
+
+    void SetLocationVirt(LayoutElement element, uint32_t location);
 };
 
 }
