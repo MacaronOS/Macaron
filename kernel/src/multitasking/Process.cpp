@@ -97,7 +97,7 @@ void Process::LoadAndPrepare(const String& binary)
     if (!elf) {
         return;
     }
-    m_regions.push_back(*elf.result().regions.begin());
+    m_regions.append(elf.result().regions.begin(), elf.result().regions.end());
     initial_thread->trapframe()->eip = elf.result().entry_point;
 }
 
@@ -185,9 +185,9 @@ void Process::free_regions_except_include(uint32_t page)
             continue;
         }
         if (region.type == Region::Type::Mapping) {
-            VMM::the().unmap(m_pdir_phys, region.page, region.pages);
+            VMM::the().psized_unmap(m_pdir_phys, region.page, region.pages);
         } else {
-            VMM::the().free(m_pdir_phys, region.page, region.pages);
+            VMM::the().psized_free(m_pdir_phys, region.page, region.pages);
         }
 
         it = m_regions.remove(it);

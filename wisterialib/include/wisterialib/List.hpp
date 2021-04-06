@@ -114,6 +114,8 @@ public:
 
     DefaultIterator remove(const DefaultIterator& del_it);
 
+    void append(const DefaultIterator& it_begin, const DefaultIterator& it_end);
+
 public:
     void tie_tails();
     void push_front(ListNode<ValueType>* node);
@@ -224,4 +226,12 @@ List<T>& List<T>::operator=(const List& list)
         push_back(el);
     }
     return *this;
+}
+
+template <typename T>
+void List<T>::append(const DefaultIterator& it_begin, const DefaultIterator& it_end)
+{
+    for (auto it = it_begin; it != it_end; it++) {
+        push_back(*it);
+    }
 }

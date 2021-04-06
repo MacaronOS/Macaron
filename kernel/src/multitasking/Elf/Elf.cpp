@@ -45,8 +45,16 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
     for (size_t i = 0; i < header.phnum; i++) {
         if (ph_table[i].type == static_cast<uint32_t>(ElfProgramHeaderType::LOAD)) {
 
-            const size_t pages_count = (ph_table->memsz + PAGE_SIZE - 1) / PAGE_SIZE;
-            vmm.psized_allocate_space_from(page_directory, ph_table[i].vaddr / 4096, pages_count, Flags::User | Flags::Write | Flags::Present);
+            size_t pages_count = (ph_table[i].memsz + ph_table[i].vaddr % PAGE_SIZE + PAGE_SIZE - 1) / PAGE_SIZE;
+
+            vmm.psized_allocate_space_from(
+                page_directory,
+                ph_table[i].vaddr / 4096,
+                pages_count,
+                Flags::User | Flags::Write | Flags::Present);
+
+            vmm.inspect_page_diriectory(page_directory);
+
             exec_data.regions.push_back({
                 .type = Region::Type::Allocated,
                 .page = ph_table[i].vaddr / 4096,
@@ -55,9 +63,9 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
             });
 
             vfs.lseek(prog_fd, ph_table[i].offset, SEEK_SET);
-            vfs.read(prog_fd, (void*)ph_table[i].vaddr, ph_table->filesz);
+            vfs.read(prog_fd, (void*)ph_table[i].vaddr, ph_table[i].filesz);
 
-            memset((void*)(ph_table[i].vaddr + ph_table->filesz), 0, ph_table->memsz - ph_table->filesz);
+            memset((void*)(ph_table[i].vaddr + ph_table[i].filesz), 0, ph_table[i].memsz - ph_table[i].filesz);
         }
     }
 

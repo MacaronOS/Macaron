@@ -90,11 +90,13 @@ void VMM::psized_copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t p
     create_ptable_if_neccesary(pdir_virt_to.get()->entries[pdir_index], pdir_virt_from.get()->entries[pdir_index]._bits & 0x7);
 
     for (; pages > 0; pages--, page++) {
-
-        auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
-        auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
-        ptable_virt_to.get()->entries[pt_index] = ptable_virt_from.get()->entries[pt_index];
-        ptable_virt_to.get()->entries[pt_index].frame_adress = clone_frame(ptable_virt_from.get()->entries[pt_index].frame_adress * PAGE_SIZE) / PAGE_SIZE;
+        {
+            auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
+            auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+            ptable_virt_to.get()->entries[pt_index] = ptable_virt_from.get()->entries[pt_index];
+            ptable_virt_to.get()->entries[pt_index].frame_adress = clone_frame(ptable_virt_from.get()->entries[pt_index].frame_adress * PAGE_SIZE) / PAGE_SIZE;
+        }
+        pt_index++;
         if (pt_index >= 1024) {
             pt_index = 0;
             pdir_index++;
@@ -229,6 +231,10 @@ void VMM::handle_interrupt(trapframe_t* tf)
     if (multitasking::TaskManager::s_initialized) {
 
         Log() << "\nPID: " << multitasking::TaskManager::the().cur_process()->id() << "\n";
+        auto thread = multitasking::TaskManager::the().cur_thread();
+        Log() << "Registers:\n";
+        Log() << "eip: " << thread->trapframe()->eip << "\n";
+        Log() << "esp: " << thread->trapframe()->useresp << "\n";
     }
 
     STOP();
