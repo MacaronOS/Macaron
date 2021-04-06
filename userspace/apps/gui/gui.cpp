@@ -1,4 +1,8 @@
 #include <libc/syscalls.hpp>
+#include <libc/malloc.hpp>
+
+#include <libsys/syscalls.hpp>
+
 #include <wisterialib/posix/defines.hpp>
 
 int main()
@@ -27,7 +31,7 @@ int main()
         }
     } else {
         while (1) {
-            putc('f');
+            write_string("testing");
         }
     }
 

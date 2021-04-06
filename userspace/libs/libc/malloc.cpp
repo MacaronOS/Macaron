@@ -76,6 +76,9 @@ void* malloc(size_t size)
 
 void free(void* mem)
 {
+    if ((uint32_t)mem == 0) {
+        return;
+    }
     auto chunk = (MallocHeader*)((uint32_t)mem - sizeof(MallocHeader));
     chunk->free = true;
 

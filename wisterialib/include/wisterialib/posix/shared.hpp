@@ -16,6 +16,8 @@ enum class Syscall {
 
     Mmap = 90,
 
+    WriteString,
+
     END,
 };
 

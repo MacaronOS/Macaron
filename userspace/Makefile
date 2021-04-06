@@ -49,7 +49,7 @@ $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
 $$($(1)_APP): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
-	$(CC) -lc -L$(LIBRARIES_FOLDER) $$(LINKER_FLAGS) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) -lc -L$$(LIBRARIES_FOLDER) -o $$@ -lgcc
+	$(CC) $$(USERSPACE_LIBS) $$(LINKER_FLAGS) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) $$(USERSPACE_LIBS) -o $$@ -lgcc
 
 # c source
 $$(USERSPACE_BUILD_DIR)/%.c.o: $$(USERSPACE_SRC_DIR)/%.c

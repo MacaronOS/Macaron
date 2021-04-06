@@ -86,6 +86,12 @@ static int sys_mmap(MmapParams* params)
     return -EBADF;
 }
 
+static int sys_write_string(String const* str)
+{
+    Logger::Log() << "PID" << TaskManager::the().cur_process()->id() << ": " << *str << "\n";
+    return 0;
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -99,6 +105,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Open, (uint32_t)sys_open);
     register_syscall(Syscall::Execve, (uint32_t)sys_execve);
     register_syscall(Syscall::Mmap, (uint32_t)sys_mmap);
+    register_syscall(Syscall::WriteString, (uint32_t)sys_write_string);
 }
 
 void SyscallsManager::initialize()
