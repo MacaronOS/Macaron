@@ -1,6 +1,7 @@
 #include <libc/syscalls.hpp>
 #include <libc/malloc.hpp>
 
+#include <libsys/Log.hpp>
 #include <libsys/syscalls.hpp>
 
 #include <wisterialib/posix/defines.hpp>
@@ -31,7 +32,7 @@ int main()
         }
     } else {
         while (1) {
-            write_string("testing");
+            Log << "test " << "test " << 3222 << ' ' << -322223 << 't';
         }
     }
 

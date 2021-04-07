@@ -9,6 +9,9 @@ public:
     String(const String& str);
     String(String&& str);
     String(const char* s);
+    String(int);
+    String(uint32_t);
+    String(char);
 
     ~String();
 
@@ -44,6 +47,7 @@ public:
 
 private:
     void realloc(size_t);
+    void swap();
 
 private:
     char* m_string { nullptr };

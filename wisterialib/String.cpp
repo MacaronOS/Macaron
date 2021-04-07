@@ -30,6 +30,40 @@ String::String(const char* s)
     }
 }
 
+String::String(int val)
+{
+    bool negative = false;
+    if (val < 0) {
+        negative = true;
+        val *= -1;
+    }
+    do {
+        push_back('0' + (val % 10));
+        val /= 10;
+    } while (val);
+
+    if (negative) {
+        push_back('-');
+    }
+
+    swap();
+}
+
+String::String(uint32_t val)
+{
+    do {
+        push_back('0' + (val % 10));
+        val /= 10;
+    } while (val);
+
+    swap();
+}
+
+String::String(char c)
+{
+    push_back(c);
+}
+
 String::~String()
 {
     m_size = 0;
@@ -237,3 +271,14 @@ char* String::cstr() const
     res[m_size] = '\0';
     return res;
 }
+
+void String::swap()
+{
+    // TODO: implement something similar to std::reverse
+    for (size_t left = 0, right = m_size - 1; left < right; left++, right--) {
+        char temp = m_string[left];
+        m_string[left] = m_string[right];
+        m_string[right] = temp;
+    }
+}
+
