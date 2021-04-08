@@ -27,6 +27,18 @@ BufferedLog& operator<<(BufferedLog& BufferedLog, char value)
     return BufferedLog;
 }
 
+BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
+{
+    switch (op) {
+    case BufferedLogOp::Endl:
+        write_string(log.m_buffer);
+        log.m_buffer = "";
+        return log;
+    }
+
+    return log;
+}
+
 BufferedLog::~BufferedLog()
 {
     write_string(m_buffer);

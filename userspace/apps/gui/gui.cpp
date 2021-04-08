@@ -18,6 +18,8 @@ int main()
         return 0;
     }
 
+    Log << "PIXELS " << (uint32_t)pixels << endl;
+
     for (int i = 0; i < 1024 * 768; i++) {
         pixels[i] = 0x0ffff00;
     }
@@ -32,7 +34,7 @@ int main()
         }
     } else {
         while (1) {
-            Log << "test " << "test " << 3222 << ' ' << -322223 << 't';
+            Log << "test " << "test " << 3222 << ' ' << -322223 << 't' << endl;
         }
     }
 
