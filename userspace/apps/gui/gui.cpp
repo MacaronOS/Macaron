@@ -24,7 +24,7 @@ int main()
         pixels[i] = 0x0ffff00;
     }
 
-    if (fork()) {
+    if (!fork()) {
         while (1) {
             for (uint32_t pixel = 0 ; pixel < 0xfffffff ; pixel++) {
                 for (int i = 0; i < 1024 * 768; i++) {

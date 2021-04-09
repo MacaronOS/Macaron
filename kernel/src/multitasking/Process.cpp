@@ -69,20 +69,15 @@ Process* Process::Fork()
     }
 
     auto new_thread = Thread::TieNewTo(new_proc);
-
-    auto stack_buffer = (uint8_t*)malloc(USER_STACK_SIZE);
-    VMM::the().set_page_directory(m_pdir_phys);
-    for (size_t i = 0; i < USER_STACK_SIZE; i++) {
-        stack_buffer[i] = ((uint8_t*)cur_thread->user_stack_ptr())[i];
-    }
-    VMM::the().set_page_directory(new_proc->m_pdir_phys);
-    for (size_t i = 0; i < USER_STACK_SIZE; i++) {
-        ((uint8_t*)new_thread->user_stack_ptr())[i] = stack_buffer[i];
-    }
-    free(stack_buffer);
-
     *new_thread->trapframe() = *cur_thread->trapframe();
     new_thread->trapframe()->eax = 0;
+
+    static char stack_buff[USER_STACK_SIZE];
+    VMM::the().set_page_directory(m_pdir_phys);
+    memcpy(&stack_buff, cur_thread->user_stack_ptr(), USER_STACK_SIZE);
+    VMM::the().set_page_directory(new_proc->m_pdir_phys);
+    memcpy(new_thread->user_stack_ptr(), &stack_buff, USER_STACK_SIZE);
+  	VMM::the().set_page_directory(m_pdir_phys);
 
     return new_proc;
 }

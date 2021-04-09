@@ -66,7 +66,9 @@ static int sys_mmap(MmapParams* params)
             return -1;
         }
         return mem.result();
-    } else if (params->fd) {
+    }
+
+    if (params->fd) {
         uint32_t mem = params->start;
         if (!mem) {
             auto free_space = cur_process->find_free_space(params->size);
@@ -75,7 +77,6 @@ static int sys_mmap(MmapParams* params)
             }
             mem = free_space.result();
         }
-        Log() << "FREE SPACE FOR MMAP " << mem << "\n";
         auto error_happened = VFS::the().mmap(params->fd, mem, params->size);
         if (error_happened) {
             return -1;

@@ -33,6 +33,7 @@ class Process;
 
 class Thread {
     friend class TaskManager;
+    friend class Process;
 
 public:
     enum class Privilege {

@@ -53,8 +53,6 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
                 pages_count,
                 Flags::User | Flags::Write | Flags::Present);
 
-            vmm.inspect_page_diriectory(page_directory);
-
             exec_data.regions.push_back({
                 .type = Region::Type::Allocated,
                 .page = ph_table[i].vaddr / 4096,
