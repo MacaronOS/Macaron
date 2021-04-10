@@ -1,5 +1,6 @@
 #include "syscalls.hpp"
 #include "Logger.hpp"
+#include "SharedBufferStorage.hpp"
 #include "assert.hpp"
 #include "fs/vfs/vfs.hpp"
 #include "hardware/trapframe.hpp"
@@ -93,6 +94,16 @@ static int sys_write_string(String const* str)
     return 0;
 }
 
+static void sys_create_shared_buffer(size_t size, CreateBufferResult* result)
+{
+    *result = SharedBufferStorage::the().create_buffer(size);
+}
+
+static int sys_get_shared_buffer(uint32_t id)
+{
+    return SharedBufferStorage::the().get_buffer(id);
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -107,6 +118,8 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Execve, (uint32_t)sys_execve);
     register_syscall(Syscall::Mmap, (uint32_t)sys_mmap);
     register_syscall(Syscall::WriteString, (uint32_t)sys_write_string);
+    register_syscall(Syscall::CreateSharedBuffer, (uint32_t)sys_create_shared_buffer);
+    register_syscall(Syscall::GetSharedBuffer, (uint32_t)sys_get_shared_buffer);
 }
 
 void SyscallsManager::initialize()

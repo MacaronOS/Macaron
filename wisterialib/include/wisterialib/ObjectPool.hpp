@@ -10,6 +10,9 @@ public:
     {
         // TODO: support custom allocators, so kernel will be able to allocate this space more effectively
         m_objects = (T*)malloc(sizeof(T) * size);
+        for (int id = size - 1; id >= 0; id--) {
+            m_free_ids.push(id);
+        }
     }
 
     ~ObjectPool()
@@ -47,6 +50,11 @@ public:
     {
         m_objects[id].~T();
         m_free_ids.push(id);
+    }
+
+    T* get(size_t id)
+    {
+        return &m_objects[id];
     }
 
 private:

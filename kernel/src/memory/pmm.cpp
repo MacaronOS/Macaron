@@ -3,9 +3,9 @@
 
 #include <multiboot.hpp>
 
-#include <wisterialib/common.hpp>
 #include <wisterialib/Bitmap.hpp>
 #include <wisterialib/Singleton.hpp>
+#include <wisterialib/common.hpp>
 #include <wisterialib/memory.hpp>
 
 namespace kernel::memory {
@@ -76,6 +76,18 @@ void PMM::free_range(uint32_t left, size_t right)
     for (size_t block = left / FRAME_SIZE; block <= (right + FRAME_SIZE - 1) / FRAME_SIZE; block++) {
         m_pmmap.set_false(block);
     }
+}
+
+uint32_t PMM::allocate_frames(uint32_t frames)
+{
+    for (size_t start_frame = 0; start_frame < m_pmmap.size(); start_frame++) {
+        uint32_t remain_frames = frames;
+        for (; start_frame < m_pmmap.size() && !m_pmmap[start_frame] && remain_frames; start_frame++, remain_frames--) { }
+        if (!remain_frames) {
+            return start_frame;
+        }
+    }
+    return 0;
 }
 
 }

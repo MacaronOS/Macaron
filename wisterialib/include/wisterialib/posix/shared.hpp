@@ -18,6 +18,9 @@ enum class Syscall {
 
     WriteString,
 
+    CreateSharedBuffer,
+    GetSharedBuffer,
+
     END,
 };
 
@@ -28,4 +31,9 @@ struct [[gnu::packed]] MmapParams {
     int flags;
     int fd;
     uint32_t offset;
+};
+
+struct CreateBufferResult {
+    uint32_t id {};
+    uint32_t mem {};
 };

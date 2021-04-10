@@ -25,18 +25,28 @@ int main()
     }
 
     if (!fork()) {
+        uint32_t* mem = (uint32_t * )create_shared_buffer(1010).mem;
+
         while (1) {
             for (uint32_t pixel = 0 ; pixel < 0xfffffff ; pixel++) {
                 for (int i = 0; i < 1024 * 768; i++) {
                     pixels[i] = pixel;
                 }
+                Log << pixel << endl;
+                mem[200] = pixel;
             }
         }
     } else {
+        for (size_t i = 0 ; i < 100 ; i++) {
+            Log << "waiting for process 1" << endl;
+        }
+        uint32_t* mem = (uint32_t* )get_shared_buffer(0);
+
         while (1) {
-            Log << "test " << "test " << 3222 << ' ' << -322223 << 't' << endl;
+            Log << mem[200] << endl;
         }
     }
+
 
     return 0;
 }

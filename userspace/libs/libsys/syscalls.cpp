@@ -19,3 +19,16 @@ void write_string(const String& str)
 {
     do_syscall(Syscall::WriteString, ToSysArg(&str));
 }
+
+CreateBufferResult create_shared_buffer(uint32_t size)
+{
+    CreateBufferResult res;
+    do_syscall(Syscall::CreateSharedBuffer, ToSysArg(size), ToSysArg(&res));
+    return res;
+}
+
+uint32_t get_shared_buffer(uint32_t id)
+{
+    return do_syscall(Syscall::GetSharedBuffer, ToSysArg(id));
+}
+

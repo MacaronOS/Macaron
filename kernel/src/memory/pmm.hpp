@@ -18,6 +18,8 @@ public:
     // frame represents a FRAME_SIZE sized chunk of main memory
     uint32_t allocate_frame();
 
+    uint32_t allocate_frames(uint32_t frames);
+
     // deallocates frame
     void free_frame(uint32_t frame);
 

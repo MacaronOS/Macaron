@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+#include "SharedBufferStorage.hpp"
 #include "assert.hpp"
 #include "drivers/DriverManager.hpp"
 #include "drivers/Keyboard.hpp"
@@ -100,6 +101,8 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     char* buf = (char*)malloc(8);
     VFS::the().read(sock2.result(), buf, 8);
     Log() << buf;
+
+    SharedBufferStorage::initialize();
 
 #ifdef Wisteria_TEST
     test_main();
