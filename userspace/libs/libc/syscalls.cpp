@@ -45,3 +45,8 @@ void* mmap(void* start, uint32_t length, int prot, int flags, int fd, uint32_t o
     volatile MmapParams params { (uint32_t)start, length, prot, flags, fd, offset };
     return (void*)do_syscall(Syscall::Mmap, ToSysArg(&params));
 }
+
+int ioctl(int fd, unsigned long request)
+{
+    return do_syscall(Syscall::Ioctl, ToSysArg(fd), ToSysArg(request));
+}

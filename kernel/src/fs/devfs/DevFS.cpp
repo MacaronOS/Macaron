@@ -60,4 +60,10 @@ bool DevFS::mmap(VNode& file, uint32_t addr, uint32_t size)
     auto dev = ToDevFSNode(file);
     return dev.m_device->mmap(addr, size);
 }
+
+bool DevFS::ioctl(VNode& file, uint32_t request)
+{
+    return ToDevFSNode(file).m_device->ioctl(request);
+}
+
 }

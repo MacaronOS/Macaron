@@ -63,6 +63,7 @@ public:
     KErrorOr<size_t> lseek(fd_t fd, size_t offset, int whence);
     KErrorOr<size_t> truncate(fd_t fd, size_t offset);
     KError mmap(fd_t fd, uint32_t addr, uint32_t size);
+    KError ioctl(fd_t fd, uint32_t request);
 
     // sockets
     KErrorOr<fd_t> socket(int domain, int type, int protocol);

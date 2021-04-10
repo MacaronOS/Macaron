@@ -26,3 +26,4 @@
 
 #define SOCK_STREAM 1
 
+#define BGA_SWAP_BUFFERS 1

@@ -280,6 +280,19 @@ KError VFS::mmap(fd_t fd, uint32_t addr, uint32_t size)
     return KError(ENOENT);
 }
 
+KError VFS::ioctl(fd_t fd, uint32_t request)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        file_descr->vnode()->fs()->ioctl(*file_descr->vnode(), request);
+        return KError(0);
+    }
+    return KError(ENOENT);
+}
+
 KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
 {
     if (domain != AF_LOCAL) {

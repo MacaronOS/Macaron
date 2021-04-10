@@ -12,9 +12,10 @@ namespace kernel::drivers {
 
 class BochVBE : public CharacterDevice {
 public:
-    BochVBE(PCIDevice* pci_device);
+    explicit BochVBE(PCIDevice* pci_device);
     bool install() override;
     bool mmap(uint32_t addr, uint32_t size) override;
+    bool ioctl(uint32_t request) override;
 
 private:
     enum class IndexRegister : uint16_t {
@@ -36,5 +37,6 @@ private:
     PCIDevice* m_pci_device;
     uint32_t* m_pixels { nullptr };
     uint32_t m_pixels_length { 0 };
+    bool cur_buffer { false };
 };
 }

@@ -24,6 +24,21 @@ int main()
         pixels[i] = 0x0ffff00;
     }
 
+    ioctl(fd, BGA_SWAP_BUFFERS);
+
+    for (int i = 0; i < 1024 * 768; i++) {
+        pixels[i] = 0xfffffff;
+    }
+
+    ioctl(fd, BGA_SWAP_BUFFERS);
+
+    for (int i = 0; i < 1024 * 768; i++) {
+        pixels[i + 1024 * 768] = 0x0000ffff;
+    }
+
+    ioctl(fd, BGA_SWAP_BUFFERS);
+    ioctl(fd, BGA_SWAP_BUFFERS);
+
     if (!fork()) {
         uint32_t* mem = (uint32_t * )create_shared_buffer(1010).mem;
 

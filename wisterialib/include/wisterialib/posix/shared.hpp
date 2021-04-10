@@ -14,6 +14,8 @@ enum class Syscall {
 
     Printd,
 
+    Ioctl = 54,
+
     Mmap = 90,
 
     WriteString,

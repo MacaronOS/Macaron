@@ -104,6 +104,15 @@ static int sys_get_shared_buffer(uint32_t id)
     return SharedBufferStorage::the().get_buffer(id);
 }
 
+static int sys_ioctl(fd_t fd, uint32_t request)
+{
+    auto ioctl_error = VFS::the().ioctl(fd, request);
+    if (ioctl_error) {
+        return ioctl_error.posix_error();
+    }
+    return 0;
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -117,6 +126,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Open, (uint32_t)sys_open);
     register_syscall(Syscall::Execve, (uint32_t)sys_execve);
     register_syscall(Syscall::Mmap, (uint32_t)sys_mmap);
+    register_syscall(Syscall::Ioctl, (uint32_t)sys_ioctl);
     register_syscall(Syscall::WriteString, (uint32_t)sys_write_string);
     register_syscall(Syscall::CreateSharedBuffer, (uint32_t)sys_create_shared_buffer);
     register_syscall(Syscall::GetSharedBuffer, (uint32_t)sys_get_shared_buffer);

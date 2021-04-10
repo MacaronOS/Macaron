@@ -5,11 +5,12 @@
 #include <Logger.hpp>
 #include <assert.hpp>
 #include <hardware/port.hpp>
-#include <memory/vmm.hpp>
 #include <memory/pmm.hpp>
+#include <memory/vmm.hpp>
 #include <multitasking/TaskManager.hpp>
 
 #include <wisterialib/common.hpp>
+#include <wisterialib/posix/defines.hpp>
 
 namespace kernel::drivers {
 
@@ -84,6 +85,16 @@ inline uint16_t BochVBE::read(IndexRegister reg)
 {
     outw(BochVBEIoPortIndex, static_cast<uint16_t>(reg));
     return inw(BochVBEIoPortData);
+}
+
+bool BochVBE::ioctl(uint32_t request)
+{
+    if (request == BGA_SWAP_BUFFERS) {
+        cur_buffer = !cur_buffer;
+        write(IndexRegister::YOffset, cur_buffer * 768);
+        return true;
+    }
+    return false;
 }
 
 }
