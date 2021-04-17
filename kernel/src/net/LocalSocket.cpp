@@ -30,7 +30,7 @@ uint32_t LocalSocket::read(uint32_t offset, uint32_t size, uint8_t* buffer)
     }
 }
 
-void LocalSocket::write(uint32_t size, uint8_t* buffer)
+void LocalSocket::write(uint32_t size, const uint8_t* buffer)
 {
     for (uint32_t bytes_written = 0; bytes_written < size; bytes_written++) {
         m_buffer[m_write_offset++] = buffer[bytes_written];
@@ -38,7 +38,7 @@ void LocalSocket::write(uint32_t size, uint8_t* buffer)
     }
 }
 
-bool LocalSocket::can_read(uint32_t offset)
+bool LocalSocket::can_read(uint32_t offset) const
 {
     return m_write_offset != offset;
 }

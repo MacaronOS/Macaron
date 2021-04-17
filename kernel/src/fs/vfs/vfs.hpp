@@ -1,15 +1,15 @@
 #pragma once
 
 #include <assert.hpp>
-#include <wisterialib/common.hpp>
+#include <errors/KError.hpp>
+#include <fs/base/VNode.hpp>
+#include <fs/base/fs.hpp>
 
 #include <wisterialib/Array.hpp>
 #include <wisterialib/Singleton.hpp>
 #include <wisterialib/StaticStack.hpp>
-
-#include <errors/KError.hpp>
-#include <fs/base/VNode.hpp>
-#include <fs/base/fs.hpp>
+#include <wisterialib/common.hpp>
+#include <wisterialib/posix/shared.hpp>
 
 namespace kernel::fs {
 
@@ -57,13 +57,14 @@ public:
 
     // posix like api functions
     KErrorOr<fd_t> open(const String& path, int flags, mode_t mode = 0);
-    KError close(const fd_t fd);
+    KError close(fd_t fd);
     KErrorOr<size_t> read(fd_t fd, void* buffer, size_t size);
     KErrorOr<size_t> write(fd_t fd, void* buffer, size_t size);
     KErrorOr<size_t> lseek(fd_t fd, size_t offset, int whence);
     KErrorOr<size_t> truncate(fd_t fd, size_t offset);
     KError mmap(fd_t fd, uint32_t addr, uint32_t size);
     KError ioctl(fd_t fd, uint32_t request);
+    KError select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
 
     // sockets
     KErrorOr<fd_t> socket(int domain, int type, int protocol);
@@ -73,6 +74,7 @@ public:
     // custom WisteriaOS api fuctions
     KErrorOr<size_t> file_size(fd_t fd);
     Vector<String> listdir(const String& path);
+    bool can_read(fd_t fd);
 
     uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer);
     uint32_t write(VNode& file, uint32_t offset, uint32_t size, void* buffer);

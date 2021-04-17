@@ -6,7 +6,7 @@
 
 namespace kernel::syscalls {
 
-constexpr uint8_t syscall_count = (uint8_t)Syscall::END;
+constexpr auto syscall_count = (uint16_t)Syscall::END;
 
 class SyscallsManager : public InterruptHandler {
 public:
@@ -17,7 +17,7 @@ public:
     void register_syscall(Syscall ss, uint32_t syscall_ptr);
 
 private:
-    uint32_t m_syscalls[syscall_count];
+    uint32_t m_syscalls[syscall_count] {};
 };
 
 }

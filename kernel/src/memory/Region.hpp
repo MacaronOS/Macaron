@@ -11,7 +11,6 @@ enum Flags {
 };
 
 struct Region {
-
     // TODO: kernel will need multiple regions for large memory ranges (f.e. sockets)
     // It should be a Vector of Regions
     static Region KernelRegion()

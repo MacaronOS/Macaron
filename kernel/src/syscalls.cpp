@@ -38,15 +38,20 @@ static int sys_fork()
     return TaskManager::the().sys_fork_handler();
 }
 
+static int sys_read(fd_t fd, uint8_t* buf, size_t cnt)
+{
+    return int(VFS::the().read(fd, buf, cnt));
+}
+
+static int sys_write(fd_t fd, uint8_t* buf, size_t cnt)
+{
+    return int(VFS::the().write(fd, buf, cnt));
+}
+
 static int sys_open(const char* filename, int flags, unsigned short mode)
 {
     Log() << "handling open\n";
-
-    auto res = VFS::the().open(filename, flags, mode);
-    if (!res) {
-        return res.error().posix_error();
-    }
-    return res.result();
+    return int(VFS::the().open(filename, flags, mode));
 }
 
 static int sys_execve(const char* filename, const char* const* argv, const char* const* envp)
@@ -106,23 +111,37 @@ static int sys_get_shared_buffer(uint32_t id)
 
 static int sys_ioctl(fd_t fd, uint32_t request)
 {
-    auto ioctl_error = VFS::the().ioctl(fd, request);
-    if (ioctl_error) {
-        return ioctl_error.posix_error();
-    }
-    return 0;
+    return int(VFS::the().ioctl(fd, request));
+}
+
+static int sys_socket(int domain, int type, int protocol)
+{
+    return int(VFS::the().socket(domain, type, protocol));
+}
+
+static int sys_bind(fd_t fd, const char* path)
+{
+    return int(VFS::the().bind(fd, path));
+}
+
+static int sys_connect(fd_t fd, const char* path)
+{
+    return int(VFS::the().connect(fd, path));
+}
+
+static int sys_select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout)
+{
+    return int(VFS::the().select(nfds, readfds, writefds, execfds, timeout));
 }
 
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
-    for (uint32_t& m_syscall : m_syscalls) {
-        m_syscall = (uint8_t)Syscall::END;
-    }
-
     register_syscall(Syscall::Putc, (uint32_t)sys_putc);
     register_syscall(Syscall::Exit, (uint32_t)sys_exit);
     register_syscall(Syscall::Fork, (uint32_t)sys_fork);
+    register_syscall(Syscall::Read, (uint32_t)sys_read);
+    register_syscall(Syscall::Write, (uint32_t)sys_write);
     register_syscall(Syscall::Open, (uint32_t)sys_open);
     register_syscall(Syscall::Execve, (uint32_t)sys_execve);
     register_syscall(Syscall::Mmap, (uint32_t)sys_mmap);
@@ -130,6 +149,10 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::WriteString, (uint32_t)sys_write_string);
     register_syscall(Syscall::CreateSharedBuffer, (uint32_t)sys_create_shared_buffer);
     register_syscall(Syscall::GetSharedBuffer, (uint32_t)sys_get_shared_buffer);
+    register_syscall(Syscall::Socket, (uint32_t)sys_socket);
+    register_syscall(Syscall::Bind, (uint32_t)sys_bind);
+    register_syscall(Syscall::Connect, (uint32_t)sys_connect);
+    register_syscall(Syscall::Select, (uint32_t)sys_select);
 }
 
 void SyscallsManager::initialize()
@@ -139,12 +162,12 @@ void SyscallsManager::initialize()
 
 void SyscallsManager::register_syscall(Syscall ss, uint32_t syscall_ptr)
 {
-    m_syscalls[(uint8_t)ss] = syscall_ptr;
+    m_syscalls[(uint16_t)ss] = syscall_ptr;
 }
 
 void SyscallsManager::handle_interrupt(trapframe_t* regs)
 {
-    if (regs->eax >= syscall_count || m_syscalls[regs->eax] == (uint8_t)Syscall::END) {
+    if (regs->eax >= syscall_count || !m_syscalls[regs->eax]) {
         return;
     }
     int ret;

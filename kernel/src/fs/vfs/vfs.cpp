@@ -5,7 +5,9 @@
 #include <monitor.hpp>
 
 #include <wisterialib/extras.hpp>
+#include <wisterialib/memory.hpp>
 #include <wisterialib/posix/defines.hpp>
+#include <wisterialib/posix/shared.hpp>
 
 namespace kernel::fs {
 using namespace Logger;
@@ -20,7 +22,7 @@ VFS::VFS()
     m_file_storage.push(m_root);
 
     // setting all fds as free
-    for (fd_t i = 0; i < FD_ALLOWED; i++) {
+    for (int i = FD_ALLOWED - 1 ; i >= 0 ; i--) {
         m_free_fds.push(i);
     }
 }
@@ -433,6 +435,58 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
     rel.file = node;
 
     return rel;
+}
+
+bool VFS::can_read(fd_t fd)
+{
+    auto* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return false;
+    }
+
+    auto vnode = file_descr->vnode();
+    if (!vnode) {
+        return false;
+    }
+
+    auto socket = vnode->socket();
+    auto fs = vnode->fs();
+    auto offset = file_descr->offset();
+
+    if (socket) {
+        return socket->can_read(offset);
+    }
+
+    // TODO: implement can_read for FileSystem files
+    if (fs) {
+        return true;
+    }
+
+    return false;
+}
+
+KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout)
+{
+    // TODO: select works correctly only for sockets
+    if (readfds) {
+        FD_ZERO(readfds);
+    }
+    if (writefds) {
+        FD_ZERO(writefds);
+    }
+    if (execfds) {
+        FD_ZERO(execfds);
+    }
+
+    for (size_t fd = 0 ; fd < nfds ; fd++) {
+        if (readfds) {
+            if (can_read(fd)) {
+                FD_SET(readfds, fd);
+            }
+        }
+    }
+
+    return KError(0);
 }
 
 }

@@ -16,7 +16,13 @@ enum class Syscall {
 
     Ioctl = 54,
 
+    Select = 82,
+
     Mmap = 90,
+
+    Socket = 359,
+    Bind = 361,
+    Connect = 362,
 
     WriteString,
 
@@ -38,4 +44,15 @@ struct [[gnu::packed]] MmapParams {
 struct CreateBufferResult {
     uint32_t id {};
     uint32_t mem {};
+};
+
+constexpr uint32_t FD_SIZE = 32;
+
+#define FD_ZERO(set) memset((set), 0, sizeof(fd_set))
+#define FD_SET(set, fd) ((set)->bits[fd / 8] |= (1 << (fd) % 8))
+#define FD_CLR(set, fd) ((set)->bits[fd / 8] &= ~(1 << (fd) % 8))
+#define FD_IS_SET(set, fd) (((set)->bits[fd / 8] >> ((fd) % 8)) & 1)
+
+struct fd_set {
+    uint8_t bits[FD_SIZE / 8];
 };

@@ -30,6 +30,15 @@ int fork()
     return do_syscall(Syscall::Fork);
 }
 
+int read(int fd, void* buf, size_t cnt)
+{
+    return do_syscall(Syscall::Read, ToSysArg(fd), ToSysArg(buf), ToSysArg(cnt));
+}
+int write(int fd, void* buf, size_t cnt)
+{
+    return do_syscall(Syscall::Write, ToSysArg(fd), ToSysArg(buf), ToSysArg(cnt));
+}
+
 int open(const char* filename, int flags, uint16_t mode)
 {
     return do_syscall(Syscall::Open, ToSysArg(filename), ToSysArg(flags), ToSysArg(mode));
@@ -49,4 +58,24 @@ void* mmap(void* start, uint32_t length, int prot, int flags, int fd, uint32_t o
 int ioctl(int fd, unsigned long request)
 {
     return do_syscall(Syscall::Ioctl, ToSysArg(fd), ToSysArg(request));
+}
+
+int socket(int domain, int type, int protocol)
+{
+    return do_syscall(Syscall::Socket, ToSysArg(domain), ToSysArg(type), ToSysArg(protocol));
+}
+
+int bind(int fd, const char* path)
+{
+    return do_syscall(Syscall::Bind, ToSysArg(fd), ToSysArg(path));
+}
+
+int connect(int fd, const char* path)
+{
+    return do_syscall(Syscall::Connect, ToSysArg(fd), ToSysArg(path));
+}
+
+int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout)
+{
+    return do_syscall(Syscall::Select, ToSysArg(nfds), ToSysArg(readfds), ToSysArg(writefds), ToSysArg(execfds), ToSysArg(timeout));
 }
