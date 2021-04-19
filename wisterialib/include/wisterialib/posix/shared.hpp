@@ -14,6 +14,8 @@ enum class Syscall {
 
     Printd,
 
+    GetPid = 20,
+
     Ioctl = 54,
 
     Select = 82,

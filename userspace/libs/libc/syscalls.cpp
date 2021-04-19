@@ -79,3 +79,8 @@ int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* t
 {
     return do_syscall(Syscall::Select, ToSysArg(nfds), ToSysArg(readfds), ToSysArg(writefds), ToSysArg(execfds), ToSysArg(timeout));
 }
+
+int getpid()
+{
+    return do_syscall(Syscall::GetPid);
+}

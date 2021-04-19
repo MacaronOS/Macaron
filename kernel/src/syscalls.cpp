@@ -134,6 +134,11 @@ static int sys_select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execf
     return int(VFS::the().select(nfds, readfds, writefds, execfds, timeout));
 }
 
+static int sys_getpid()
+{
+    return TaskManager::the().cur_process()->id();
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -153,6 +158,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Bind, (uint32_t)sys_bind);
     register_syscall(Syscall::Connect, (uint32_t)sys_connect);
     register_syscall(Syscall::Select, (uint32_t)sys_select);
+    register_syscall(Syscall::GetPid, (uint32_t)sys_getpid);
 }
 
 void SyscallsManager::initialize()

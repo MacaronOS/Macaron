@@ -47,7 +47,7 @@ int main()
                 for (int i = 0; i < 1024 * 768; i++) {
                     pixels[i] = pixel;
                 }
-                Log << pixel << endl;
+                Log << pixel << " " << getpid() << endl;
                 mem[200] = pixel;
             }
         }
@@ -58,7 +58,7 @@ int main()
         uint32_t* mem = (uint32_t* )get_shared_buffer(0);
 
         while (1) {
-            Log << mem[200] << endl;
+            Log << mem[200] << " " << getpid() << endl;
         }
     }
 
