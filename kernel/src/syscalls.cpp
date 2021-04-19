@@ -129,6 +129,11 @@ static int sys_connect(fd_t fd, const char* path)
     return int(VFS::the().connect(fd, path));
 }
 
+static int sys_can_read(fd_t fd)
+{
+    return VFS::the().can_read(fd);
+}
+
 static int sys_select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout)
 {
     return int(VFS::the().select(nfds, readfds, writefds, execfds, timeout));
@@ -157,6 +162,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Socket, (uint32_t)sys_socket);
     register_syscall(Syscall::Bind, (uint32_t)sys_bind);
     register_syscall(Syscall::Connect, (uint32_t)sys_connect);
+    register_syscall(Syscall::CanRead, (uint32_t)sys_can_read);
     register_syscall(Syscall::Select, (uint32_t)sys_select);
     register_syscall(Syscall::GetPid, (uint32_t)sys_getpid);
 }

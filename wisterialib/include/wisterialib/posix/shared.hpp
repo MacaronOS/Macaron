@@ -31,6 +31,8 @@ enum class Syscall {
     CreateSharedBuffer,
     GetSharedBuffer,
 
+    CanRead,
+
     END,
 };
 

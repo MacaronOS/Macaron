@@ -32,3 +32,7 @@ uint32_t get_shared_buffer(uint32_t id)
     return do_syscall(Syscall::GetSharedBuffer, ToSysArg(id));
 }
 
+bool can_read(int pid)
+{
+    return do_syscall(Syscall::CanRead, ToSysArg(pid));
+}
