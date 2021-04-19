@@ -4,16 +4,24 @@ include $(ROOT_DIR)/makefile.config
 # -------------------------------USERSPACE LIBRARIES----------------------------------
 
 define LIB_TEMPLATE
+include $(1)/.build.mk
+
+$(1)_NAME := $$(shell basename $(1))
+
+$(1)_LIB_DEPENDENCIES_LIBS_NAMES := $$($$($(1)_NAME)_DEPENDENCIES)
+$(1)_LIB_DEPENDENCIES_LIBS_PATHES := $$($(1)_LIB_DEPENDENCIES_LIBS_NAMES:%=$$(LIBS_BUILD_DIR)/%.a)
+
 $(1)_LIB_RELATIVE := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $(1).a)
 $(1)_LIB := $$(USERSPACE_BUILD_DIR)/$$($(1)_LIB_RELATIVE)
+
 USERSPACE_LIBS += $$($(1)_LIB)
 
 $(1)_SRCS := $$(shell find $(1) -name *.cpp -or -name *.c -or -name *.s)
 $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($(1)_SRCS))
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
-$$($(1)_LIB): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
-	$$(AR) rcs $$($(1)_LIB) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
+$$($(1)_LIB): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) $$($(1)_LIB_DEPENDENCIES_LIBS_PATHES)
+	$$(AR) rcs $$($(1)_LIB) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) $$($(1)_LIB_DEPENDENCIES_LIBS_PATHES) $$($(1)_OBJS)
 
 # assembly
 $$(USERSPACE_BUILD_DIR)/%.s.o: $$(USERSPACE_SRC_DIR)/%.s
@@ -48,7 +56,7 @@ $(1)_SRCS := $$(shell find $(1) -name *.cpp -or -name *.c -or -name *.s)
 $(1)_RELATIVE_SRCS := $$(shell realpath --relative-to $$(USERSPACE_SRC_DIR) $$($(1)_SRCS))
 $(1)_OBJS := $$($(1)_RELATIVE_SRCS:%=$$(USERSPACE_BUILD_DIR)/%.o)
 
-$$($(1)_APP): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB)
+$$($(1)_APP): $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) $$(USERSPACE_LIBS)
 	$(CC) $$(USERSPACE_LIBS) $$(LINKER_FLAGS) $$($(1)_OBJS) $$(WISTERIALIB_BUILD_DIR)/$$(WISTERIALIB) $$(USERSPACE_LIBS) -o $$@ -lgcc
 
 # c source
