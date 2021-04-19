@@ -1,7 +1,10 @@
 #include <libc/syscalls.hpp>
+#include <wisterialib/String.hpp>
+#include <libsys/Log.hpp>
 
 int main()
 {   
+    Log << String("main") << endl;
     int p = fork();
 
     if (p) {
@@ -10,7 +13,7 @@ int main()
         }
         
     } else {
-        execve("/ext2/apps/gui.app", 0, 0);
+        execve("/ext2/apps/window_server.app", 0, 0);
     }
     return 0;
 }

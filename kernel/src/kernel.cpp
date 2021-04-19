@@ -90,18 +90,6 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
     VFS::the().mount(VFS::the().root(), devfs->root(), "dev");
 
-    auto sock1 = VFS::the().socket(AF_LOCAL, SOCK_STREAM, 1);
-    auto sock2 = VFS::the().socket(AF_LOCAL, SOCK_STREAM, 1);
-
-    auto bind = VFS::the().bind(sock1.result(), "/ext2/lol.sock");
-    auto connect = VFS::the().connect(sock2.result(), "/ext2/lol.sock");
-
-    char* message = "message";
-    auto write = VFS::the().write(sock1.result(), message, 8);
-    char* buf = (char*)malloc(8);
-    VFS::the().read(sock2.result(), buf, 8);
-    Log() << buf;
-
     SharedBufferStorage::initialize();
 
 #ifdef Wisteria_TEST
