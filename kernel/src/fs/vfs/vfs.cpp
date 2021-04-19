@@ -22,7 +22,7 @@ VFS::VFS()
     m_file_storage.push(m_root);
 
     // setting all fds as free
-    for (int i = FD_ALLOWED - 1 ; i >= 0 ; i--) {
+    for (int i = FD_ALLOWED - 1; i >= 0; i--) {
         m_free_fds.push(i);
     }
 }
@@ -99,6 +99,9 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     auto offset = file_descr->offset();
 
     if (socket) {
+        if (!socket->can_read(offset)) {
+            return 0;
+        }
         file_descr->set_offset(socket->read(offset, size, (uint8_t*)buffer));
         return size;
     }
@@ -346,11 +349,17 @@ KError VFS::connect(fd_t sockfd, const String& path)
         return relation.error();
     }
 
-    if (!relation.result().file) {
+    auto file = relation.result().file;
+
+    if (!file) {
         return KError(ENOENT);
     }
 
-    file_descr->set_file(relation.result().file);
+    if (!file->socket()) {
+        return KError(ENOTCONN);
+    }
+
+    file_descr->set_file(file);
 
     return KError(0);
 }
@@ -478,7 +487,7 @@ KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds,
         FD_ZERO(execfds);
     }
 
-    for (size_t fd = 0 ; fd < nfds ; fd++) {
+    for (size_t fd = 0; fd < nfds; fd++) {
         if (readfds) {
             if (can_read(fd)) {
                 FD_SET(readfds, fd);

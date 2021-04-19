@@ -1,6 +1,6 @@
 #pragma once
-#include "extras.hpp"
 #include "common.hpp"
+#include "extras.hpp"
 
 template <typename T>
 class Vector {
@@ -66,6 +66,8 @@ public:
 
     size_t size() const { return m_size; };
     size_t capacity() const { return m_capacity; }
+
+    T* data() { return m_data; }
 
     // Element access
     T& operator[](size_t pos) { return m_data[pos]; }
