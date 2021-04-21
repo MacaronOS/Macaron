@@ -3,6 +3,7 @@
 #include "assert.hpp"
 #include "drivers/DriverManager.hpp"
 #include "drivers/Keyboard.hpp"
+#include "drivers/Mouse.hpp"
 #include "drivers/PIT.hpp"
 #include "drivers/Uart.hpp"
 #include "drivers/disk/Ata.hpp"
@@ -76,6 +77,7 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     DriverManager::the().add_driver(new kernel::drivers::Keyboard());
     DriverManager::the().add_driver(new kernel::drivers::Uart());
     DriverManager::the().add_driver(new kernel::drivers::PCI());
+    DriverManager::the().add_driver(new kernel::drivers::Mouse());
     DriverManager::the().install_all();
 
     // setting VFS

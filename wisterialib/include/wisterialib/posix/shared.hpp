@@ -60,3 +60,12 @@ constexpr uint32_t FD_SIZE = 32;
 struct fd_set {
     uint8_t bits[FD_SIZE / 8];
 };
+
+struct MousePacket {
+    uint8_t left_btn : 1;
+    uint8_t right_btn : 1;
+    uint8_t middle_btn : 1;
+    int16_t x_move;
+    int16_t y_move;
+    uint8_t align : 2; // so file descriptor offset is correct after overflow
+};

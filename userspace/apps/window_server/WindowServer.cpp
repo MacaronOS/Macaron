@@ -32,6 +32,14 @@ bool WindowServer::initialize()
 
     m_screen = Screen(screen_fd, move(front_buffer), move(back_buffer));
 
+    // setup devices
+    int mouse_fd = open("/dev/mouse", 1, 1);
+    if (mouse_fd < 0) {
+        return false;
+    }
+
+    m_mouse = Mouse(mouse_fd, 1024 / 2, 768 / 2);
+
     return true;
 }
 
@@ -43,6 +51,7 @@ int y_offset = 50;
 void WindowServer::run()
 {
     while (true) {
+        m_mouse.update_position();
         redraw();
         if (m_connection.has_requests()) {
             auto message = m_connection.recieve_message();
@@ -67,13 +76,8 @@ void WindowServer::run()
 void WindowServer::redraw()
 {
     draw_background();
-    for (auto window : m_windows) {
-        for (size_t y = 0; y < window->height() - 50; y++) {
-            for (size_t x = 0; x < window->width() - 50; x++) {
-                m_screen.back_buffer()[y + window->y()][x + window->x()] = window->buffer()[y][x];
-            }
-        }
-    }
+    draw_windows();
+    draw_mouse();
     m_screen.swap_buffers();
 }
 
@@ -82,6 +86,30 @@ void WindowServer::draw_background()
     for (size_t y = 0; y < 768; y++) {
         for (size_t x = 0; x < 1024; x++) {
             m_screen.back_buffer()[y][x] = Graphics::Color(255, 255, 255);
+        }
+    }
+}
+
+void WindowServer::draw_windows()
+{
+    for (auto window : m_windows) {
+        for (size_t y = 0; y < window->height() - 50; y++) {
+            for (size_t x = 0; x < window->width() - 50; x++) {
+                m_screen.back_buffer()[y + window->y()][x + window->x()] = window->buffer()[y][x];
+            }
+        }
+    }
+}
+
+void WindowServer::draw_mouse()
+{
+    if (m_mouse.x() < 0 || m_mouse.y() < 0 || m_mouse.x() >= 1024 || m_mouse.y() >= 768) {
+        return;
+    }
+
+    for (int h = 0 ; h < 10 ; h++) {
+        for (int w = 0 ; w < 10 ; w++) {
+            m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w] = Graphics::Color(0, 0, 0);
         }
     }
 }

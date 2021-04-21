@@ -55,6 +55,11 @@ Vector<String> DevFS::listdir(VNode& directory)
     return result;
 }
 
+uint32_t DevFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
+{
+    return ToDevFSNode(file).m_device->read(offset, size, buffer);
+}
+
 bool DevFS::mmap(VNode& file, uint32_t addr, uint32_t size)
 {
     auto dev = ToDevFSNode(file);
