@@ -18,6 +18,14 @@ public:
         return Response(response);
     }
 
+    void send_async_message(WSProtocol& message) {
+        message.set_pid_from(m_local_pid);
+        message.set_pid_to(m_server_pid);
+
+        auto buffer = message.serialize();
+        write(m_socket_fd, buffer.data(), buffer.size());
+    }
+
 private:
     void initialize_connection();
     WSProtocol send_sync_message(WSProtocol& message);
@@ -41,6 +49,10 @@ public:
     void send_response_to(Response response, int pid)
     {
         send_async_message_to(response.message(), pid);
+    }
+
+    void send_response(WSProtocol& message, int pid) {
+        send_async_message_to(message, pid);
     }
 
 private:

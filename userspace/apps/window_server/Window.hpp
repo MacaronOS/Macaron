@@ -7,6 +7,8 @@ class Window {
 public:
     Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int x, int y);
 
+    uint32_t id;
+
     Graphics::Bitmap& buffer() { return m_buffer; }
 
     uint32_t width() const { return m_width; }

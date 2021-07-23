@@ -19,13 +19,15 @@ class WSProtocol {
     friend class Wrapper;
 
 public:
-    static constexpr auto arguments = 4;
+    static constexpr auto arguments = 5;
     enum class Type : uint8_t {
         InitialzieConnectionRequest,
         InitialzieConnectionResponse,
 
         CreateWindowRequest,
         CreateWindowResponse,
+
+        InvalidateWindowRequst,
     };
 
     class EncodeBuffer {
@@ -77,7 +79,7 @@ public:
 public:
     WSProtocol(
         WSProtocol::Type type = WSProtocol::Type::InitialzieConnectionRequest,
-        int arg1 = 0, int arg2 = 0, int arg3 = 0, int arg4 = 0,
+        int arg1 = 0, int arg2 = 0, int arg3 = 0, int arg4 = 0, int arg5 = 0,
         int pid_to = -1, int pid_from = getpid())
 
         : m_type(type)
@@ -88,9 +90,10 @@ public:
         m_args[1] = arg2;
         m_args[2] = arg3;
         m_args[3] = arg4;
+        m_args[4] = arg5;
     }
 
-    static constexpr uint32_t size() { return sizeof(WSProtocol::Type) + 6 * sizeof(int); }
+    static constexpr uint32_t size() { return sizeof(WSProtocol::Type) + 7 * sizeof(int); }
 
     void set_pid_to(int pid_to) { m_pid_to = pid_to; }
     void set_pid_from(int pid_from) { m_pid_from = pid_from; }
@@ -103,7 +106,7 @@ public:
     EncodeBuffer serialize() const;
     static WSProtocol deserialize(uint8_t* buffer);
 
-protected:
+public:
     int m_pid_to;
     int m_pid_from;
 

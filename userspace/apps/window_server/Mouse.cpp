@@ -9,6 +9,9 @@
 
 void Mouse::update_position()
 {
+    m_prev_x = m_x;
+    m_prev_y = m_y;
+
     static MousePacket mouse_buffer[32];
     int bytes = read(m_fd, mouse_buffer, sizeof(mouse_buffer));
     if (bytes > 0) {

@@ -100,6 +100,7 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 
     if (socket) {
         if (!socket->can_read(offset)) {
+            //TODO: block here
             return 0;
         }
         file_descr->set_offset(socket->read(offset, size, (uint8_t*)buffer));

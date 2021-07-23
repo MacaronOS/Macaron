@@ -18,6 +18,9 @@ public:
     inline bool contains(int left, int top, int right, int bottom) const;
     inline bool contains(const Rect&) const;
 
+    inline bool intersects(const Rect&) const;
+    inline Rect intersection(const Rect&) const;
+
     inline bool operator==(const Rect&) const;
 
 public:

@@ -32,11 +32,12 @@ WSProtocol WSProtocol::deserialize(uint8_t* buff)
     auto arg1 = buffer.get_int();
     auto arg2 = buffer.get_int();
     auto arg3 = buffer.get_int();
+    auto arg4 = buffer.get_int();
 
     auto pid_to = buffer.get_int();
     auto pid_from = buffer.get_int();
 
-    auto message = WSProtocol(type, arg0, arg1, arg2, arg3, pid_to, pid_from);
+    auto message = WSProtocol(type, arg0, arg1, arg2, arg3, arg4, pid_to, pid_from);
 
     return message;
 }

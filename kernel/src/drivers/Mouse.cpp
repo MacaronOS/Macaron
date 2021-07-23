@@ -105,7 +105,7 @@ void Mouse::handle_interrupt(trapframe_t* tf)
 uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
 {
     size_t buffer_index = 0;
-    size_t packets_index = (offset / sizeof(MousePacket)) % (m_packets_size - 1);
+    size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
 
     if (packets_index > m_packets_buffer_ptr) {
         for (; packets_index < m_packets_size && buffer_index < size / sizeof(MousePacket) ; packets_index++, buffer_index++) {
