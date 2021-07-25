@@ -13,7 +13,8 @@ enum class Syscall {
     Execve = 9,
 
     Printd,
-
+    
+    Lseek = 19,
     GetPid = 20,
 
     Ioctl = 54,

@@ -38,6 +38,10 @@ int write(int fd, void* buf, size_t cnt)
 {
     return do_syscall(Syscall::Write, ToSysArg(fd), ToSysArg(buf), ToSysArg(cnt));
 }
+int lseek(int fd, size_t offset, int whence)
+{
+    return do_syscall(Syscall::Lseek, ToSysArg(fd), ToSysArg(offset), ToSysArg(whence));
+}
 
 int open(const char* filename, int flags, uint16_t mode)
 {

@@ -16,6 +16,10 @@ public:
     inline uint8_t green() const { return m_green; };
     inline uint8_t blue() const { return m_blue; };
 
+    inline void set_red(uint8_t red) { m_red = red; }
+    inline void set_green(uint8_t green) { m_green = green; }
+    inline void set_blue(uint8_t blue) { m_blue = blue; }
+
 private:
     uint8_t m_blue {};
     uint8_t m_green {};

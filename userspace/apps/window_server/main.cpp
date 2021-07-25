@@ -19,9 +19,6 @@ void run_demo()
 
         size_t cnt = 0;
 
-        auto fd = open("/ext2/res/wallpaper.bmp", 1, 1);
-        Log << "FD " << fd << endl;
-
         while (true) {
             for (int red = 0; red < 0xff; red += 10) {
                 for (int green = 0; green < 0xff; green += 20) {

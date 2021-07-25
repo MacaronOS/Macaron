@@ -22,12 +22,13 @@ static MallocHeader* allocate_new_block(size_t size)
     if (allocated_mem_blocks >= MAX_MEM_BLOCKS) {
         return nullptr;
     }
+    size_t allocated_size = max(minimal_block_size, size + sizeof(MallocHeader));
     // TODO: prot are ingored for now
-    auto new_block = (MallocHeader*)mmap(nullptr, max(minimal_block_size, size), 0, MAP_ANONYMOUS, 0, 0);
+    auto new_block = (MallocHeader*)mmap(nullptr, allocated_size, 0, MAP_ANONYMOUS, 0, 0);
     if (new_block == (void*)-1) {
         return nullptr;
     }
-    new_block->size = max(minimal_block_size, size);
+    new_block->size = allocated_size;
     new_block->next = nullptr;
     new_block->prev = nullptr;
     new_block->free = true;

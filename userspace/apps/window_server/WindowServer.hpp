@@ -29,6 +29,7 @@ private:
 
 private:
     Screen m_screen {};
+    Graphics::Bitmap m_wallpaper {};
     Mouse m_mouse {};
     WS::ServerConnection m_connection {};
     List<Window*> m_windows {};

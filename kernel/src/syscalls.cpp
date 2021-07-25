@@ -48,6 +48,11 @@ static int sys_write(fd_t fd, uint8_t* buf, size_t cnt)
     return int(VFS::the().write(fd, buf, cnt));
 }
 
+static int sys_lseek(fd_t fd, size_t offset, int whence) {
+    Log() << "handling lseek\n";
+    return int(VFS::the().lseek(fd, offset, whence));
+}
+
 static int sys_open(const char* filename, int flags, unsigned short mode)
 {
     Log() << "handling open\n";
@@ -165,6 +170,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::CanRead, (uint32_t)sys_can_read);
     register_syscall(Syscall::Select, (uint32_t)sys_select);
     register_syscall(Syscall::GetPid, (uint32_t)sys_getpid);
+    register_syscall(Syscall::Lseek, (uint32_t)sys_lseek);
 }
 
 void SyscallsManager::initialize()

@@ -1,4 +1,5 @@
 #include "WindowServer.hpp"
+#include "BMP/BMPLoader.hpp"
 
 #include <libc/malloc.hpp>
 #include <libc/syscalls.hpp>
@@ -32,10 +33,16 @@ bool WindowServer::initialize()
 
     m_screen = Screen(screen_fd, move(front_buffer), move(back_buffer));
 
-    for (int x = 0 ; x < 1024; x++) {
-        for (int y = 0 ; y < 768; y++) {
-            m_screen.back_buffer()[y][x] = Graphics::Color(255, 255, 255);
-            m_screen.front_buffer()[y][x] = Graphics::Color(255, 255, 255);
+    // setup wallpaper
+    m_wallpaper = BMPLoader::load("/ext2/resources/wallpaper.bmp");
+    if (m_wallpaper.height() == 0 || m_wallpaper.width() == 0) {
+        Log << m_wallpaper.height() << " " << m_wallpaper.width() << endl;
+        exit(1);
+    }
+    for (int y = 0 ; y < 768; y++) {
+        for (int x = 0 ; x < 1024; x++) {
+            m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
+            m_screen.front_buffer()[y][x] = m_wallpaper[y][x];
         }
     }
 
@@ -89,7 +96,7 @@ void WindowServer::run()
                 auto width = message.m_args[3];
                 auto height = message.m_args[4];
 
-                Log << "Recieved InvalidateWindowRequst " << window_id << " " << x << " " << y << " " << width << " " << height << endl;
+                // Log << "Recieved InvalidateWindowRequst " << window_id << " " << x << " " << y << " " << width << " " << height << endl;
 
                 auto window = get_window_by_id(window_id);
 
@@ -120,7 +127,7 @@ void WindowServer::draw_background()
 
         for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
             for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
-                m_screen.back_buffer()[y][x] = Graphics::Color(255, 255, 255);
+                m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
             }
         }
     }
