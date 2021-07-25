@@ -30,6 +30,7 @@ private:
 private:
     Screen m_screen {};
     Graphics::Bitmap m_wallpaper {};
+    Graphics::Bitmap m_cursor {};
     Mouse m_mouse {};
     WS::ServerConnection m_connection {};
     List<Window*> m_windows {};

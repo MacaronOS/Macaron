@@ -17,12 +17,12 @@ public:
     Bitmap(Bitmap&& bitmap);
     Bitmap& operator=(Bitmap&&);
 
-    Color* colors() { return m_colors; }
+    inline Color* colors() { return m_colors; }
 
-    Color* operator[](size_t index) { return m_colors + index * m_width; }
+    inline Color* operator[](size_t index) { return m_colors + index * m_width; }
 
-    uint32_t width() const {return m_width;}
-    uint32_t height() const {return m_height;}
+    inline uint32_t width() const { return m_width; }
+    inline uint32_t height() const { return m_height; }
 
 private:
     Color* m_colors {};

@@ -26,7 +26,9 @@ void run_demo()
                         for (size_t y = 0; y < app.window().height(); y++) {
                             for (size_t x = 0; x < app.window().width(); x++) {
                                 app.window().buffer()[y][x] = Graphics::Color(red, green, blue);
-
+                                if (cnt == 0) {
+                                    app.invalidate_area(0, 0, app.window().width(), app.window().height());
+                                }
                                 cnt++;
                                 if (cnt % 1000000 == 0) {
                                     app.invalidate_area(0, 0, app.window().width() / 2, app.window().height() / 2);

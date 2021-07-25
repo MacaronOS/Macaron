@@ -12,16 +12,16 @@ public:
     Rect(const Rect& rect) = default;
     Rect& operator=(const Rect&) = default;
 
-    inline size_t width() const;
-    inline size_t height() const;
+    size_t width() const;
+    size_t height() const;
 
-    inline bool contains(int left, int top, int right, int bottom) const;
-    inline bool contains(const Rect&) const;
+    bool contains(int left, int top, int right, int bottom) const;
+    bool contains(const Rect&) const;
 
-    inline bool intersects(const Rect&) const;
-    inline Rect intersection(const Rect&) const;
+    bool intersects(const Rect&) const;
+    Rect intersection(const Rect&) const;
 
-    inline bool operator==(const Rect&) const;
+    bool operator==(const Rect&) const;
 
 public:
     int left {};

@@ -17,6 +17,8 @@ public:
     int x() const { return m_x; }
     int y() const { return m_y; }
 
+    inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + width() - 1, y() + height() - 1); }
+
 private:
     uint32_t m_width {};
     uint32_t m_height {};
