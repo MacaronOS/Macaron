@@ -1,5 +1,6 @@
 #include "WindowServer.hpp"
 #include "BMP/BMPLoader.hpp"
+#include "Font/FontLoader.hpp"
 
 #include <libc/malloc.hpp>
 #include <libc/syscalls.hpp>
@@ -17,6 +18,8 @@
 
 bool WindowServer::initialize()
 {
+    m_font_medium = FontLoader::load("/ext2/res/Roboto12Medium.fnt", "/ext2/res/Roboto12Medium.bmp");
+    m_font_bold = FontLoader::load("/ext2/res/Roboto12Bold.fnt", "/ext2/res/Roboto12Bold.bmp");
     // setup the screen
     int screen_fd = open("/dev/bga", 1, 1);
     if (screen_fd < 0) {
@@ -39,17 +42,20 @@ bool WindowServer::initialize()
         Log << m_wallpaper.height() << " " << m_wallpaper.width() << endl;
         exit(1);
     }
-    for (int y = 0; y < 768; y++) {
-        for (int x = 0; x < 1024; x++) {
-            m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
+
+    auto initialize_buffer = [this]() {
+        for (int y = 0; y < 768; y++) {
+            for (int x = 0; x < 1024; x++) {
+                m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
+            }
         }
-    }
+        draw_text(String("Drawing test string using ") + m_font_medium.name + " medium font 12345 ...", 300, 600, m_font_medium);
+        draw_text(String("Drawing test string using ") + m_font_bold.name + " bold font 12345 ...", 300, 620, m_font_bold);
+    };
+
+    initialize_buffer();
     m_screen.swap_buffers();
-    for (int y = 0; y < 768; y++) {
-        for (int x = 0; x < 1024; x++) {
-            m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
-        }
-    }
+    initialize_buffer();
 
     // setup devices
     int mouse_fd = open("/dev/mouse", 1, 1);
@@ -213,4 +219,24 @@ Window* WindowServer::get_window_by_id(int id)
         }
     }
     return nullptr;
+}
+
+void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Font& font)
+{
+    char last_symbol = 0;
+    for (size_t i = 0; i < text.size(); i++) {
+        char symbol = text[i];
+        auto& descr = font.chars[symbol];
+
+        // dont know why it's shifted by 1
+        // may be there's some kind of an error in font generator tool
+        for (size_t h = 1; h < descr.height + 1; h++) {
+            for (size_t w = 0; w < descr.width; w++) {
+                m_screen.back_buffer()[pos_y + descr.yoffset + h][pos_x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);
+            }
+        }
+
+        pos_x += descr.xadvantage;
+        last_symbol = symbol;
+    }
 }

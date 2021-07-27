@@ -20,6 +20,7 @@ public:
     inline Color* colors() { return m_colors; }
 
     inline Color* operator[](size_t index) { return m_colors + index * m_width; }
+    inline const Color* operator[](size_t index) const { return m_colors + index * m_width; }
 
     inline uint32_t width() const { return m_width; }
     inline uint32_t height() const { return m_height; }

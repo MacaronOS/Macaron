@@ -4,6 +4,8 @@
 #include "Window.hpp"
 #include "Mouse.hpp"
 
+#include "Font/FontLoader.hpp"
+
 #include <wisterialib/ObjectPool.hpp>
 #include <wisterialib/List.hpp>
 
@@ -25,12 +27,16 @@ private:
     void draw_background();
     void copy_changes_to_second_buffer();
 
+    void draw_text(const String& text, int x, int y, const Font& font);
+
     Window* get_window_by_id(int id);
 
 private:
     Screen m_screen {};
     Graphics::Bitmap m_wallpaper {};
     Graphics::Bitmap m_cursor {};
+    Font m_font_medium {};
+    Font m_font_bold {};
     Mouse m_mouse {};
     WS::ServerConnection m_connection {};
     List<Window*> m_windows {};

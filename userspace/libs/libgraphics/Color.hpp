@@ -21,6 +21,7 @@ public:
     inline void set_red(uint8_t red) { m_red = red; }
     inline void set_green(uint8_t green) { m_green = green; }
     inline void set_blue(uint8_t blue) { m_blue = blue; }
+    inline void set_alpha(uint8_t alpha) { m_alpha = alpha; }
 
     inline void mix_with(const Color& clr)
     {
