@@ -46,9 +46,4 @@ void Keyboard::handle_interrupt(trapframe_t* tf)
     }
 }
 
-void Keyboard::register_callback(void (*callback)(KeyboardEvent))
-{
-    m_callbacks.push_back(callback);
-}
-
 }
