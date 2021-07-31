@@ -111,7 +111,7 @@ public:
     bool install() override;
     void handle_interrupt(trapframe_t* tf) override;
 
-    inline void register_callback(const Function<void(KeyboardEvent)>& callback) { m_callbacks.push_back(callback);}
+    inline void register_callback(const Function<void(KeyboardEvent&)>& callback) { m_callbacks.push_back(callback);}
     inline KeyboardEvent last_keybord_event() const { return m_last_keybord_event; }
     inline void discard_last_keyboard_event() { m_last_keybord_event = { Key::Undefined }; }
 
@@ -119,7 +119,7 @@ private:
     KeyboardEvent m_last_keybord_event { Key::Undefined, false };
     uint8_t data_port { 0x60 };
     uint8_t command_port { 0x64 };
-    Vector<Function<void(KeyboardEvent)>> m_callbacks {};
+    Vector<Function<void(KeyboardEvent&)>> m_callbacks {};
 };
 
 }

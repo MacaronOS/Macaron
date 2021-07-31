@@ -6,11 +6,34 @@
 
 #include "Font/FontLoader.hpp"
 
+#include "EventLoop/EventLoop.hpp"
+
 #include <wisterialib/ObjectPool.hpp>
 #include <wisterialib/List.hpp>
 
 #include <libgraphics/ws/Connection.hpp>
 #include <libgraphics/Rect.hpp>
+
+enum class EventType {
+    MouseMove,
+    MouseResize,
+};
+
+struct MouseMoveEvent {
+    int x, y;
+};
+
+struct MouseResizeEvent {
+    int width, height;
+};
+
+struct Event {
+    EventType type;
+    union {
+        MouseMoveEvent move_event;
+        MouseResizeEvent resize_event;
+    };
+};
 
 class WindowServer {
     static constexpr auto windows = 10;
@@ -41,4 +64,5 @@ private:
     WS::ServerConnection m_connection {};
     List<Window*> m_windows {};
     Vector<Graphics::Rect> m_invalid_areas {};
+    EventLoop<Event> m_event_loop {};
 };
