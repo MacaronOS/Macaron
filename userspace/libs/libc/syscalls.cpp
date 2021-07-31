@@ -88,3 +88,8 @@ int getpid()
 {
     return do_syscall(Syscall::GetPid);
 }
+
+int clock_gettime(int clock_id, timespec* ts)
+{
+    return do_syscall(Syscall::ClockGettime, ToSysArg(clock_id), ToSysArg(ts)); 
+}

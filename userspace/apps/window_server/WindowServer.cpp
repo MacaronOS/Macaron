@@ -83,6 +83,9 @@ void WindowServer::run()
 {
     while (true) {
         m_mouse.update_position();
+        timespec ts;
+        clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
+        Log << "sec " << ts.tv_sec << " nano " << ts.tv_nsec << endl;
 
         if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
             m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));

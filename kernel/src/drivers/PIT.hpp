@@ -11,18 +11,16 @@
 
 namespace kernel::drivers {
 
-constexpr uint32_t default_frequency = 150;
+struct TickReciever {
+    virtual void on_tick(trapframe_t* tf);
+};
 
 class PIT : public Driver, InterruptHandler {
 public:
-    struct Callback {
-        uint32_t ticks;
-        void (*callback)(trapframe_t*);
-    };
+    static constexpr uint32_t frequency = 150;
 
-    PIT(uint32_t frequency = default_frequency)
-        : m_frequency(frequency)
-        , Driver(DriverEntity::PIT)
+    PIT()
+        : Driver(DriverEntity::PIT)
         , InterruptHandler(32)
     {
     }
@@ -30,13 +28,9 @@ public:
     bool install() override; // driver
     void handle_interrupt(trapframe_t* tf) override; // handler
 
-    uint32_t frequency() const { return m_frequency; }
-
-    void register_callback(Callback callback);
+    void register_tick_reciever(TickReciever* reciever);
 
 private:
-    uint32_t m_frequency {};
-    uint32_t m_ticks_passed {};
-    Vector<Callback> m_callbacks {};
+    Vector<TickReciever*> m_tick_recievers {};
 };
 }

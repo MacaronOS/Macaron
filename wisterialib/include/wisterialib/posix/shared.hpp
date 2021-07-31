@@ -23,6 +23,8 @@ enum class Syscall {
 
     Mmap = 90,
 
+    ClockGettime = 265,
+
     Socket = 359,
     Bind = 361,
     Connect = 362,
@@ -69,4 +71,9 @@ struct MousePacket {
     int16_t x_move;
     int16_t y_move;
     uint8_t align : 2; // so file descriptor offset is correct after overflow
+};
+
+struct timespec {
+    size_t tv_sec;
+    size_t tv_nsec;
 };

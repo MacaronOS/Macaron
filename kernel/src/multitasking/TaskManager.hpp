@@ -6,10 +6,14 @@
 #include "Process.hpp"
 #include "Thread.hpp"
 
+#include <drivers/PIT.hpp>
+
 #include <wisterialib/List.hpp>
 #include <wisterialib/Singleton.hpp>
 
 namespace kernel::multitasking {
+
+using namespace drivers;
 
 #define DEFAULT_BSS_SIZE 4096
 #define DEFAULT_HEAP_SIZE 4096
@@ -18,7 +22,7 @@ class ProcessStorage;
 class Process;
 class Thread;
 
-class TaskManager : public Singleton<TaskManager> {
+class TaskManager : public Singleton<TaskManager>, public TickReciever {
     friend class Process;
 public:
     TaskManager();
@@ -35,7 +39,7 @@ public:
     Process* cur_process();
 
 private:
-    void schedule(trapframe_t* tf);
+    void on_tick(trapframe_t* tf) override;
 
 public:
     // TODO: support kernel processes / threads

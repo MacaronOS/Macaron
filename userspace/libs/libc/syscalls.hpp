@@ -22,3 +22,4 @@ int bind(int fd, const char* path);
 int connect(int fd, const char* path);
 int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
 int getpid();
+int clock_gettime(int clock_id, timespec* ts);

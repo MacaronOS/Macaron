@@ -33,14 +33,15 @@ bool TaskManager::run()
     auto* pit = reinterpret_cast<drivers::PIT*>(drivers::DriverManager::the().get_driver(drivers::DriverEntity::PIT));
     if (pit) {
         m_cur_thread = m_threads.begin();
-        pit->register_callback({ drivers::default_frequency, [](trapframe_t* tf) { TaskManager::the().schedule(tf); } });
+        pit->register_tick_reciever(this);
+        // pit->register_callback({ drivers::default_frequency, [](trapframe_t* tf) { TaskManager::the().schedule(tf); } });
         switch_to_user_mode();
         STOP();
     }
     return false;
 }
 
-void TaskManager::schedule(trapframe_t* tf)
+void TaskManager::on_tick(trapframe_t* tf)
 {
     auto next_thread = m_cur_thread;
 
@@ -87,7 +88,7 @@ void TaskManager::sys_exit_handler(int error_code)
 {
     Log() << "Handling exit, PID: " << (*m_cur_thread)->m_process->id() << "\n";
     cur_process()->Terminate();
-    schedule(nullptr);
+    on_tick(nullptr);
 }
 
 int TaskManager::sys_fork_handler()

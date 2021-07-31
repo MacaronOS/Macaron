@@ -13,6 +13,7 @@
 #include "fs/ext2/Ext2.hpp"
 #include "fs/ext2/ext2fs.hpp"
 #include "fs/vfs/vfs.hpp"
+#include "time/TimeManager.hpp"
 #include "hardware/descriptor_tables.hpp"
 #include "memory/Layout.hpp"
 #include "memory/malloc.hpp"
@@ -45,6 +46,7 @@ using namespace multitasking;
 using namespace syscalls;
 using namespace memory;
 using namespace Logger;
+using namespace time;
 
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
@@ -85,6 +87,8 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     reinterpret_cast<Keyboard*>(DriverManager::the().get_driver(DriverEntity::Keyboard))->register_callback([&](auto event) {
         Logger::Log() << callback_message << " " << event.pressed << "\n";
     });
+
+    TimeManager::initialize();
 
     // setting VFS
     VFS::initialize();

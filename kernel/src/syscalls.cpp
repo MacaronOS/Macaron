@@ -7,6 +7,8 @@
 #include "monitor.hpp"
 #include "multitasking/TaskManager.hpp"
 
+#include <time/TimeManager.hpp>
+
 #include <wisterialib/posix/defines.hpp>
 #include <wisterialib/posix/errors.hpp>
 #include <wisterialib/posix/shared.hpp>
@@ -19,6 +21,7 @@ using namespace Logger;
 using namespace memory;
 using namespace multitasking;
 using namespace fs;
+using namespace time;
 
 static int sys_putc(char a)
 {
@@ -149,6 +152,16 @@ static int sys_getpid()
     return TaskManager::the().cur_process()->id();
 }
 
+static int sys_clock_gettime(int clock_id, timespec* ts)
+{
+    auto result =  TimeManager::the().get_time(clock_id);
+    if (result.error()) {
+        return result.error().posix_error();
+    }
+    *ts = result.result();
+    return 0;
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -171,6 +184,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Select, (uint32_t)sys_select);
     register_syscall(Syscall::GetPid, (uint32_t)sys_getpid);
     register_syscall(Syscall::Lseek, (uint32_t)sys_lseek);
+    register_syscall(Syscall::ClockGettime, (uint32_t)sys_clock_gettime);
 }
 
 void SyscallsManager::initialize()
