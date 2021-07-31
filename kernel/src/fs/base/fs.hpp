@@ -36,5 +36,7 @@ public:
     virtual bool mmap(VNode& file, uint32_t addr, uint32_t size) { return false; };
 
     virtual bool ioctl(VNode& file, uint32_t request) { return false; };
+
+    virtual bool can_read(VNode& vnode, uint32_t offset) { return false; };
 };
 }

@@ -17,7 +17,8 @@ public:
     Vector<String> listdir(VNode& directory) override;
     uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer) override;
     bool mmap(VNode& file, uint32_t addr, uint32_t size) override;
-    virtual bool ioctl(VNode& file, uint32_t request) override;
+    bool ioctl(VNode& file, uint32_t request) override;
+    bool can_read(VNode& vnode, uint32_t offset) override;
 
 private:
     static DevFSNode& ToDevFSNode(VNode& device) { return reinterpret_cast<DevFSNode&>(device); }

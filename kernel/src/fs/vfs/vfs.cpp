@@ -467,9 +467,8 @@ bool VFS::can_read(fd_t fd)
         return socket->can_read(offset);
     }
 
-    // TODO: implement can_read for FileSystem files
     if (fs) {
-        return true;
+        return fs->can_read(*vnode, offset);
     }
 
     return false;

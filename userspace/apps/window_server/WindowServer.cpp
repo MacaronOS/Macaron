@@ -75,6 +75,10 @@ bool WindowServer::initialize()
         Log << "Timer" << endl;
     }, 1000);
 
+    m_event_loop.register_fd_for_select([](){
+        Log << "mouse ready" << endl; 
+    }, mouse_fd);
+
     return true;
 }
 

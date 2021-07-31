@@ -42,11 +42,32 @@ private:
     uint32_t m_last_invokation {};
 };
 
+class FDSelector {
+public:
+    FDSelector(const Function<void()>& callback, uint8_t fd) : m_callback(callback), m_fd(fd) {}
+    bool operator() (fd_set* fds) {
+        if (FD_IS_SET(fds, m_fd)) {
+            m_callback();
+            return true;
+        }
+        return false;
+    }
+private:
+    Function<void()> m_callback {};
+    uint8_t m_fd {};
+};
+
 template <typename EventHolder>
 class EventLoop {
 public:
     void register_timer(const Function<void()>& callback, uint32_t milliseconds) {
         m_timers.push_back(Timer<EventHolder>(callback, milliseconds));
+    }
+
+    void register_fd_for_select(const Function<void()>& callback, uint8_t fd)
+    {
+        m_fd_selectors.push_back(FDSelector(callback, fd));
+        m_nfds = max(m_nfds, fd + 1);
     }
 
     void pump()
@@ -61,6 +82,12 @@ public:
             processed |= m_timers[at](milliseconds_now);
         }
 
+        fd_set read_fds;
+        select(m_nfds, &read_fds, nullptr, nullptr, nullptr);
+        for (size_t at = 0 ; at < m_fd_selectors.size() ; at++) {
+            processed |= m_fd_selectors[at](&read_fds);
+        }
+
         if (!processed) {
             // TODO: yield here
         }
@@ -69,4 +96,6 @@ public:
 private:
     Vector<Timer<EventHolder>> m_timers {};
     Vector<QueuedEvent<EventHolder>> m_event_holders {};
+    Vector<FDSelector> m_fd_selectors {};
+    int m_nfds {};
 };

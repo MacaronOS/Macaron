@@ -125,4 +125,10 @@ uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
     return buffer_index * sizeof(MousePacket);
 }
 
+bool Mouse::can_read(uint32_t offset) 
+{
+    size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
+    return packets_index != m_packets_buffer_ptr;
+}
+
 }

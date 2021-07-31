@@ -71,4 +71,9 @@ bool DevFS::ioctl(VNode& file, uint32_t request)
     return ToDevFSNode(file).m_device->ioctl(request);
 }
 
+bool DevFS::can_read(VNode& vnode, uint32_t offset)
+{
+    return ToDevFSNode(vnode).m_device->can_read(offset);
+}
+
 }
