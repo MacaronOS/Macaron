@@ -94,8 +94,8 @@ public:
         clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
         uint32_t milliseconds_now = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 
-        for (size_t at = 0 ; at < m_timers.size() ; at++) {
-            processed |= m_timers[at](milliseconds_now);
+        for (auto& timer : m_timers) {
+            processed |= timer(milliseconds_now);
         }
 
         return processed;
@@ -107,8 +107,8 @@ public:
         fd_set read_fds;
         select(m_nfds, &read_fds, nullptr, nullptr, nullptr);
 
-        for (size_t at = 0 ; at < m_fd_selectors.size() ; at++) {
-            processed |= m_fd_selectors[at](&read_fds);
+        for (auto& fd_selector : m_fd_selectors) {
+            processed |= fd_selector(&read_fds);
         }
 
         return processed;

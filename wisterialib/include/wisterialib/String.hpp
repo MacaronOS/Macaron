@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include "Vector.hpp"
+#include "SimpleIterator.hpp"
 
 class String {
 
@@ -44,6 +45,16 @@ public:
     // Other api functions
     Vector<String> split(const String& del) const;
     char* cstr() const;
+
+    // Iterators
+    using ConstIterator = SimpleIterator<const String, char>;
+    using Iterator = SimpleIterator<String, char>;
+
+    ConstIterator begin() const { return ConstIterator(*this, 0); }
+    Iterator begin() { return Iterator(*this, 0); }
+
+    ConstIterator end() const { return ConstIterator(*this, m_size); }
+    Iterator end() { return Iterator(*this, m_size); }
 
 private:
     void realloc(size_t);

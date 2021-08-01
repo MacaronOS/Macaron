@@ -13,8 +13,8 @@ public:
         EventLoop::the().register_fd_for_select([this]{
             recieve_message();
             auto recieved_messages = take_over_massages();
-            for (size_t at = 0; at < recieved_messages.size(); at++) {
-                m_callback(recieved_messages[at]);
+            for (auto& message : recieved_messages) {
+                m_callback(message);
             }
         }, m_socket_fd);
     }

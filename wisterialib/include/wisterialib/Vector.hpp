@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include "extras.hpp"
+#include "SimpleIterator.hpp"
 
 template <typename T>
 class Vector {
@@ -121,6 +122,16 @@ public:
         }
         return true;
     }
+
+    // Iterators
+    using ConstIterator = SimpleIterator<const Vector, const T>;
+    using Iterator = SimpleIterator<Vector, T>;
+
+    ConstIterator begin() const { return ConstIterator(*this, 0); }
+    Iterator begin() { return Iterator(*this, 0); }
+
+    ConstIterator end() const { return ConstIterator(*this, m_size); }
+    Iterator end() { return Iterator(*this, m_size); }
 
 private:
     void realloc(size_t size)
