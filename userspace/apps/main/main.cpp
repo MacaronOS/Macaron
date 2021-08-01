@@ -10,6 +10,7 @@ int main()
     if (p) {
         while (1)
         {
+            asm volatile("hlt");
         }
         
     } else {

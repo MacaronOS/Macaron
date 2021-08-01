@@ -83,7 +83,7 @@ public:
         processed |= process_fd_selectors();
 
         if (!processed) {
-            // TODO: yield here
+            sched_yield();
         }
     }
 

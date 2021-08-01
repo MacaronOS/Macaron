@@ -154,7 +154,7 @@ static int sys_getpid()
 
 static int sys_clock_gettime(int clock_id, timespec* ts)
 {
-    auto result =  TimeManager::the().get_time(clock_id);
+    auto result = TimeManager::the().get_time(clock_id);
     if (result.error()) {
         return result.error().posix_error();
     }
@@ -199,6 +199,10 @@ void SyscallsManager::register_syscall(Syscall ss, uint32_t syscall_ptr)
 
 void SyscallsManager::handle_interrupt(trapframe_t* regs)
 {
+    if (static_cast<Syscall>(regs->eax) == Syscall::SchedYield) {
+        regs->eax = 0;
+        TaskManager::the().on_tick(regs);
+    }
     if (regs->eax >= syscall_count || !m_syscalls[regs->eax]) {
         return;
     }

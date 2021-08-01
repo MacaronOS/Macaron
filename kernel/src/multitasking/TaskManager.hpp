@@ -38,7 +38,7 @@ public:
     Thread* cur_thread();
     Process* cur_process();
 
-private:
+public:
     void on_tick(trapframe_t* tf) override;
 
 public:

@@ -23,6 +23,8 @@ enum class Syscall {
 
     Mmap = 90,
 
+    SchedYield = 158,
+
     ClockGettime = 265,
 
     Socket = 359,
