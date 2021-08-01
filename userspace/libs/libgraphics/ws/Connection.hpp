@@ -43,7 +43,8 @@ public:
     ServerConnection();
 
     bool has_requests();
-    WSProtocol recieve_message();
+    void recieve_message();
+    Vector <WSProtocol> take_over_massages() { return move(m_received_messages); }
 
     template <typename Response>
     void send_response_to(Response response, int pid)
@@ -55,14 +56,16 @@ public:
         send_async_message_to(message, pid);
     }
 
-private:
+protected:
     void send_async_message_to(WSProtocol& message, int pid);
 
-private:
+protected:
     bool m_alive { false };
     int m_socket_fd;
 
     int m_local_pid { getpid() };
+
+    Vector<WSProtocol> m_received_messages {};
 };
 
 }

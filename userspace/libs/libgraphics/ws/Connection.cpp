@@ -73,24 +73,22 @@ bool ServerConnection::has_requests()
     return can_read(m_socket_fd);
 }
 
-WSProtocol ServerConnection::recieve_message()
+void ServerConnection::recieve_message()
 {
-    while (true) {
-        static uint8_t buff[WSProtocol::size()];
-        auto bytes = read(m_socket_fd, &buff, WSProtocol::size());
+    static uint8_t buff[WSProtocol::size()];
+    auto bytes = read(m_socket_fd, &buff, WSProtocol::size());
 
-        if (bytes == WSProtocol::size()) {
-            auto message = WSProtocol::deserialize(buff);
+    if (bytes == WSProtocol::size()) {
+        auto message = WSProtocol::deserialize(buff);
 
-            // special case
-            if (message.pid_to() == uninitialized_connection) {
-                auto init_conn_resp = WSProtocol();
-                send_async_message_to(init_conn_resp, message.pid_from());
-                continue;
-            }
-
-            return message;
+        // special case
+        if (message.pid_to() == uninitialized_connection) {
+            auto init_conn_resp = WSProtocol();
+            send_async_message_to(init_conn_resp, message.pid_from());
+            return;
         }
+
+        m_received_messages.push_back(message);
     }
 }
 

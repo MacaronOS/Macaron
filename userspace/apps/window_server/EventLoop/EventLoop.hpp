@@ -8,6 +8,8 @@
 #include <wisterialib/extras.hpp>
 #include <wisterialib/posix/defines.hpp>
 
+namespace Core {
+
 template <typename EventHolder>
 struct QueuedEvent {
     const Function<int(EventHolder& event)>& callback;
@@ -60,6 +62,10 @@ private:
 template <typename EventHolder>
 class EventLoop {
 public:
+    static inline EventLoop<EventHolder>& the() {
+        return s_the;
+    }
+
     void register_timer(const Function<void()>& callback, uint32_t milliseconds) {
         m_timers.push_back(Timer<EventHolder>(callback, milliseconds));
     }
@@ -73,6 +79,16 @@ public:
     void pump()
     {
         bool processed = false;
+        processed |= process_timers();
+        processed |= process_fd_selectors();
+
+        if (!processed) {
+            // TODO: yield here
+        }
+    }
+
+    bool process_timers() {
+        bool processed = false;
 
         timespec ts;
         clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
@@ -82,20 +98,32 @@ public:
             processed |= m_timers[at](milliseconds_now);
         }
 
+        return processed;
+    }
+
+    bool process_fd_selectors() {
+        bool processed = false;
+
         fd_set read_fds;
         select(m_nfds, &read_fds, nullptr, nullptr, nullptr);
+
         for (size_t at = 0 ; at < m_fd_selectors.size() ; at++) {
             processed |= m_fd_selectors[at](&read_fds);
         }
 
-        if (!processed) {
-            // TODO: yield here
-        }
+        return processed;
     }
 
-private:
+public:
+    static EventLoop<EventHolder> s_the;
+
     Vector<Timer<EventHolder>> m_timers {};
     Vector<QueuedEvent<EventHolder>> m_event_holders {};
     Vector<FDSelector> m_fd_selectors {};
     int m_nfds {};
 };
+
+template<typename Event>
+EventLoop<Event> EventLoop<Event>::s_the;
+
+}

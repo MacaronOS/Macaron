@@ -75,8 +75,13 @@ bool WindowServer::initialize()
         Log << "Timer" << endl;
     }, 1000);
 
-    m_event_loop.register_fd_for_select([](){
-        Log << "mouse ready" << endl; 
+    m_event_loop.register_fd_for_select([this](){
+        m_mouse.update_position();
+
+        if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
+            m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));
+            m_mouse_needs_draw_since_moved = true;
+        }
     }, mouse_fd);
 
     return true;
@@ -91,47 +96,41 @@ void WindowServer::run()
 {
     while (true) {
         m_event_loop.pump();
-        m_mouse.update_position();
-
-        if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
-            m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));
-        }
 
         redraw();
+    }
+}
 
-        if (m_connection.has_requests()) {
-            auto message = m_connection.recieve_message();
+void WindowServer::process_message(WS::WSProtocol& message) {
 
-            if (message.type() == WS::WSProtocol::Type::CreateWindowRequest) {
-                Log << "Recieved CreateWindowRequst" << endl;
+    if (message.type() == WS::WSProtocol::Type::CreateWindowRequest) {
+        Log << "Recieved CreateWindowRequst" << endl;
 
-                auto shared_buffer = create_shared_buffer(240 * 180 * 4);
-                auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, 240, 180);
+        auto shared_buffer = create_shared_buffer(240 * 180 * 4);
+        auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, 240, 180);
 
-                auto window = new Window(240, 180, move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
-                x_offset += 20 + 240;
-                y_offset += 20 + 180;
-                m_windows.push_back(window);
+        auto window = new Window(240, 180, move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
+        x_offset += 20 + 240;
+        y_offset += 20 + 180;
+        m_windows.push_back(window);
 
-                m_connection.send_response_to(WS::CreateWindowResponse(shared_buffer.id, window->id), message.pid_from());
+        m_connection.send_response_to(WS::CreateWindowResponse(shared_buffer.id, window->id), message.pid_from());
 
-            } else if (message.type() == WS::WSProtocol::Type::InvalidateWindowRequst) {
-                auto window_id = message.m_args[0];
-                auto x = message.m_args[1];
-                auto y = message.m_args[2];
-                auto width = message.m_args[3];
-                auto height = message.m_args[4];
+    } else if (message.type() == WS::WSProtocol::Type::InvalidateWindowRequst) {
+        auto window_id = message.m_args[0];
+        auto x = message.m_args[1];
+        auto y = message.m_args[2];
+        auto width = message.m_args[3];
+        auto height = message.m_args[4];
 
-                // Log << "Recieved InvalidateWindowRequst " << window_id << " " << x << " " << y << " " << width << " " << height << endl;
+        // Log << "Recieved InvalidateWindowRequst " << window_id << " " << x << " " << y << " " << width << " " << height << endl;
 
-                auto window = get_window_by_id(window_id);
+        auto window = get_window_by_id(window_id);
 
-                m_invalid_areas.push_back(Graphics::Rect(window->x() + x, window->y() + y, window->x() + x + width - 1, window->y() + y + height - 1));
+        m_invalid_areas.push_back(Graphics::Rect(window->x() + x, window->y() + y, window->x() + x + width - 1, window->y() + y + height - 1));
 
-            } else {
-                Log << "Unknown message " << (uint32_t)message.type() << " " << message.m_pid_from << " " << message.m_pid_to << endl;
-            }
-        }
+    } else {
+        Log << "Unknown message " << (uint32_t)message.type() << " " << message.m_pid_from << " " << message.m_pid_to << endl;
     }
 }
 
@@ -192,12 +191,13 @@ void WindowServer::draw_mouse()
         }
     }
 
-    if (intersects || m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
+    if (intersects || m_mouse_needs_draw_since_moved) {
         for (int h = 0; h < m_cursor.height(); h++) {
             for (int w = 0; w < m_cursor.width(); w++) {
                 m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w].mix_with(m_cursor[h][w]);
             }
         }
+        m_mouse_needs_draw_since_moved = false;
     }
 }
 

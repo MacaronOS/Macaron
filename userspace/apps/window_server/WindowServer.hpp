@@ -3,45 +3,26 @@
 #include "Screen.hpp"
 #include "Window.hpp"
 #include "Mouse.hpp"
+#include "Events.hpp"
+#include "Connection.hpp"
 
 #include "Font/FontLoader.hpp"
-
-#include "EventLoop/EventLoop.hpp"
 
 #include <wisterialib/ObjectPool.hpp>
 #include <wisterialib/List.hpp>
 
-#include <libgraphics/ws/Connection.hpp>
 #include <libgraphics/Rect.hpp>
 
-enum class EventType {
-    MouseMove,
-    MouseResize,
-};
-
-struct MouseMoveEvent {
-    int x, y;
-};
-
-struct MouseResizeEvent {
-    int width, height;
-};
-
-struct Event {
-    EventType type;
-    union {
-        MouseMoveEvent move_event;
-        MouseResizeEvent resize_event;
-    };
-};
 
 class WindowServer {
     static constexpr auto windows = 10;
 public:
-    WindowServer() = default;
+    WindowServer() : m_event_loop(EventLoop::the()) {}
     
     bool initialize();
     void run();
+
+    void process_message(WS::WSProtocol& message);
 
 private:
     void redraw();
@@ -61,8 +42,9 @@ private:
     Font m_font_medium {};
     Font m_font_bold {};
     Mouse m_mouse {};
-    WS::ServerConnection m_connection {};
+    Connection m_connection {Connection([this](WS::WSProtocol& message) {process_message(message);})};
     List<Window*> m_windows {};
     Vector<Graphics::Rect> m_invalid_areas {};
-    EventLoop<Event> m_event_loop {};
+    EventLoop& m_event_loop;
+    bool m_mouse_needs_draw_since_moved { true };
 };
