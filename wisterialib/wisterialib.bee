@@ -1,0 +1,14 @@
+Build:
+    Type: StaticLib
+
+    Src: *.cpp
+
+    Extensions:
+        cpp:
+            Compiler: i686-elf-g++
+            Flags: 
+                -O3, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
+                -m32, -Iinclude/wisterialib, -fno-leading-underscore, -Wno-write-strings
+                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+
+    Archiver: i686-elf-ar

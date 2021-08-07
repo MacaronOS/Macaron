@@ -1,0 +1,27 @@
+Commands:
+    MakeDrive: 
+        rm -f drive.img
+        qemu-img create -f raw drive.img 16M
+        sudo mkfs -t ext2 -r 0 -b 1024 drive.img
+        sudo mkdir -p mountpoint
+        sudo fuse-ext2 drive.img mountpoint -o rw+
+        sudo touch mountpoint/file.txt
+        sudo bash -c 'echo "testing..." > mountpoint/file.txt'
+        sudo umount mountpoint
+
+    InstallUserspace:
+        sudo fuse-ext2 drive.img mountpoint -o rw+
+        sudo mkdir -p mountpoint/apps/
+        sudo find userspace/apps/* -type f ! -name "*.*" -exec cp {} ./mountpoint/apps/ \\;
+        sudo mkdir -p mountpoint/res/
+        sudo cp -r resources/* mountpoint/res/
+        sudo umount mountpoint
+
+    Run:
+        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel kernel/BeelderBuild/kernel
+
+Build:
+    Depends:
+        userspace/apps/main, userspace/apps/window_server, kernel
+
+Default: Build, MakeDrive, InstallUserspace, Run

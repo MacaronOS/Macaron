@@ -52,20 +52,6 @@ bool BochVBE::install()
     m_pixels = reinterpret_cast<uint32_t*>(addr);
     m_pixels_length = 1024 * 768 * 4 * 2;
 
-    uint32_t i = 0;
-
-    for (; i < 1024 * 768 / 3; i++) {
-        m_pixels[i] = 0xffffffff;
-    }
-
-    for (; i < 1024 * 768 / 3 * 2; i++) {
-        m_pixels[i] = 0x0000ffff;
-    }
-
-    for (; i < 2 * 1024 * 768; i++) {
-        m_pixels[i] = 0x00ff00f0;
-    }
-
     return true;
 }
 

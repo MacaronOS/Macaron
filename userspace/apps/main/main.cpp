@@ -14,7 +14,7 @@ int main()
         }
         
     } else {
-        execve("/ext2/apps/window_server.app", 0, 0);
+        execve("/ext2/apps/window_server", 0, 0);
     }
     return 0;
 }
