@@ -1,6 +1,7 @@
 #pragma once
 
 #include "extras.hpp"
+#include "common.hpp"
 
 template <typename>
 class Function;
@@ -9,6 +10,7 @@ template <typename Result, typename... Args>
 class Function<Result(Args...)> {
 public:
     Function() = default;
+    Function(nullptr_t) {}
 
     template <typename Functor>
     Function(Functor functor)

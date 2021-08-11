@@ -11,6 +11,8 @@ typedef signed short   int16_t;
 typedef signed char    int8_t;
 typedef uint32_t       size_t;
 
+typedef decltype(nullptr) nullptr_t;
+
 #define false   0
 #define true    1
 

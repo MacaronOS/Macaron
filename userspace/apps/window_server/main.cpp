@@ -15,6 +15,8 @@
 #include <libipc/ClientConnection.hpp>
 #include <libipc/ServerConnection.hpp>
 
+#include <libui/Message.hpp>
+
 void run_demo()
 {
     // if (!fork()) {
@@ -54,6 +56,15 @@ void run_demo()
         client.send_data((void*)"HELLO", 6);
         client.send_data((void*)"HELLO", 6);
         client.send_data((void*)"HELLO", 6);
+
+        auto create = UI::CreateWindowRequest(100, 100, "window title");
+
+        auto create_serialized = create.serialize();
+
+        client.send_data(create_serialized.data(), create_serialized.size());
+        client.send_data(create_serialized.data(), create_serialized.size());
+        client.send_data(create_serialized.data(), create_serialized.size());
+
         exit(0);
 
     } else {
@@ -62,8 +73,14 @@ void run_demo()
             server.pump();
             auto messages = server.take_over_messages();
             for (auto& message : messages) {
-                Log << "message pid from" << message.pid_from << endl;
-                Log << "message: " << String(message.message.data()) << endl;
+                auto decoded = UI::GetType(message.message);
+
+                if (decoded == UI::MessageType::CreateWindowRequest) {
+                    auto d = UI::CreateWindowRequest(message.message);
+                    Log << "width " << d.width() << endl;
+                    Log << "height " << d.height() << endl;
+                    Log << "title " << d.title() << endl;
+                }
             }
         }
     }

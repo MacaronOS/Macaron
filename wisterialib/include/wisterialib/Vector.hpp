@@ -69,6 +69,7 @@ public:
     size_t capacity() const { return m_capacity; }
 
     T* data() { return m_data; }
+    const T* data() const { return m_data; }
 
     // Element access
     T& operator[](size_t pos) { return m_data[pos]; }

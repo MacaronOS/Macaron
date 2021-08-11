@@ -33,6 +33,7 @@ public:
     String& operator+=(const char* s);
     String& operator+=(char c);
     void pop_back();
+    void reserve(size_t capacity);
 
     // Comapre operators
     bool operator==(const String& str) const;
@@ -47,7 +48,7 @@ public:
     char* cstr() const;
 
     // Iterators
-    using ConstIterator = SimpleIterator<const String, char>;
+    using ConstIterator = SimpleIterator<const String, const char>;
     using Iterator = SimpleIterator<String, char>;
 
     ConstIterator begin() const { return ConstIterator(*this, 0); }

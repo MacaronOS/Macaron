@@ -175,6 +175,13 @@ void String::pop_back()
     m_size = m_size > 0 ? m_size - 1 : 0;
 }
 
+void String::reserve(size_t capacity)
+{
+    if (m_capacity < capacity) {
+        realloc(capacity);
+    }
+}
+
 bool String::operator==(const String& str) const
 {
     if (str.size() != m_size) {
@@ -281,4 +288,3 @@ void String::swap()
         m_string[right] = temp;
     }
 }
-
