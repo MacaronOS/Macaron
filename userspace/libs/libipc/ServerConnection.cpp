@@ -1,18 +1,13 @@
 #include "ServerConnection.hpp"
 #include <libc/syscalls.hpp>
-#include <wisterialib/posix/defines.hpp>
+#include <libsys/Log.hpp>
 #include <wisterialib/extras.hpp>
+#include <wisterialib/posix/defines.hpp>
 
 namespace IPC {
 
-struct MessageHeader {
-    int pid_from;
-    int pid_to;
-    int size;
-};
-
-ServerConnection::ServerConnection(const String& endpoint) 
-: m_pid(getpid())
+ServerConnection::ServerConnection(const String& endpoint)
+    : m_pid(getpid())
 {
     m_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 1);
     int result = bind(m_socket_fd, endpoint.cstr());
@@ -24,27 +19,59 @@ ServerConnection::ServerConnection(const String& endpoint)
 
 void ServerConnection::pump()
 {
-    MessageHeader mh;
-    while (read(m_socket_fd, &mh, sizeof(MessageHeader)) > 0) {
-        // client attempts to initialize a coonection
-        if (mh.pid_to == -1) {
-            MessageHeader mhr;
-            mhr.pid_from = m_pid;
-            mhr.pid_to = mh.pid_from;
-            write(m_socket_fd, &mhr, sizeof(MessageHeader));
-            continue;
+    if (m_last_ipch_nead_read) {
+        if (!read_by_header(m_last_ipch)) {
+            return;
         }
-        
-        // skip messages that are not directed to us
-        if (mh.pid_to != m_pid) {
-            lseek(m_socket_fd, mh.size, SEEK_CUR);
+        m_last_ipch_nead_read = false;
+    }
+
+    IPCHeader ipch;
+    while (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
+        // client attempts to initialize a coonection
+        if (ipch.pid_to == -1) {
+            IPCHeader ipchr;
+            ipchr.pid_from = m_pid;
+            ipchr.pid_to = ipch.pid_from;
+            ipchr.size = 0;
+            write(m_socket_fd, &ipchr, sizeof(IPCHeader));
             continue;
         }
 
-        auto memory = Vector<char>(mh.size);
-        read(m_socket_fd, memory.data(), mh.size);
-        m_message_queue.push_back({ mh.pid_from, move(memory) });
+        // skip messages that are not directed to us
+        if (ipch.pid_to != m_pid) {
+            lseek(m_socket_fd, ipch.size, SEEK_CUR);
+            continue;
+        }
+
+        if (!read_by_header(ipch)) {
+            m_last_ipch = ipch;
+            m_last_ipch_nead_read = true;
+            return;
+        }
     }
+}
+
+void ServerConnection::send_data(void* data, size_t bytes, int pid_to)
+{
+    IPCHeader ipch;
+    ipch.pid_from = m_pid;
+    ipch.pid_to = pid_to;
+    ipch.size = bytes;
+
+    write(m_socket_fd, &ipch, sizeof(IPCHeader));
+    write(m_socket_fd, data, bytes);
+}
+
+bool ServerConnection::read_by_header(const IPCHeader& ipch)
+{
+    auto memory = Vector<unsigned char>(ipch.size);
+    int bytes = read(m_socket_fd, memory.data(), ipch.size);
+    if (bytes <= 0) {
+        return false;
+    }
+    m_message_queue.push_back({ ipch.pid_from, move(memory) });
+    return true;
 }
 
 };

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "extras.hpp"
 #include "common.hpp"
+#include "extras.hpp"
 
 template <typename>
 class Function;
@@ -10,7 +10,7 @@ template <typename Result, typename... Args>
 class Function<Result(Args...)> {
 public:
     Function() = default;
-    Function(nullptr_t) {}
+    Function(nullptr_t) { }
 
     template <typename Functor>
     Function(Functor functor)
@@ -88,6 +88,11 @@ public:
         }
 
         return *this;
+    }
+
+    operator bool() const
+    {
+        return m_invoke_ptr != nullptr;
     }
 
     Result operator()(Args&&... args) const

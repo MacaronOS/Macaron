@@ -1,0 +1,9 @@
+namespace UI
+
+Client -> Server:
+    CreateWindow(int widht, int height, String titile) -> (int window_id)
+
+Server -> Client:
+    MousePress(int window_id) -> void
+    MouseMove(int widnow_id, int x, int y) -> void
+    CloseWindow(int window_id, int widht, int height, String titile) -> (int window_id, int decision)

@@ -103,8 +103,9 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
             //TODO: block here
             return 0;
         }
-        file_descr->set_offset(socket->read(offset, size, (uint8_t*)buffer));
-        return size;
+        size_t read_bytes = socket->read(offset, size, (uint8_t*)buffer);
+        file_descr->inc_offset(read_bytes);
+        return read_bytes;
     }
 
     if (fs) {
@@ -134,6 +135,7 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 
     if (socket) {
         socket->write(size, (uint8_t*)buffer);
+        file_descr->inc_offset(size);
         return size;
     }
 

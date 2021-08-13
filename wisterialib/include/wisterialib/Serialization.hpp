@@ -11,38 +11,38 @@ public:
 
     void push(int val)
     {
-        m_buffer.push_back((char)val);
-        m_buffer.push_back((char)(val >> 8));
-        m_buffer.push_back((char)(val >> 16));
-        m_buffer.push_back((char)(val >> 24));
+        m_buffer.push_back((unsigned char)val);
+        m_buffer.push_back((unsigned char)(val >> 8));
+        m_buffer.push_back((unsigned char)(val >> 16));
+        m_buffer.push_back((unsigned char)(val >> 24));
     }
 
-    void push(char val)
+    void push(unsigned char val)
     {
-        m_buffer.push_back((char)val);
+        m_buffer.push_back((unsigned char)val);
     }
 
     void push(const String& string)
     {
         push((int)string.size());
         push((int)string.capacity());
-        for (char c : string) {
+        for (unsigned char c : string) {
             push(c);
         }
     }
 
-    char* data() { return m_buffer.data(); }
+    unsigned char* data() { return m_buffer.data(); }
     size_t size() const { return m_buffer.size(); }
 
-    Vector<char> done() { return move(m_buffer); }
+    Vector<unsigned char> done() { return move(m_buffer); }
 
 private:
-    Vector<char> m_buffer {};
+    Vector<unsigned char> m_buffer {};
 };
 
 class Decoder {
 public:
-    Decoder(const Vector<char>& data)
+    Decoder(const Vector<unsigned char>& data)
         : m_data(data)
     {
     }
@@ -52,9 +52,9 @@ public:
         return (int)m_data[m_offset++] | ((int)m_data[m_offset++]) << 8 | ((int)m_data[m_offset++]) << 16 | ((int)m_data[m_offset++]) << 24;
     }
 
-    char get_char()
+    unsigned char get_char()
     {
-        return (char)m_data[m_offset++];
+        return m_data[m_offset++];
     }
 
     String get_String()
@@ -75,6 +75,6 @@ public:
     inline void skip(size_t bytes) { m_offset += bytes; }
 
 private:
-    const Vector<char>& m_data;
+    const Vector<unsigned char>& m_data;
     size_t m_offset {};
 };

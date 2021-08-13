@@ -15,7 +15,35 @@
 #include <libipc/ClientConnection.hpp>
 #include <libipc/ServerConnection.hpp>
 
-#include <libui/Message.hpp>
+#include <libui/WSProtocols/ClientConnection.hpp>
+#include <libui/WSProtocols/ServerConnection.hpp>
+
+class ClientReciever : public UI::Protocols::ClientMessageReciever {
+public:
+    virtual void on_MousePressRequest(UI::Protocols::MousePressRequest& request) override { }
+    virtual void on_MouseMoveRequest(UI::Protocols::MouseMoveRequest& request) override { }
+    virtual UI::Protocols::CloseWindowResponse on_CloseWindowRequest(UI::Protocols::CloseWindowRequest& request) override { }
+
+    void on_CreateWindowResponse(UI::Protocols::CreateWindowResponse& response) override
+    {
+        Log << "recieved create window response " << endl;
+        Log << "window id " << response.window_id() << endl;
+    }
+};
+
+class ServerReciever : public UI::Protocols::ServerMessageReciever {
+public:
+    UI::Protocols::CreateWindowResponse on_CreateWindowRequest(UI::Protocols::CreateWindowRequest& request) override
+    {
+        Log << "recieved create window request " << endl;
+        Log << "width " << request.widht() << endl;
+        Log << "height " << request.height() << endl;
+        Log << "title " << request.titile() << endl;
+        return UI::Protocols::CreateWindowResponse(request.height());
+    }
+
+    virtual void on_CloseWindowResponse(UI::Protocols::CloseWindowResponse& response) override { }
+};
 
 void run_demo()
 {
@@ -50,51 +78,35 @@ void run_demo()
 
     if (!fork()) {
         Log << "INIT CLIENT" << endl;
-        auto client = IPC::ClientConnection("/ext2/ws.socket");
-        Log << "INIT DONE" << endl;
-        client.send_data((void*)"HELLO", 6);
-        client.send_data((void*)"HELLO", 6);
-        client.send_data((void*)"HELLO", 6);
-        client.send_data((void*)"HELLO", 6);
+        ClientReciever reciever;
+        auto client_connection = UI::Protocols::ClientConnection("/ext2/ws.socket", reciever);
+        client_connection.send_CreateWindowRequest(UI::Protocols::CreateWindowRequest(50, 200, "window titile"));
+        client_connection.send_CreateWindowRequest(UI::Protocols::CreateWindowRequest(101, 201, "window titile 1"));
+        client_connection.send_CreateWindowRequest(UI::Protocols::CreateWindowRequest(102, 202, "window titile 2"));
 
-        auto create = UI::CreateWindowRequest(100, 100, "window title");
-
-        auto create_serialized = create.serialize();
-
-        client.send_data(create_serialized.data(), create_serialized.size());
-        client.send_data(create_serialized.data(), create_serialized.size());
-        client.send_data(create_serialized.data(), create_serialized.size());
-
-        exit(0);
+        while (true) {
+            client_connection.process_messages();
+        }
 
     } else {
-        auto server = IPC::ServerConnection("/ext2/ws.socket");
+        Log << "INIT SERVER" << endl;
+        ServerReciever reciever;
+        auto server_connection = UI::Protocols::ServerConnection("/ext2/ws.socket", reciever);
         while (true) {
-            server.pump();
-            auto messages = server.take_over_messages();
-            for (auto& message : messages) {
-                auto decoded = UI::GetType(message.message);
-
-                if (decoded == UI::MessageType::CreateWindowRequest) {
-                    auto d = UI::CreateWindowRequest(message.message);
-                    Log << "width " << d.width() << endl;
-                    Log << "height " << d.height() << endl;
-                    Log << "title " << d.title() << endl;
-                }
-            }
+            server_connection.process_messages();
         }
     }
 }
 
 int main()
 {
-    run_demo();
+    // run_demo();
     run_demo();
 
-    auto wm = WindowServer();
-    if (wm.initialize()) {
-        wm.run();
-    }
+    // auto wm = WindowServer();
+    // if (wm.initialize()) {
+        // wm.run();
+    // }
 
     return 0;
 }

@@ -1,21 +1,18 @@
 #include "ClientConnection.hpp"
+
 #include <libc/syscalls.hpp>
-#include <wisterialib/posix/defines.hpp>
 #include <wisterialib/extras.hpp>
+#include <wisterialib/posix/defines.hpp>
+
+#include <libsys/Log.hpp>
 
 namespace IPC {
 
-struct MessageHeader {
-    int pid_from;
-    int pid_to;
-    int size;
-};
-
-ClientConnection::ClientConnection(const String& endpoint) 
-: m_pid(getpid())
+ClientConnection::ClientConnection(const String& endpoint)
+    : m_pid(getpid())
 {
     m_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 1);
-    
+
     auto c_endpoint = endpoint.cstr();
     int result = -1;
 
@@ -38,45 +35,65 @@ ClientConnection::ClientConnection(const String& endpoint)
 
 void ClientConnection::pump()
 {
-    MessageHeader mh;
-    while (read(m_socket_fd, &mh, sizeof(MessageHeader)) > 0) {
+    if (m_last_ipch_nead_read) {
+        if (!read_by_header(m_last_ipch)) {
+            return;
+        }
+        m_last_ipch_nead_read = false;
+    }
+
+    IPCHeader ipch;
+    while (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
         // skip messages that are not directed to us
-        if (mh.pid_to != m_pid) {
-            lseek(m_socket_fd, mh.size, SEEK_CUR);
+        if (ipch.pid_to != m_pid) {
+            lseek(m_socket_fd, ipch.size, SEEK_CUR);
             continue;
         }
 
-        auto memory = Vector<char>(mh.size);
-        read(m_socket_fd, memory.data(), mh.size);
-        m_message_queue.push_back(move(memory));
+        if (!read_by_header(ipch)) {
+            m_last_ipch = ipch;
+            m_last_ipch_nead_read = true;
+            return;
+        }
     }
 }
 
 void ClientConnection::send_data(void* data, size_t bytes)
 {
-    MessageHeader mh;
-    mh.pid_from = m_pid;
-    mh.pid_to = m_server_pid;
-    mh.size = bytes;
+    IPCHeader ipch;
+    ipch.pid_from = m_pid;
+    ipch.pid_to = m_server_pid;
+    ipch.size = bytes;
 
-    write(m_socket_fd, &mh, sizeof(MessageHeader));
+    write(m_socket_fd, &ipch, sizeof(IPCHeader));
     write(m_socket_fd, data, bytes);
 }
 
 void ClientConnection::initialize_connection()
 {
-    MessageHeader mh;
-    mh.pid_from = m_pid;
-    mh.pid_to = -1;
-    mh.size = 0;
+    IPCHeader ipch;
+    ipch.pid_from = m_pid;
+    ipch.pid_to = -1;
+    ipch.size = 0;
 
-    write(m_socket_fd, &mh, sizeof(MessageHeader));
+    write(m_socket_fd, &ipch, sizeof(IPCHeader));
 
     do {
-        read(m_socket_fd, &mh, sizeof(MessageHeader));
-    } while (mh.pid_to != m_pid);
+        read(m_socket_fd, &ipch, sizeof(IPCHeader));
+    } while (ipch.pid_to != m_pid);
 
-    m_server_pid = mh.pid_from;
+    m_server_pid = ipch.pid_from;
+}
+
+bool ClientConnection::read_by_header(const IPCHeader& ipch)
+{
+    auto memory = Vector<unsigned char>(ipch.size);
+    int bytes = read(m_socket_fd, memory.data(), ipch.size);
+    if (bytes <= 0) {
+        return false;
+    }
+    m_message_queue.push_back({ move(memory) });
+    return true;
 }
 
 }

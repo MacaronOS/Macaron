@@ -16,25 +16,28 @@ LocalSocket::LocalSocket()
 
 uint32_t LocalSocket::read(uint32_t offset, uint32_t size, uint8_t* buffer)
 {
-    uint32_t start = offset % m_buffer_size;
-    uint32_t left_to_read = size;
+    offset %= m_buffer_size;
+    size_t buffer_index = 0;
 
-    while (true) {
-        uint32_t cur_read_bytes = min(m_buffer_size - start, left_to_read);
-        memcpy(buffer, &m_buffer[start], cur_read_bytes);
-        left_to_read -= cur_read_bytes;
-        if (!left_to_read) {
-            return start + cur_read_bytes;
+    if (offset > m_write_offset) {
+        for (; offset < m_buffer_size && buffer_index < size; buffer_index++, offset++) {
+            buffer[buffer_index] = m_buffer[offset];
         }
-        start = 0;
+        offset = 0;
     }
+
+    for (; offset < m_write_offset && buffer_index < size; buffer_index++, offset++) {
+        buffer[buffer_index] = m_buffer[offset];
+    }
+
+    return buffer_index;
 }
 
 void LocalSocket::write(uint32_t size, const uint8_t* buffer)
 {
     for (uint32_t bytes_written = 0; bytes_written < size; bytes_written++) {
-        m_buffer[m_write_offset++] = buffer[bytes_written];
-        m_write_offset %= m_buffer_size;
+        m_buffer[m_write_offset] = buffer[bytes_written];
+        m_write_offset = (m_write_offset + 1) % m_buffer_size;
     }
 }
 
