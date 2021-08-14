@@ -38,6 +38,8 @@ private:
 
     void draw_text(const String& text, int x, int y, const Font& font);
 
+    void draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Font& font);
+
     Window* get_window_by_id(int id);
 
 private:

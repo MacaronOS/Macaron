@@ -47,8 +47,6 @@ bool WindowServer::initialize()
                 m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
             }
         }
-        draw_text(String("Drawing test string using ") + m_font_medium.name + " medium font 12345 ...", 300, 600, m_font_medium);
-        draw_text(String("Drawing test string using ") + m_font_bold.name + " bold font 12345 ...", 300, 620, m_font_bold);
     };
 
     initialize_buffer();
@@ -110,10 +108,13 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     auto shared_buffer = create_shared_buffer(request.widht() * request.height() * 4);
     auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
 
-    auto window = new Window(240, 180, move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
-    x_offset += 20 + 240;
-    y_offset += 20 + 180;
+    auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
+    x_offset += 20 + request.widht();
+    y_offset += 20 + request.height();
     m_windows.push_back(window);
+
+    draw_text(request.titile(), window->frame_buffer(), 8, 3, m_font_bold);
+    m_invalid_areas.push_back(window->frame_bounds());
 
     return CreateWindowResponse(window->id, shared_buffer.id);
 }
@@ -156,6 +157,7 @@ void WindowServer::draw_windows()
 {
     for (size_t at = 0; at < m_invalid_areas.size(); at++) {
         auto invalid_area = m_invalid_areas[at];
+
         for (auto window : m_windows) {
             if (invalid_area.intersects(window->bounds())) {
                 auto intersection = invalid_area.intersection(window->bounds());
@@ -163,6 +165,18 @@ void WindowServer::draw_windows()
                 for (int y = intersection.top; y <= intersection.bottom; y++) {
                     for (int x = intersection.left; x <= intersection.right; x++) {
                         m_screen.back_buffer()[y][x] = window->buffer()[y - window->y()][x - window->x()];
+                    }
+                }
+            }
+
+            if (invalid_area.intersects(window->frame_bounds())) {
+                auto intersection = invalid_area.intersection(window->frame_bounds());
+
+                auto bounds = window->frame_bounds();
+
+                for (int y = intersection.top; y <= intersection.bottom; y++) {
+                    for (int x = intersection.left; x <= intersection.right; x++) {
+                        m_screen.back_buffer()[y][x] = window->frame_buffer()[y - bounds.top][x - bounds.left];
                     }
                 }
             }
@@ -240,6 +254,26 @@ void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Fon
         }
 
         pos_x += descr.xadvantage;
+        last_symbol = symbol;
+    }
+}
+
+void WindowServer::draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Font& font)
+{
+    char last_symbol = 0;
+    for (size_t i = 0; i < text.size(); i++) {
+        char symbol = text[i];
+        auto& descr = font.chars[symbol];
+
+        // dont know why it's shifted by 1
+        // may be there's some kind of an error in font generator tool
+        for (size_t h = 1; h < descr.height + 1; h++) {
+            for (size_t w = 0; w < descr.width; w++) {
+                pixels[y + descr.yoffset + h][x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);
+            }
+        }
+
+        x += descr.xadvantage;
         last_symbol = symbol;
     }
 }

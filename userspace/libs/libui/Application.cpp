@@ -18,16 +18,18 @@ uint8_t ptr = 0;
 
 void Application::run()
 {
-    Log << "run app " << endl;
-    m_connection.send_CreateWindowRequest(CreateWindowRequest(240, 180, "application"));
+    m_connection.send_CreateWindowRequest(CreateWindowRequest(m_width, m_height, m_titile));
     EventLoop::the().run();
 }
 
 void Application::on_CreateWindowResponse(CreateWindowResponse& response)
 {
     m_window = Window(
-        Graphics::Bitmap((Graphics::Color*)get_shared_buffer(response.shared_buffer_id()), 240, 180),
-        response.window_id());
+        Graphics::Bitmap((Graphics::Color*)get_shared_buffer(response.shared_buffer_id()), m_width, m_height),
+        response.window_id(), m_width, m_height);
+
+    m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, m_width, m_height));
+    rgb[ptr] = 255;
 
     EventLoop::the().register_timer([this]() {
         for (int y = 0; y < m_window.height(); y++) {
@@ -40,7 +42,7 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
         ptr = (ptr + 1) % 3;
         rgb[ptr] = 255;
 
-        m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, 240, 180));
+        m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, m_width, m_height));
     },
         2000);
 }

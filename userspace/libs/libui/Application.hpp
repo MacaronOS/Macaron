@@ -8,6 +8,11 @@ namespace UI {
 class Application : public ClientMessageReciever {
 public:
     Application() = default;
+
+    void set_intitial_window_width(int width) { m_width = width; }
+    void set_intitial_window_height(int heigth) { m_height = heigth; }
+    void set_intitial_window_titile(String titile) { m_titile = move(titile); }
+
     void run();
 
     void on_MousePressRequest(MousePressRequest& request) override { }
@@ -22,6 +27,12 @@ public:
 
 private:
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
+
+    // Create window request properties
+    int m_width {};
+    int m_height {};
+    String m_titile {};
+
     Window m_window;
 };
 
