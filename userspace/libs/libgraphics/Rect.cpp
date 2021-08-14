@@ -32,6 +32,11 @@ bool Rect::contains(const Rect& rect) const
     return contains(rect.left, rect.top, rect.right, rect.bottom);
 }
 
+bool Rect::contains(int x, int y) const
+{
+    return left <= x && top <= y && right >= x && bottom >= y;
+}
+
 bool Rect::operator==(const Rect& rect) const
 {
     return left == rect.left && top == rect.top && right == rect.right && bottom == rect.bottom;

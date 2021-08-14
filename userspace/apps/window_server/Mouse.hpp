@@ -16,6 +16,8 @@ public:
     inline int prev_x() const { return m_prev_x; }
     inline int prev_y() const { return m_prev_y; }
 
+    bool pressed() { return m_pressed; }
+
     void update_position();
 
 private:
@@ -25,4 +27,6 @@ private:
 
     int m_prev_x {};
     int m_prev_y {};
+
+    bool m_pressed {};
 };

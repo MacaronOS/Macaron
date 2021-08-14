@@ -17,6 +17,7 @@ public:
 
     bool contains(int left, int top, int right, int bottom) const;
     bool contains(const Rect&) const;
+    bool contains(int x, int y) const;
 
     bool intersects(const Rect&) const;
     Rect intersection(const Rect&) const;

@@ -54,4 +54,5 @@ private:
     Vector<Graphics::Rect> m_invalid_areas {};
     EventLoop& m_event_loop;
     bool m_mouse_needs_draw_since_moved { true };
+    Window* m_selected_window {};
 };

@@ -17,5 +17,6 @@ void Mouse::update_position()
     for (size_t packet_index = 0 ; packet_index < bytes / sizeof(MousePacket); packet_index++) {
         m_x += mouse_buffer[packet_index].x_move;
         m_y -= mouse_buffer[packet_index].y_move;
+        m_pressed = mouse_buffer[packet_index].left_btn;
     }
 }

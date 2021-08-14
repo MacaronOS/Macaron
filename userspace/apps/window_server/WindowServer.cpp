@@ -84,6 +84,26 @@ bool WindowServer::initialize()
             m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));
             m_mouse_needs_draw_since_moved = true;
         }
+
+        if (m_mouse.pressed()) {
+            if (m_selected_window) {
+                m_invalid_areas.push_back(m_selected_window->all_bounds());
+                
+                int del_x = m_mouse.x() - m_mouse.prev_x();
+                int del_y = m_mouse.y() - m_mouse.prev_y();
+                m_selected_window->move_position(del_x, del_y);
+
+                m_invalid_areas.push_back(m_selected_window->all_bounds());
+            } else {
+                for (auto window : m_windows) {
+                    if (window->frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
+                        m_selected_window = window;
+                    }
+                }
+            }
+        } else {
+            m_selected_window = nullptr;
+        }
     },
         mouse_fd);
 
