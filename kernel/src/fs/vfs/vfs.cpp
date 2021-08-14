@@ -135,7 +135,6 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 
     if (socket) {
         socket->write(size, (uint8_t*)buffer);
-        file_descr->inc_offset(size);
         return size;
     }
 
@@ -153,6 +152,21 @@ KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
     FileDescriptor* file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
+    }
+
+    auto socket = file_descr->vnode()->socket();
+    if (socket) {
+        if (whence == SEEK_SET) {
+            file_descr->set_offset(offset);
+            return file_descr->offset();
+        }
+
+        if (whence == SEEK_CUR) {
+            file_descr->inc_offset(offset);
+            return file_descr->offset();
+        }
+
+        return KError(EINVAL);
     }
 
     const size_t file_size = file_descr->vnode()->size();

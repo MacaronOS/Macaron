@@ -10,8 +10,6 @@
 
 #include <libgraphics/Bitmap.hpp>
 #include <libgraphics/Color.hpp>
-#include <libgraphics/ws/Connection.hpp>
-#include <libgraphics/ws/wrappers/CreateWindow.hpp>
 
 #include <wisterialib/extras.hpp>
 #include <wisterialib/posix/defines.hpp>
@@ -71,22 +69,25 @@ bool WindowServer::initialize()
         exit(1);
     }
 
-    m_event_loop.register_timer([](){
+    m_event_loop.register_timer([]() {
         Log << "Timer" << endl;
-    }, 1000);
+    },
+        1000);
 
     m_event_loop.register_timer([this]() {
         redraw();
-    }, 1000 / 60);
+    },
+        1000 / 60);
 
-    m_event_loop.register_fd_for_select([this](){
+    m_event_loop.register_fd_for_select([this]() {
         m_mouse.update_position();
 
         if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
             m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));
             m_mouse_needs_draw_since_moved = true;
         }
-    }, mouse_fd);
+    },
+        mouse_fd);
 
     return true;
 }
@@ -103,37 +104,28 @@ void WindowServer::run()
     }
 }
 
-void WindowServer::process_message(WS::WSProtocol& message) {
+CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& request)
+{
+    Log << "Recieved CreateWindowRequst" << endl;
+    auto shared_buffer = create_shared_buffer(request.widht() * request.height() * 4);
+    auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
 
-    if (message.type() == WS::WSProtocol::Type::CreateWindowRequest) {
-        Log << "Recieved CreateWindowRequst" << endl;
+    auto window = new Window(240, 180, move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
+    x_offset += 20 + 240;
+    y_offset += 20 + 180;
+    m_windows.push_back(window);
 
-        auto shared_buffer = create_shared_buffer(240 * 180 * 4);
-        auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, 240, 180);
+    return CreateWindowResponse(window->id, shared_buffer.id);
+}
 
-        auto window = new Window(240, 180, move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
-        x_offset += 20 + 240;
-        y_offset += 20 + 180;
-        m_windows.push_back(window);
+void WindowServer::on_InvalidateRequest(InvalidateRequest& request)
+{
+    Log << "Recieved InvalidateRequest " << request.window_id() << " " << request.width() << " " << request.height() << endl;
 
-        m_connection.send_response_to(WS::CreateWindowResponse(shared_buffer.id, window->id), message.pid_from());
-
-    } else if (message.type() == WS::WSProtocol::Type::InvalidateWindowRequst) {
-        auto window_id = message.m_args[0];
-        auto x = message.m_args[1];
-        auto y = message.m_args[2];
-        auto width = message.m_args[3];
-        auto height = message.m_args[4];
-
-        // Log << "Recieved InvalidateWindowRequst " << window_id << " " << x << " " << y << " " << width << " " << height << endl;
-
-        auto window = get_window_by_id(window_id);
-
-        m_invalid_areas.push_back(Graphics::Rect(window->x() + x, window->y() + y, window->x() + x + width - 1, window->y() + y + height - 1));
-
-    } else {
-        Log << "Unknown message " << (uint32_t)message.type() << " " << message.m_pid_from << " " << message.m_pid_to << endl;
-    }
+    auto window = get_window_by_id(request.window_id());
+    m_invalid_areas.push_back(Graphics::Rect(
+        window->x() + request.x(), window->y() + request.y(),
+        window->x() + request.x() + request.width() - 1, window->y() + request.y() + request.height() - 1));
 }
 
 void WindowServer::redraw()

@@ -4,7 +4,7 @@ Build:
     Src: *.cpp, **/*.cpp
 
     Depends:
-        ../../libs/libgraphics, ../../libs/libipc, ../../libs/libsys, ../../libs/libc, ../../../wisterialib
+        ../../libs/libui, ../../libs/libgraphics, ../../libs/libipc, ../../libs/libsys, ../../libs/libc, ../../../wisterialib
 
     Extensions:
         cpp:

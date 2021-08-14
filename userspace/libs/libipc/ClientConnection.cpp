@@ -3,7 +3,7 @@
 #include <libc/syscalls.hpp>
 #include <wisterialib/extras.hpp>
 #include <wisterialib/posix/defines.hpp>
-
+#include <wisterialib/memory.hpp>
 #include <libsys/Log.hpp>
 
 namespace IPC {
@@ -45,8 +45,10 @@ void ClientConnection::pump()
     IPCHeader ipch;
     while (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
         // skip messages that are not directed to us
-        if (ipch.pid_to != m_pid) {
-            lseek(m_socket_fd, ipch.size, SEEK_CUR);
+        if (ipch.pid_to != m_pid || ipch.pid_from == m_pid) {
+            if (ipch.size != 0) {
+                lseek(m_socket_fd, ipch.size, SEEK_CUR);
+            }
             continue;
         }
 
@@ -65,8 +67,10 @@ void ClientConnection::send_data(void* data, size_t bytes)
     ipch.pid_to = m_server_pid;
     ipch.size = bytes;
 
-    write(m_socket_fd, &ipch, sizeof(IPCHeader));
-    write(m_socket_fd, data, bytes);
+    Vector<uint8_t> d(sizeof(IPCHeader) + bytes);
+    memcpy(d.data(), &ipch, sizeof(ipch));
+    memcpy(d.data() + sizeof(IPCHeader), data, bytes);
+    write(m_socket_fd, d.data(), d.size());
 }
 
 void ClientConnection::initialize_connection()
@@ -78,11 +82,20 @@ void ClientConnection::initialize_connection()
 
     write(m_socket_fd, &ipch, sizeof(IPCHeader));
 
-    do {
-        read(m_socket_fd, &ipch, sizeof(IPCHeader));
-    } while (ipch.pid_to != m_pid);
-
-    m_server_pid = ipch.pid_from;
+    while (true) {
+        int result = read(m_socket_fd, &ipch, sizeof(IPCHeader));
+        if (result == 0) {
+            sched_yield();
+            continue;
+        }
+        if (result == sizeof(IPCHeader)) {
+            if (ipch.pid_to == m_pid) {
+                m_server_pid = ipch.pid_from;
+                return;
+            }
+            lseek(m_socket_fd, ipch.size, SEEK_CUR);
+        }
+    }
 }
 
 bool ClientConnection::read_by_header(const IPCHeader& ipch)

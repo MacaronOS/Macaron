@@ -58,6 +58,12 @@ public:
 		send_data(serialized.data(), serialized.size());
 	}
 
+	void send_InvalidateRequest(const InvalidateRequest& request)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size());
+	}
+
 private:
 	ClientMessageReciever& m_reciever;
 };

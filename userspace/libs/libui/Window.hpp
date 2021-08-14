@@ -1,10 +1,12 @@
 #pragma once
 
-#include "Bitmap.hpp"
+#include "Events.hpp"
+
+#include <libgraphics/Bitmap.hpp>
 
 #include <wisterialib/extras.hpp>
 
-namespace Graphics {
+namespace UI {
 
 class Window {
 public:
@@ -18,6 +20,9 @@ public:
 
     int width() const { return m_width; }
     int height() const { return m_height; }
+
+    void on_mouse_move(const UI::MouseMoveEvent& mouse_move_event) {}
+    void on_mouse_click(const UI::MouseClickEvent& mouse_click_event) {}
 
     Graphics::Bitmap& buffer() { return m_buffer; }
 

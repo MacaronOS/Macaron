@@ -10,13 +10,14 @@ namespace UI::Protocols {
 enum class MessageType : int {
 	CreateWindowRequest,
 	CreateWindowResponse,
+	InvalidateRequest,
 	MousePressRequest,
 	MouseMoveRequest,
 	CloseWindowRequest,
 	CloseWindowResponse,
 };
 
-MessageType GetType(const Vector<unsigned char>& buffer)
+inline MessageType GetType(const Vector<unsigned char>& buffer)
 {
     return static_cast<MessageType>(Decoder(buffer).get_int());
 }
@@ -66,8 +67,9 @@ class CreateWindowResponse {
 	static constexpr MessageType m_type = MessageType::CreateWindowResponse;
 
 public:
-	CreateWindowResponse(int window_id)
-		: m_window_id(window_id)
+	CreateWindowResponse(int shared_buffer_id, int window_id)
+		: m_shared_buffer_id(shared_buffer_id)
+		, m_window_id(window_id)
 	{
 	}
 
@@ -75,21 +77,75 @@ public:
 	{
 		Decoder decoder(buffer);
 		decoder.skip(sizeof(MessageType));
+		m_shared_buffer_id = decoder.get_int();
 		m_window_id = decoder.get_int();
 	}
 
+	int shared_buffer_id() const { return m_shared_buffer_id; }
 	int window_id() const { return m_window_id; }
 
 	Vector<unsigned char> serialize() const
 	{
 		Encoder encoder {};
 		encoder.push((int)m_type);
+		encoder.push(m_shared_buffer_id);
 		encoder.push(m_window_id);
 		return encoder.done();
 	}
 
 private:
+	int m_shared_buffer_id;
 	int m_window_id;
+};
+
+class InvalidateRequest {
+	static constexpr MessageType m_type = MessageType::InvalidateRequest;
+
+public:
+	InvalidateRequest(int window_id, int x, int y, int width, int height)
+		: m_window_id(window_id)
+		, m_x(x)
+		, m_y(y)
+		, m_width(width)
+		, m_height(height)
+	{
+	}
+
+	InvalidateRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_window_id = decoder.get_int();
+		m_x = decoder.get_int();
+		m_y = decoder.get_int();
+		m_width = decoder.get_int();
+		m_height = decoder.get_int();
+	}
+
+	int window_id() const { return m_window_id; }
+	int x() const { return m_x; }
+	int y() const { return m_y; }
+	int width() const { return m_width; }
+	int height() const { return m_height; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_window_id);
+		encoder.push(m_x);
+		encoder.push(m_y);
+		encoder.push(m_width);
+		encoder.push(m_height);
+		return encoder.done();
+	}
+
+private:
+	int m_window_id;
+	int m_x;
+	int m_y;
+	int m_width;
+	int m_height;
 };
 
 class MousePressRequest {

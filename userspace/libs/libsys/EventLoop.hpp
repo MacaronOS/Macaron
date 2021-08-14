@@ -18,7 +18,8 @@ struct QueuedEvent {
     const Function<void(EventHolder& event)>& callback;
     EventHolder event;
 
-    void operator() () {
+    void operator()()
+    {
         callback(event);
     }
 };
@@ -26,12 +27,14 @@ struct QueuedEvent {
 template <typename EventHolder>
 class Timer {
 public:
-    Timer(const Function<void()>& callback, uint32_t timeout) : m_callback(callback), m_timeout(timeout)
-    {
-        
-    };
+    Timer(const Function<void()>& callback, uint32_t timeout)
+        : m_callback(callback)
+        , m_timeout(timeout) {
 
-    bool operator() (uint32_t milliseconds_now) {
+        };
+
+    bool operator()(uint32_t milliseconds_now)
+    {
         if (milliseconds_now >= m_last_invokation + m_timeout) {
             m_callback();
             m_last_invokation = milliseconds_now;
@@ -48,14 +51,20 @@ private:
 
 class FDSelector {
 public:
-    FDSelector(const Function<void()>& callback, uint8_t fd) : m_callback(callback), m_fd(fd) {}
-    bool operator() (fd_set* fds) {
+    FDSelector(const Function<void()>& callback, uint8_t fd)
+        : m_callback(callback)
+        , m_fd(fd)
+    {
+    }
+    bool operator()(fd_set* fds)
+    {
         if (FD_IS_SET(fds, m_fd)) {
             m_callback();
             return true;
         }
         return false;
     }
+
 private:
     Function<void()> m_callback {};
     uint8_t m_fd {};
@@ -64,7 +73,8 @@ private:
 template <typename EventHolder>
 class EventLoop {
 public:
-    static inline EventLoop<EventHolder>& the() {
+    static inline EventLoop<EventHolder>& the()
+    {
         return s_the;
     }
 
@@ -81,7 +91,14 @@ public:
 
     void enqueue_callback_for_event(const Function<void(const EventHolder& event)>& callback, const EventHolder& event)
     {
-        m_event_holders.push_back({callback, event});
+        m_event_holders.push_back({ callback, event });
+    }
+
+    inline void run()
+    {
+        while (true) {
+            pump();
+        }
     }
 
     void pump()
@@ -96,7 +113,8 @@ public:
         }
     }
 
-    bool process_timers() {
+    bool process_timers()
+    {
         bool processed = false;
 
         timespec ts;
@@ -110,7 +128,8 @@ public:
         return processed;
     }
 
-    bool process_fd_selectors() {
+    bool process_fd_selectors()
+    {
         bool processed = false;
 
         fd_set read_fds;
@@ -123,7 +142,8 @@ public:
         return processed;
     }
 
-    bool process_event_holders() {
+    bool process_event_holders()
+    {
         if (m_event_holders.size() == 0) {
             return false;
         }
@@ -142,7 +162,7 @@ public:
     int m_nfds {};
 };
 
-template<typename Event>
+template <typename Event>
 EventLoop<Event> EventLoop<Event>::s_the;
 
 }

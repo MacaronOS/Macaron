@@ -3,6 +3,7 @@
 #include <libsys/Log.hpp>
 #include <wisterialib/extras.hpp>
 #include <wisterialib/posix/defines.hpp>
+#include <wisterialib/memory.hpp>
 
 namespace IPC {
 
@@ -35,12 +36,14 @@ void ServerConnection::pump()
             ipchr.pid_to = ipch.pid_from;
             ipchr.size = 0;
             write(m_socket_fd, &ipchr, sizeof(IPCHeader));
-            continue;
+            return;
         }
 
         // skip messages that are not directed to us
-        if (ipch.pid_to != m_pid) {
-            lseek(m_socket_fd, ipch.size, SEEK_CUR);
+        if (ipch.pid_to != m_pid || ipch.pid_from == m_pid) {
+            if (ipch.size != 0) {
+                lseek(m_socket_fd, ipch.size, SEEK_CUR);
+            }
             continue;
         }
 
@@ -58,9 +61,11 @@ void ServerConnection::send_data(void* data, size_t bytes, int pid_to)
     ipch.pid_from = m_pid;
     ipch.pid_to = pid_to;
     ipch.size = bytes;
-
-    write(m_socket_fd, &ipch, sizeof(IPCHeader));
-    write(m_socket_fd, data, bytes);
+    
+    Vector<uint8_t> d(sizeof(IPCHeader) + bytes);
+    memcpy(d.data(), &ipch, sizeof(ipch));
+    memcpy(d.data() + sizeof(IPCHeader), data, bytes);
+    write(m_socket_fd, d.data(), d.size());
 }
 
 bool ServerConnection::read_by_header(const IPCHeader& ipch)

@@ -9,7 +9,7 @@ include = '''
 '''
 
 get_type = '''
-MessageType GetType(const Vector<unsigned char>& buffer)
+inline MessageType GetType(const Vector<unsigned char>& buffer)
 {
     return static_cast<MessageType>(Decoder(buffer).get_int());
 }

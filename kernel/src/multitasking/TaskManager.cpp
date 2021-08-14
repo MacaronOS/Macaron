@@ -86,7 +86,7 @@ void TaskManager::create_process(const String& filepath)
 
 void TaskManager::sys_exit_handler(int error_code)
 {
-    Log() << "Handling exit, PID: " << (*m_cur_thread)->m_process->id() << "\n";
+    Log() << "Handling exit, PID: " << (*m_cur_thread)->m_process->id() << ", error code: " << error_code << "\n";
     cur_process()->Terminate();
     on_tick(nullptr);
 }
