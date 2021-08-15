@@ -13,13 +13,14 @@ uint32_t next_window_id()
     return window_id++;
 }
 
-Window::Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int x, int y)
+Window::Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int pid, int x, int y)
     : m_width(width)
     , m_height(height)
     , m_buffer(move(buffer))
     , m_buffer_id(buffer_id)
     , m_x(x)
     , m_y(y)
+    , m_pid(pid)
     , id(next_window_id())
 {
     m_frame_buffer = Graphics::Bitmap((Graphics::Color*)malloc(4 * width * frame_height), width, frame_height);
@@ -29,6 +30,4 @@ Window::Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint3
             m_frame_buffer[y][x] = Graphics::Color(255, 255, 255);
         }
     }
-
-    
 }

@@ -88,7 +88,7 @@ bool WindowServer::initialize()
         if (m_mouse.pressed()) {
             if (m_selected_window) {
                 m_invalid_areas.push_back(m_selected_window->all_bounds());
-                
+
                 int del_x = m_mouse.x() - m_mouse.prev_x();
                 int del_y = m_mouse.y() - m_mouse.prev_y();
                 m_selected_window->move_position(del_x, del_y);
@@ -103,6 +103,15 @@ bool WindowServer::initialize()
             }
         } else {
             m_selected_window = nullptr;
+        }
+
+        for (auto window : m_windows) {
+            if (window->bounds().contains(m_mouse.x(), m_mouse.y())) {
+                m_connection.send_MouseMoveRequest(
+                    UI::Protocols::MouseMoveRequest(
+                        window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
+                    window->pid());
+            }
         }
     },
         mouse_fd);
@@ -122,13 +131,13 @@ void WindowServer::run()
     }
 }
 
-CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& request)
+CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& request, int pid_from)
 {
     Log << "Recieved CreateWindowRequst" << endl;
     auto shared_buffer = create_shared_buffer(request.widht() * request.height() * 4);
     auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
 
-    auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, x_offset, y_offset);
+    auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
     x_offset += 20 + request.widht();
     y_offset += 20 + request.height();
     m_windows.push_back(window);
@@ -139,7 +148,7 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     return CreateWindowResponse(window->id, shared_buffer.id);
 }
 
-void WindowServer::on_InvalidateRequest(InvalidateRequest& request)
+void WindowServer::on_InvalidateRequest(InvalidateRequest& request, int pid_from)
 {
     Log << "Recieved InvalidateRequest " << request.window_id() << " " << request.width() << " " << request.height() << endl;
 

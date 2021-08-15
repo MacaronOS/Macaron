@@ -8,9 +8,9 @@ namespace UI::Protocols {
 
 class ServerMessageReciever {
 public:
-	virtual CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request);
-	virtual void on_InvalidateRequest(InvalidateRequest& request);
-	virtual void on_CloseWindowResponse(CloseWindowResponse& response);
+	virtual CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from);
+	virtual void on_InvalidateRequest(InvalidateRequest& request, int pid_from);
+	virtual void on_CloseWindowResponse(CloseWindowResponse& response, int pid_from);
 };
 
 class ServerConnection : public IPC::ServerConnection {
@@ -27,22 +27,23 @@ public:
 		auto recieved_messages_bytes = take_over_messages();
 		for (auto& server_message : recieved_messages_bytes) {
 			auto message_bytes = server_message.message;
+			auto message_pid = server_message.pid_from;
 			auto type = GetType(message_bytes);
 
 			if (type == MessageType::CreateWindowRequest) {
 				auto message = CreateWindowRequest(message_bytes);
-				auto response = m_reciever.on_CreateWindowRequest(message).serialize();
-				send_data(response.data(), response.size(), server_message.pid_from);
+				auto response = m_reciever.on_CreateWindowRequest(message, message_pid).serialize();
+				send_data(response.data(), response.size(), message_pid);
 			}
 
 			if (type == MessageType::InvalidateRequest) {
 				auto message = InvalidateRequest(message_bytes);
-				m_reciever.on_InvalidateRequest(message);
+				m_reciever.on_InvalidateRequest(message, message_pid);
 			}
 
 			if (type == MessageType::CloseWindowResponse) {
 				auto message = CloseWindowResponse(message_bytes);
-				m_reciever.on_CloseWindowResponse(message);
+				m_reciever.on_CloseWindowResponse(message, message_pid);
 			}
 		}
 	}

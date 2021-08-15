@@ -114,10 +114,16 @@ def write_connection(
         out.write(f'class {server_or_client}MessageReciever {{\n')
         out.write('public:\n')
         for request, response in to_data:
-            out.write(f'\tvirtual {response} on_{request}({request}& request);\n')
+            if server_or_client == 'Server':
+                out.write(f'\tvirtual {response} on_{request}({request}& request, int pid_from);\n')
+            else:
+                out.write(f'\tvirtual {response} on_{request}({request}& request);\n')
         for request, response in from_data:
             if response != 'void':
-                out.write(f'\tvirtual void on_{response}({response}& response);\n')
+                if server_or_client == 'Server':
+                    out.write(f'\tvirtual void on_{response}({response}& response, int pid_from);\n')
+                else:
+                    out.write(f'\tvirtual void on_{response}({response}& response);\n')
         out.write('};\n\n')
 
         out.write(f'class {server_or_client}Connection : public IPC::{server_or_client}Connection {{\n')
@@ -135,6 +141,7 @@ def write_connection(
         if server_or_client == 'Server':
             out.write('\t\tfor (auto& server_message : recieved_messages_bytes) {\n')
             out.write('\t\t\tauto message_bytes = server_message.message;\n')
+            out.write('\t\t\tauto message_pid = server_message.pid_from;\n')
         else:
             out.write('\t\tfor (auto& message_bytes : recieved_messages_bytes) {\n')
 
@@ -144,20 +151,27 @@ def write_connection(
             out.write(f'\n\t\t\tif (type == MessageType::{request}) {{\n')
             out.write(f'\t\t\t\tauto message = {request}(message_bytes);\n')
             if response != 'void':
-                out.write(f'\t\t\t\tauto response = m_reciever.on_{request}(message).serialize();\n')
                 if server_or_client == 'Server':
-                    out.write('\t\t\t\tsend_data(response.data(), response.size(), server_message.pid_from);\n')
+                    out.write(f'\t\t\t\tauto response = m_reciever.on_{request}(message, message_pid).serialize();\n')
+                    out.write('\t\t\t\tsend_data(response.data(), response.size(), message_pid);\n')
                 else:
+                    out.write(f'\t\t\t\tauto response = m_reciever.on_{request}(message).serialize();\n')
                     out.write('\t\t\t\tsend_data(response.data(), response.size());\n')
             else:
-                out.write(f'\t\t\t\tm_reciever.on_{request}(message);\n')
+                if server_or_client == 'Server':
+                    out.write(f'\t\t\t\tm_reciever.on_{request}(message, message_pid);\n')
+                else:
+                    out.write(f'\t\t\t\tm_reciever.on_{request}(message);\n')
             out.write('\t\t\t}\n')
 
         for request, response in from_data:
             if response != 'void':
                 out.write(f'\n\t\t\tif (type == MessageType::{response}) {{\n')
                 out.write(f'\t\t\t\tauto message = {response}(message_bytes);\n')
-                out.write(f'\t\t\t\tm_reciever.on_{response}(message);\n')
+                if server_or_client == 'Server':
+                    out.write(f'\t\t\t\tm_reciever.on_{response}(message, message_pid);\n')
+                else:
+                    out.write(f'\t\t\t\tm_reciever.on_{response}(message);\n')
                 out.write('\t\t\t}\n')
 
         out.write('\t\t}\n')

@@ -150,6 +150,7 @@ public:
         for (auto& event_holder : m_event_holders) {
             event_holder();
         }
+        m_event_holders.clear();
         return true;
     }
 

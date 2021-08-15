@@ -25,9 +25,9 @@ public:
     bool initialize();
     void run();
 
-    CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request) override;
-    void on_InvalidateRequest(InvalidateRequest& request) override;
-    void on_CloseWindowResponse(CloseWindowResponse& response) override {};
+    CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from) override;
+    void on_InvalidateRequest(InvalidateRequest& request, int pid_from) override;
+    void on_CloseWindowResponse(CloseWindowResponse& response, int pid_from) override {};
 
 private:
     void redraw();

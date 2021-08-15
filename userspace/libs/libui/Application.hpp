@@ -9,17 +9,20 @@ class Application : public ClientMessageReciever {
 public:
     Application() = default;
 
+    // intiial window properties
     void set_intitial_window_width(int width) { m_width = width; }
     void set_intitial_window_height(int heigth) { m_height = heigth; }
     void set_intitial_window_titile(String titile) { m_titile = move(titile); }
 
     void run();
 
+    // protocols
     void on_MousePressRequest(MousePressRequest& request) override { }
-    void on_MouseMoveRequest(MouseMoveRequest& request) override {};
+    void on_MouseMoveRequest(MouseMoveRequest& request) override;
     CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override {};
     void on_CreateWindowResponse(CreateWindowResponse& response) override;
 
+    // clildren
     Window& window() { return m_window; }
     const Window& window() const { return m_window; }
 

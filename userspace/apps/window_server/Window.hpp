@@ -5,9 +5,11 @@
 
 class Window {
 public:
-    Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int x, int y);
+    Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int pid, int x, int y);
 
     uint32_t id;
+
+    int pid() const { return m_pid; }
 
     Graphics::Bitmap& buffer() { return m_buffer; }
     Graphics::Bitmap& frame_buffer() { return m_frame_buffer; }
@@ -22,10 +24,15 @@ public:
     inline Graphics::Rect frame_bounds() { return Graphics::Rect(x(), y() - frame_height + 1, x() + width() - 1, y()); }
     inline Graphics::Rect all_bounds() { return Graphics::Rect(x(), y() - frame_height + 1, x() + width() - 1, y() + height() - 1); }
 
-    void move_position(int del_x, int del_y) { m_x += del_x; m_y += del_y; }
+    void move_position(int del_x, int del_y)
+    {
+        m_x += del_x;
+        m_y += del_y;
+    }
 
 private:
     static constexpr int frame_height = 24;
+    int m_pid;
     uint32_t m_width {};
     uint32_t m_height {};
 
