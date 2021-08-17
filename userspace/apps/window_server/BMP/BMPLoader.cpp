@@ -56,8 +56,6 @@ Graphics::Bitmap load(const String& path)
 
     read(fd, &info_header, sizeof(BMPInfoHeader));
 
-    Log << "BITS " << info_header.bit_count << endl;
-
     if (info_header.bit_count == 32) {
         if (info_header.size >= (sizeof(BMPInfoHeader) + sizeof(BMPColorHeader))) {
             read(fd, &color_header, sizeof(BMPColorHeader));
@@ -70,13 +68,6 @@ Graphics::Bitmap load(const String& path)
     auto widht = info_header.width;
 
     auto colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
-    colors = (Graphics::Color*)malloc(4 * widht * height);
 
     read(fd, colors, widht * height * 4);
 

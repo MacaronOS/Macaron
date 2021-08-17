@@ -8,6 +8,8 @@
 #include <wisterialib/common.hpp>
 #include <wisterialib/memory.hpp>
 
+#include <Logger.hpp>
+
 namespace kernel::memory {
 
 template <>
@@ -81,11 +83,18 @@ void PMM::free_range(uint32_t left, size_t right)
 uint32_t PMM::allocate_frames(uint32_t frames)
 {
     for (size_t start_frame = 0; start_frame < m_pmmap.size(); start_frame++) {
+
         uint32_t remain_frames = frames;
-        for (; start_frame < m_pmmap.size() && !m_pmmap[start_frame] && remain_frames; start_frame++, remain_frames--) { }
+        size_t frame = start_frame;
+
+        for (; frame < m_pmmap.size() && !m_pmmap[frame] && remain_frames; frame++, remain_frames--) { }
+
         if (!remain_frames) {
+            occupy_range(start_frame * FRAME_SIZE, (start_frame + frames - 1) * FRAME_SIZE);
             return start_frame;
         }
+
+        start_frame = frame;
     }
     return 0;
 }
