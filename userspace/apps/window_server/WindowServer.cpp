@@ -67,11 +67,6 @@ bool WindowServer::initialize()
         exit(1);
     }
 
-    m_event_loop.register_timer([]() {
-        Log << "Timer" << endl;
-    },
-        1000);
-
     m_event_loop.register_timer([this]() {
         redraw();
     },

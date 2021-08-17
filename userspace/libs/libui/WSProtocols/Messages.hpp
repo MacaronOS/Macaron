@@ -67,9 +67,9 @@ class CreateWindowResponse {
 	static constexpr MessageType m_type = MessageType::CreateWindowResponse;
 
 public:
-	CreateWindowResponse(int shared_buffer_id, int window_id)
-		: m_shared_buffer_id(shared_buffer_id)
-		, m_window_id(window_id)
+	CreateWindowResponse(int window_id, int shared_buffer_id)
+		: m_window_id(window_id)
+		, m_shared_buffer_id(shared_buffer_id)
 	{
 	}
 
@@ -77,25 +77,25 @@ public:
 	{
 		Decoder decoder(buffer);
 		decoder.skip(sizeof(MessageType));
-		m_shared_buffer_id = decoder.get_int();
 		m_window_id = decoder.get_int();
+		m_shared_buffer_id = decoder.get_int();
 	}
 
-	int shared_buffer_id() const { return m_shared_buffer_id; }
 	int window_id() const { return m_window_id; }
+	int shared_buffer_id() const { return m_shared_buffer_id; }
 
 	Vector<unsigned char> serialize() const
 	{
 		Encoder encoder {};
 		encoder.push((int)m_type);
-		encoder.push(m_shared_buffer_id);
 		encoder.push(m_window_id);
+		encoder.push(m_shared_buffer_id);
 		return encoder.done();
 	}
 
 private:
-	int m_shared_buffer_id;
 	int m_window_id;
+	int m_shared_buffer_id;
 };
 
 class InvalidateRequest {
