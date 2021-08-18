@@ -1,8 +1,11 @@
 #pragma once
 
-#include <libgraphics/Bitmap.hpp>
+#include "../Bitmap.hpp"
+
 #include <wisterialib/String.hpp>
-#include <wisterialib/memory.hpp>
+#include <wisterialib/common.hpp>
+
+namespace Graphics {
 
 struct CharDescriptor {
     uint16_t x {};
@@ -14,7 +17,7 @@ struct CharDescriptor {
     int16_t xadvantage {};
 };
 
-struct Font {
+struct BitmapFont {
     String name {};
     uint16_t line_height {};
     uint16_t base {};
@@ -22,11 +25,7 @@ struct Font {
     uint16_t height {};
     CharDescriptor chars[256] {};
     int16_t kerning[256][256] {};
-    Graphics::Bitmap texture {};
+    Bitmap texture {};
 };
-
-namespace FontLoader {
-
-Font load(const String& text_description_path, const String& font_texture_path);
 
 }

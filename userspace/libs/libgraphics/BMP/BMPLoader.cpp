@@ -4,7 +4,7 @@
 #include <libc/syscalls.hpp>
 #include <wisterialib/memory.hpp>
 
-namespace BMPLoader {
+namespace Graphics::BMPLoader {
 
 struct [[gnu::packed]] BMPFileHeader {
     uint16_t file_type;

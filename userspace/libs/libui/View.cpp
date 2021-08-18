@@ -26,6 +26,10 @@ void View::on_measure(int width_measure_spec, int height_measure_spec)
 
 void View::layout(int left, int top, int right, int bottom)
 {
+    m_left = left;
+    m_top = top;
+    m_width = right - left;
+    m_height = bottom - top;
     on_layout(false, left, top, right, bottom);
 }
 

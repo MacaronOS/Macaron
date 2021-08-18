@@ -1,6 +1,4 @@
 #include "WindowServer.hpp"
-#include "BMP/BMPLoader.hpp"
-#include "Font/FontLoader.hpp"
 
 #include <libc/malloc.hpp>
 #include <libc/syscalls.hpp>
@@ -8,16 +6,18 @@
 #include <libsys/Log.hpp>
 #include <libsys/syscalls.hpp>
 
+#include <libgraphics/BMP/BMPLoader.hpp>
 #include <libgraphics/Bitmap.hpp>
 #include <libgraphics/Color.hpp>
+#include <libgraphics/Font/FontLoader.hpp>
 
 #include <wisterialib/extras.hpp>
 #include <wisterialib/posix/defines.hpp>
 
 bool WindowServer::initialize()
 {
-    m_font_medium = FontLoader::load("/ext2/res/Roboto12Medium.fnt", "/ext2/res/Roboto12Medium.bmp");
-    m_font_bold = FontLoader::load("/ext2/res/Roboto12Bold.fnt", "/ext2/res/Roboto12Bold.bmp");
+    m_font_medium = Graphics::FontLoader::load("/ext2/res/Roboto12Medium.fnt", "/ext2/res/Roboto12Medium.bmp");
+    m_font_bold = Graphics::FontLoader::load("/ext2/res/Roboto12Bold.fnt", "/ext2/res/Roboto12Bold.bmp");
     // setup the screen
     int screen_fd = open("/dev/bga", 1, 1);
     if (screen_fd < 0) {
@@ -35,7 +35,7 @@ bool WindowServer::initialize()
     m_screen = Screen(screen_fd, move(front_buffer), move(back_buffer));
 
     // setup wallpaper
-    m_wallpaper = BMPLoader::load("/ext2/res/wallpaper.bmp");
+    m_wallpaper = Graphics::BMPLoader::load("/ext2/res/wallpaper.bmp");
     if (m_wallpaper.height() == 0 || m_wallpaper.width() == 0) {
         Log << m_wallpaper.height() << " " << m_wallpaper.width() << endl;
         exit(1);
@@ -61,7 +61,7 @@ bool WindowServer::initialize()
 
     m_mouse = Mouse(mouse_fd, 1024 / 2, 768 / 2);
 
-    m_cursor = BMPLoader::load("/ext2/res/cursor.bmp");
+    m_cursor = Graphics::BMPLoader::load("/ext2/res/cursor.bmp");
     if (m_cursor.height() == 0 || m_cursor.width() == 0) {
         Log << m_cursor.height() << " " << m_cursor.width() << endl;
         exit(1);
@@ -262,7 +262,7 @@ Window* WindowServer::get_window_by_id(int id)
     return nullptr;
 }
 
-void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Font& font)
+void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Graphics::BitmapFont& font)
 {
     char last_symbol = 0;
     for (size_t i = 0; i < text.size(); i++) {
@@ -282,7 +282,7 @@ void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Fon
     }
 }
 
-void WindowServer::draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Font& font)
+void WindowServer::draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Graphics::BitmapFont& font)
 {
     char last_symbol = 0;
     for (size_t i = 0; i < text.size(); i++) {

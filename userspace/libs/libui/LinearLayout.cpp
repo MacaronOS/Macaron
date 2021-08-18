@@ -35,11 +35,6 @@ void LinearLayout::on_measure(int width_measure_spec, int height_measure_spec)
 
 void LinearLayout::on_layout(bool changed, int left, int top, int right, int bottom)
 {
-    m_left = left;
-    m_top = top;
-    m_width = right - left;
-    m_height = bottom - top;
-
     int child_left = 0;
     int child_top = 0;
 

@@ -2,6 +2,7 @@
 #include "Events.hpp"
 #include "LinearLayout.hpp"
 #include "View.hpp"
+#include "TextView.hpp"
 
 #include <libc/syscalls.hpp>
 #include <libsys/Log.hpp>
@@ -10,6 +11,7 @@
 
 #include <libgraphics/Bitmap.hpp>
 #include <libgraphics/Color.hpp>
+#include <libgraphics/Font/FontLoader.hpp>
 #include <wisterialib/posix/defines.hpp>
 
 namespace UI {
@@ -30,6 +32,8 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
         Graphics::Bitmap((Graphics::Color*)get_shared_buffer(response.shared_buffer_id()), m_width, m_height),
         response.window_id(), m_width, m_height);
 
+    auto font = new Graphics::BitmapFont(Graphics::FontLoader::load("/ext2/res/Roboto12Medium.fnt", "/ext2/res/Roboto12Medium.bmp"));
+
     auto layout = new LinearLayout();
     auto layout_params = new LinearLayoutParams();
     layout_params->gravity = LinearLayoutParams::Gravity::Horizontal;
@@ -37,8 +41,11 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     layout_params->height = m_height;
     layout->set_layout_params(layout_params);
 
-    auto view1 = new View();
+    auto view1 = new TextView();
     view1->set_background_color(Graphics::Color(255, 125, 0));
+    view1->set_text("Hello Text View!");
+    view1->set_typeface(font);
+    view1->set_padding(15, 15, 0, 0);
     auto layout_params_view_1 = new LayoutParams();
     layout_params_view_1->width = m_width / 2;
     layout_params_view_1->height = m_height;

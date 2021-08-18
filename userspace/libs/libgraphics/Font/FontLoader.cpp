@@ -4,7 +4,7 @@
 #include <libsys/Log.hpp>
 #include <wisterialib/posix/defines.hpp>
 
-namespace FontLoader {
+namespace Graphics::FontLoader {
 
 struct [[gnu::packed]] Header {
     uint8_t identifier[3];
@@ -64,7 +64,7 @@ struct [[gnu::packed]] Char {
     uint8_t chnl;
 };
 
-Font load(const String& binary_description_path, const String& texture_path)
+BitmapFont load(const String& binary_description_path, const String& texture_path)
 {
     int fd = open(binary_description_path.cstr(), 1, 1);
     if (fd < 0) {
@@ -78,7 +78,7 @@ Font load(const String& binary_description_path, const String& texture_path)
         return {};
     }
 
-    Font font;
+    BitmapFont font;
 
     for (size_t _ = 0; _ < 5; _++) {
         InfoBlockDescription info_block_description;

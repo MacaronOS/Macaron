@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Bitmap.hpp"
+#include "Font/BitmapFont.hpp"
 #include "Paint.hpp"
 #include "Rect.hpp"
 
@@ -63,6 +64,36 @@ public:
             }
         }
     }
+
+    inline void draw_text(const String& text, int x, int y, const Graphics::BitmapFont& font)
+    {
+        x += state().cursor_x;
+        y += state().cursor_y;
+
+        char last_symbol = 0;
+        for (size_t i = 0; i < text.size(); i++) {
+            char symbol = text[i];
+            auto& descr = font.chars[symbol];
+
+            // dont know why it's shifted by 1
+            // may be there's some kind of an error in font generator tool
+            for (size_t h = 1; h < descr.height + 1; h++) {
+                if (y + descr.yoffset + h > state().clip_rect.bottom) {
+                    break;
+                }
+                for (size_t w = 0; w < descr.width; w++) {
+                    if (x + descr.xoffset + font.kerning[last_symbol][symbol] + w > state().clip_rect.right) {
+                        break;
+                    }
+                    m_bitmap[y + descr.yoffset + h][x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);
+                }
+            }
+
+            x += descr.xadvantage;
+            last_symbol = symbol;
+        }
+    }
+
     void draw_rect(const Rect& rect, const Paint& paint);
     void draw_text();
 
@@ -75,5 +106,4 @@ private:
     State m_saved_states[64];
     int m_saved_state_ptr {};
 };
-
 }

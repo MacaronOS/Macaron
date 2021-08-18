@@ -6,12 +6,11 @@
 #include "Screen.hpp"
 #include "Window.hpp"
 
-#include "Font/FontLoader.hpp"
-
 #include <wisterialib/List.hpp>
 #include <wisterialib/ObjectPool.hpp>
 
 #include <libgraphics/Rect.hpp>
+#include <libgraphics/Font/BitmapFont.hpp>
 
 class WindowServer : public ServerMessageReciever {
     static constexpr auto windows = 10;
@@ -36,9 +35,9 @@ private:
     void draw_background();
     void copy_changes_to_second_buffer();
 
-    void draw_text(const String& text, int x, int y, const Font& font);
+    void draw_text(const String& text, int x, int y, const Graphics::BitmapFont& font);
 
-    void draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Font& font);
+    void draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Graphics::BitmapFont& font);
 
     Window* get_window_by_id(int id);
 
@@ -46,8 +45,8 @@ private:
     Screen m_screen {};
     Graphics::Bitmap m_wallpaper {};
     Graphics::Bitmap m_cursor {};
-    Font m_font_medium {};
-    Font m_font_bold {};
+    Graphics::BitmapFont m_font_medium {};
+    Graphics::BitmapFont m_font_bold {};
     Mouse m_mouse {};
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
     List<Window*> m_windows {};
