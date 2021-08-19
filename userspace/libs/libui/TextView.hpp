@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Gravity.hpp"
 #include "View.hpp"
 #include <libgraphics/Font/BitmapFont.hpp>
 
@@ -14,11 +15,22 @@ public:
     inline void set_text_color(const Graphics::Color& color) { m_color = color; }
     // TODO: typeface instead of bitmap font
     inline void set_typeface(Graphics::BitmapFont* font) { m_font = font; }
+    inline void set_gravity(Gravity gravity) { m_gravity = gravity; }
+
+protected:
+    inline void set_measured_text_dimensions(int width, int height)
+    {
+        m_measured_text_width = width;
+        m_measured_text_height = height;
+    }
 
 protected:
     String m_text {};
     Graphics::Color m_color {};
     Graphics::BitmapFont* m_font {};
+    Gravity m_gravity {};
+    int m_measured_text_width {};
+    int m_measured_text_height {};
 };
 
 }

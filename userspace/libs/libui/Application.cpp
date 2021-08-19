@@ -3,6 +3,7 @@
 #include "LinearLayout.hpp"
 #include "TextView.hpp"
 #include "View.hpp"
+#include "Button.hpp"
 
 #include <libc/syscalls.hpp>
 #include <libsys/Log.hpp>
@@ -41,17 +42,15 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     layout_params->height = m_height;
     layout->set_layout_params(layout_params);
 
-    auto view1 = new TextView();
-    view1->set_background_color(Graphics::Color(255, 125, 0));
-    view1->set_text("Hello Text View!");
+    auto view1 = new Button();
+    view1->set_text("Button Button!");
     view1->set_typeface(font);
-    view1->set_padding(15, 15, 0, 0);
     view1->set_on_mouse_click_listener([&](View& view) {
-        Log << "View1 clicked" << endl;
+        Log << "Button clicked" << endl;
     });
     auto layout_params_view_1 = new LayoutParams();
     layout_params_view_1->width = m_width / 2;
-    layout_params_view_1->height = m_height;
+    layout_params_view_1->height = 50;
 
     auto view2 = new View();
     view2->set_background_color(Graphics::Color(0, 255, 125));
