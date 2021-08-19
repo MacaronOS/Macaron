@@ -47,9 +47,4 @@ void View::draw(Graphics::Canvas& canvas)
     on_draw(canvas);
 }
 
-void View::on_mouse_move_event(const MouseMoveEvent& event)
-{
-    Log << "view move event " << event.x << " " << event.y << endl;
-}
-
 }

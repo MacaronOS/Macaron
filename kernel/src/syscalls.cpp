@@ -51,8 +51,8 @@ static int sys_write(fd_t fd, uint8_t* buf, size_t cnt)
     return int(VFS::the().write(fd, buf, cnt));
 }
 
-static int sys_lseek(fd_t fd, size_t offset, int whence) {
-    Log() << "handling lseek\n";
+static int sys_lseek(fd_t fd, size_t offset, int whence)
+{
     return int(VFS::the().lseek(fd, offset, whence));
 }
 

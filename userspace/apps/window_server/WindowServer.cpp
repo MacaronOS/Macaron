@@ -102,10 +102,16 @@ bool WindowServer::initialize()
 
         for (auto window : m_windows) {
             if (window->bounds().contains(m_mouse.x(), m_mouse.y())) {
-                m_connection.send_MouseMoveRequest(
-                    UI::Protocols::MouseMoveRequest(
-                        window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
-                    window->pid());
+                if (m_mouse.pressed()) {
+                    m_connection.send_MouseClickRequest(
+                        UI::Protocols::MouseClickRequest(window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
+                        window->pid());
+                } else {
+                    m_connection.send_MouseMoveRequest(
+                        UI::Protocols::MouseMoveRequest(
+                            window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
+                        window->pid());
+                }
             }
         }
     },

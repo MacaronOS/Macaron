@@ -1,8 +1,8 @@
 #include "Application.hpp"
 #include "Events.hpp"
 #include "LinearLayout.hpp"
-#include "View.hpp"
 #include "TextView.hpp"
+#include "View.hpp"
 
 #include <libc/syscalls.hpp>
 #include <libsys/Log.hpp>
@@ -46,6 +46,9 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     view1->set_text("Hello Text View!");
     view1->set_typeface(font);
     view1->set_padding(15, 15, 0, 0);
+    view1->set_on_mouse_click_listener([&](View& view) {
+        Log << "View1 clicked" << endl;
+    });
     auto layout_params_view_1 = new LayoutParams();
     layout_params_view_1->width = m_width / 2;
     layout_params_view_1->height = m_height;
@@ -55,6 +58,9 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     auto layout_params_view_2 = new LayoutParams();
     layout_params_view_2->width = m_width / 2;
     layout_params_view_2->height = m_height;
+    view2->set_on_mouse_click_listener([&](View& view) {
+        Log << "View2 clicked" << endl;
+    });
 
     layout->add_view(view1, layout_params_view_1);
     layout->add_view(view2, layout_params_view_2);
@@ -100,8 +106,24 @@ void Application::on_MouseMoveRequest(MouseMoveRequest& request)
     event.type = EventType::MouseMove;
     event.mouse_move_event = { request.x(), request.y() };
 
-    EventLoop::the().enqueue_callback_for_event([this](const Event& event) {
-        m_window.m_content_view->on_mouse_move_event(event.mouse_move_event);
+    EventLoop::the().enqueue_callback_for_event([&](const Event& event) {
+        m_window.m_content_view->dispatch_mouse_move_event(event.mouse_move_event);
+    },
+        event);
+}
+
+void Application::on_MouseClickRequest(MouseClickRequest& request)
+{
+    if (!m_window.m_content_view) {
+        return;
+    }
+
+    Event event;
+    event.type = EventType::MouseClick;
+    event.mouse_click_event = { request.x(), request.y() };
+
+    EventLoop::the().enqueue_callback_for_event([&](const Event& event) {
+        m_window.m_content_view->dispatch_mouse_click_event(event.mouse_click_event);
     },
         event);
 }

@@ -14,6 +14,9 @@ public:
         m_children.push_back(view);
     }
 
+    bool on_mouse_move_event(const MouseMoveEvent& event) override;
+    bool on_mouse_click_event(const MouseClickEvent& event) override;
+
 protected:
     // Validates layout params of its children
     bool check_layout_params(LayoutParams* params);

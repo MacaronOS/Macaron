@@ -4,6 +4,7 @@
 #include "LayoutParams.hpp"
 #include <libgraphics/Canvas.hpp>
 #include <libgraphics/Color.hpp>
+#include <wisterialib/Function.hpp>
 
 namespace UI {
 
@@ -31,16 +32,57 @@ public:
         }
     };
 
+    using OnMouseClickListener = Function<void(View& view)>;
+    using OnMouseMoveListener = Function<void(View& view, const MouseMoveEvent&)>;
+
 public:
     void set_padding(int left, int top, int right, int bottom);
     inline void set_background_color(const Graphics::Color& color) { m_background_color = color; }
 
-    // Events
-    virtual void on_mouse_move_event(const MouseMoveEvent& event);
-    virtual void on_mouse_click_event() {};
-    virtual void on_keydown() { }
-    virtual void on_keyup() { }
-    virtual void on_attached_to_vindow() { }
+    // Event Listeners
+    inline void set_on_mouse_click_listener(const OnMouseClickListener& l) { m_on_mouse_click_listener = l; }
+    inline void set_on_mouse_move_listener(const OnMouseMoveListener& l) { m_on_mouse_move_listener = l; }
+
+    // Event Dispatchers
+    inline bool dispatch_mouse_move_event(const MouseMoveEvent& event)
+    {
+        bool handled = call_on_mouse_move(event);
+        if (!handled) {
+            handled = on_mouse_move_event(event);
+        }
+        return handled;
+    }
+
+    inline bool dispatch_mouse_click_event(const MouseClickEvent& event)
+    {
+        bool handled = call_on_mouse_click();
+        if (!handled) {
+            handled = on_mouse_click_event(event);
+        }
+        return handled;
+    }
+
+    inline bool call_on_mouse_move(const MouseMoveEvent& event)
+    {
+        if (m_on_mouse_move_listener) {
+            m_on_mouse_move_listener(*this, event);
+            return true;
+        }
+        return false;
+    }
+
+    inline bool call_on_mouse_click()
+    {
+        if (m_on_mouse_click_listener) {
+            m_on_mouse_click_listener(*this);
+            return true;
+        }
+        return false;
+    }
+
+    // Default event processors
+    virtual bool on_mouse_move_event(const MouseMoveEvent& event) { return false; }
+    virtual bool on_mouse_click_event(const MouseClickEvent& event) { return false; };
 
     // Rendering
     void measure(int width_measure_spec, int height_measure_spec);
@@ -69,6 +111,8 @@ public:
     // Define the actual size of the view on screen, at drawing time and after layout
     inline int width() const { return m_width; }
     inline int height() const { return m_height; }
+
+    inline Graphics::Rect bounds() const { return Graphics::Rect(left(), top(), right() - 1, bottom() - 1); }
 
 protected:
     inline void set_measured_dimensions(int width, int height)
@@ -105,5 +149,8 @@ protected:
     int m_padding_right {};
     int m_padding_bottom {};
     Graphics::Color m_background_color {};
+
+    OnMouseClickListener m_on_mouse_click_listener {};
+    OnMouseMoveListener m_on_mouse_move_listener {};
 };
 }

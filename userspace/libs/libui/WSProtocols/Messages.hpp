@@ -11,7 +11,7 @@ enum class MessageType : int {
 	CreateWindowRequest,
 	CreateWindowResponse,
 	InvalidateRequest,
-	MousePressRequest,
+	MouseClickRequest,
 	MouseMoveRequest,
 	CloseWindowRequest,
 	CloseWindowResponse,
@@ -148,34 +148,44 @@ private:
 	int m_height;
 };
 
-class MousePressRequest {
-	static constexpr MessageType m_type = MessageType::MousePressRequest;
+class MouseClickRequest {
+	static constexpr MessageType m_type = MessageType::MouseClickRequest;
 
 public:
-	MousePressRequest(int window_id)
+	MouseClickRequest(int window_id, int x, int y)
 		: m_window_id(window_id)
+		, m_x(x)
+		, m_y(y)
 	{
 	}
 
-	MousePressRequest(const Vector<unsigned char>& buffer)
+	MouseClickRequest(const Vector<unsigned char>& buffer)
 	{
 		Decoder decoder(buffer);
 		decoder.skip(sizeof(MessageType));
 		m_window_id = decoder.get_int();
+		m_x = decoder.get_int();
+		m_y = decoder.get_int();
 	}
 
 	int window_id() const { return m_window_id; }
+	int x() const { return m_x; }
+	int y() const { return m_y; }
 
 	Vector<unsigned char> serialize() const
 	{
 		Encoder encoder {};
 		encoder.push((int)m_type);
 		encoder.push(m_window_id);
+		encoder.push(m_x);
+		encoder.push(m_y);
 		return encoder.done();
 	}
 
 private:
 	int m_window_id;
+	int m_x;
+	int m_y;
 };
 
 class MouseMoveRequest {

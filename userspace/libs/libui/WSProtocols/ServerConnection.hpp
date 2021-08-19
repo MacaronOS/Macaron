@@ -48,7 +48,7 @@ public:
 		}
 	}
 
-	void send_MousePressRequest(const MousePressRequest& request, int pid_to)
+	void send_MouseClickRequest(const MouseClickRequest& request, int pid_to)
 	{
 		auto serialized = request.serialize();
 		send_data(serialized.data(), serialized.size(), pid_to);

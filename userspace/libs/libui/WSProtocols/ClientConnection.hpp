@@ -8,7 +8,7 @@ namespace UI::Protocols {
 
 class ClientMessageReciever {
 public:
-	virtual void on_MousePressRequest(MousePressRequest& request);
+	virtual void on_MouseClickRequest(MouseClickRequest& request);
 	virtual void on_MouseMoveRequest(MouseMoveRequest& request);
 	virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request);
 	virtual void on_CreateWindowResponse(CreateWindowResponse& response);
@@ -29,9 +29,9 @@ public:
 		for (auto& message_bytes : recieved_messages_bytes) {
 			auto type = GetType(message_bytes);
 
-			if (type == MessageType::MousePressRequest) {
-				auto message = MousePressRequest(message_bytes);
-				m_reciever.on_MousePressRequest(message);
+			if (type == MessageType::MouseClickRequest) {
+				auto message = MouseClickRequest(message_bytes);
+				m_reciever.on_MouseClickRequest(message);
 			}
 
 			if (type == MessageType::MouseMoveRequest) {

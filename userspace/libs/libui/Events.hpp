@@ -6,6 +6,7 @@ namespace UI {
 
 enum class EventType {
     MouseMove,
+    MouseClick,
     WindowResize,
 };
 

@@ -17,7 +17,7 @@ public:
     void run();
 
     // protocols
-    void on_MousePressRequest(MousePressRequest& request) override { }
+    void on_MouseClickRequest(MouseClickRequest& request) override;
     void on_MouseMoveRequest(MouseMoveRequest& request) override;
     CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override {};
     void on_CreateWindowResponse(CreateWindowResponse& response) override;
