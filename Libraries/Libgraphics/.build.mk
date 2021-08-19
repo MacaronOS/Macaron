@@ -1,0 +1,1 @@
+libgraphics_DEPENDENCIES = libc Libsystem

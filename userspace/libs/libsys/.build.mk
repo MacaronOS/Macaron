@@ -1,1 +1,0 @@
-libsys_DEPENDENCIES = libc
