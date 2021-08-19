@@ -27,3 +27,14 @@ static constexpr T&& forward(RemoveReference<T>& t) { return static_cast<T&&>(t)
 
 template <class T>
 static constexpr T&& forward(RemoveReference<T>&& t) { return static_cast<T&&>(t); }
+
+extern "C" {
+
+typedef void (*AtExitFunction)(void*);
+
+int __cxa_atexit(AtExitFunction exit_function, void* parameter, void* dso_handle);
+void __cxa_finalize(void* dso_handle);
+
+int atexit(void (*handler)());
+
+}

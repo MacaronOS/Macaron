@@ -82,12 +82,6 @@ extern "C" void kernel_main(multiboot_info_t* multiboot_structure)
     DriverManager::the().add_driver(new kernel::drivers::Mouse());
     DriverManager::the().install_all();
 
-    String callback_message = "recieved keyboard event";
-
-    reinterpret_cast<Keyboard*>(DriverManager::the().get_driver(DriverEntity::Keyboard))->register_callback([&](auto& event) {
-        Logger::Log() << callback_message << " " << event.pressed << "\n";
-    });
-
     TimeManager::initialize();
 
     // setting VFS
