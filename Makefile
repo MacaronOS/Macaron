@@ -1,7 +1,7 @@
 include makefile.config
 include kernel/Makefile
 include userspace/Makefile
-include wisterialib/Makefile
+include Wisterialib/Makefile
 
 all: run
 
@@ -25,8 +25,8 @@ install:
 	sudo $(MKDIR_P) mountpoint/apps/
 	sudo find $(USERSPACE_BUILD_DIR)/apps/* -type f -name "*.app" -exec cp {} ./mountpoint/apps/ \;
 
-	sudo $(MKDIR_P) mountpoint/res/
-	sudo cp -r resources/* mountpoint/res/
+	sudo $(MKDIR_P) mountpoint/Resources/
+	sudo cp -r resources/* mountpoint/Resources/
 	
 	sudo umount mountpoint
 	

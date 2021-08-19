@@ -11,17 +11,19 @@ Commands:
 
     InstallUserspace:
         sudo fuse-ext2 drive.img mountpoint -o rw+
-        sudo mkdir -p mountpoint/apps/
-        sudo find userspace/apps/* -type f ! -name "*.*" -exec cp {} ./mountpoint/apps/ \\;
-        sudo mkdir -p mountpoint/res/
-        sudo cp -r resources/* mountpoint/res/
+        sudo mkdir -p mountpoint/Applications/
+        sudo find Applications/* -type f ! -name "*.*" -exec cp {} ./mountpoint/Applications/ \\;
+        sudo mkdir -p mountpoint/System/
+        sudo find System/* -type f ! -name "*.*" -exec cp {} ./mountpoint/System/ \\;
+        sudo mkdir -p mountpoint/Resources/
+        sudo cp -r Resources/* mountpoint/Resources/
         sudo umount mountpoint
 
     Run:
-        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel kernel/BeelderBuild/kernel
+        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/BeelderBuild/Kernel
 
 Build:
     Depends:
-        userspace/apps/main, userspace/apps/window_server, kernel
+        System, Kernel
 
 Default: Build, MakeDrive, InstallUserspace, Run
