@@ -17,10 +17,6 @@
 
 namespace UI {
 
-// in demo purposes
-uint8_t rgb[3] {};
-uint8_t ptr = 0;
-
 void Application::run()
 {
     m_connection.send_CreateWindowRequest(CreateWindowRequest(m_width, m_height, m_titile));
@@ -46,7 +42,7 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     view1->set_text("Button Button!");
     view1->set_typeface(font);
     view1->set_on_mouse_click_listener([&](View& view) {
-        Log << "Button clicked" << endl;
+        static_cast<Button&>(view).set_text("button clicked");
     });
     auto layout_params_view_1 = new LayoutParams();
     layout_params_view_1->width = m_width / 2;
@@ -65,34 +61,6 @@ void Application::on_CreateWindowResponse(CreateWindowResponse& response)
     layout->add_view(view2, layout_params_view_2);
 
     m_window.set_content_view(layout);
-
-    auto canvas = Graphics::Canvas(m_window.buffer());
-
-    if (m_window.m_content_view) {
-        m_window.m_content_view->measure(
-            View::MeasureSpec::MakeMeasureSpec(m_width, View::MeasureSpec::EXACTLY),
-            View::MeasureSpec::MakeMeasureSpec(m_height, View::MeasureSpec::EXACTLY));
-        m_window.m_content_view->layout(0, 0, m_width - 1, m_height - 1);
-        m_window.m_content_view->draw(canvas);
-    }
-    m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, m_width, m_height));
-
-    // rgb[ptr] = 255;
-
-    // EventLoop::the().register_timer([this]() {
-    //     for (int y = 0; y < m_window.height(); y++) {
-    //         for (int x = 0; x < m_window.width(); x++) {
-    //             m_window.buffer()[y][x] = Graphics::Color(rgb[0], rgb[1], rgb[2]);
-    //         }
-    //     }
-
-    //     rgb[ptr] = 0;
-    //     ptr = (ptr + 1) % 3;
-    //     rgb[ptr] = 255;
-
-    //     m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, m_width, m_height));
-    // },
-    //     2000);
 }
 
 void Application::on_MouseMoveRequest(MouseMoveRequest& request)

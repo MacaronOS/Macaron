@@ -84,6 +84,10 @@ public:
     virtual bool on_mouse_move_event(const MouseMoveEvent& event) { return false; }
     virtual bool on_mouse_click_event(const MouseClickEvent& event) { return false; };
 
+    void invalidate(int l, int t, int r, int b);
+    inline void invalidate() { invalidate(left(), top(), right(), bottom()); }
+    void request_layout();
+
     // Rendering
     void measure(int width_measure_spec, int height_measure_spec);
     virtual void on_measure(int width_measure_spec, int height_measure_spec);

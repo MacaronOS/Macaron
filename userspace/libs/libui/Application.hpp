@@ -7,7 +7,11 @@ namespace UI {
 
 class Application : public ClientMessageReciever {
 public:
-    Application() = default;
+    static Application& the()
+    {
+        static Application the;
+        return the;
+    }
 
     // intiial window properties
     void set_intitial_window_width(int width) { m_width = width; }
@@ -26,7 +30,10 @@ public:
     Window& window() { return m_window; }
     const Window& window() const { return m_window; }
 
-    void invalidate_area(int x, int y, int width, int height);
+    inline void invalidate_area(int x, int y, int width, int height)
+    {
+        m_connection.send_InvalidateRequest(InvalidateRequest(m_window.id(), 0, 0, m_width, m_height));
+    }
 
 private:
     Connection m_connection { Connection("/ext2/ws.socket", *this) };

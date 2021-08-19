@@ -30,7 +30,12 @@ public:
     inline int height() const { return m_height; }
 
     // children
-    inline void set_content_view(View* content_view) { m_content_view = content_view; }
+    inline void set_content_view(View* content_view)
+    {
+        m_content_view = content_view;
+        m_content_view->request_layout();
+    }
+    inline View* content_view() { return m_content_view; }
 
     void on_mouse_move(const UI::MouseMoveEvent& mouse_move_event) { }
     void on_mouse_click(const UI::MouseClickEvent& mouse_click_event) { }
