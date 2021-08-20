@@ -18,6 +18,8 @@ public:
     void set_intitial_window_height(int heigth) { m_height = heigth; }
     void set_intitial_window_titile(String titile) { m_titile = move(titile); }
 
+    inline void set_contnt_view(View* content_view) { m_content_view = content_view; }
+
     void run();
 
     // protocols
@@ -44,6 +46,8 @@ private:
     String m_titile {};
 
     Window m_window;
+
+    View* m_content_view {};
 };
 
 }

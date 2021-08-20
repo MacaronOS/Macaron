@@ -51,6 +51,7 @@ extern "C" void KernelEntryPoint(multiboot_info_t* multiboot_structure)
 
     VgaTUI::Initialize();
     VgaTUI::Print("hello\n");
+    
     Memory::SetupMalloc();
 
     InterruptManager::initialize();
