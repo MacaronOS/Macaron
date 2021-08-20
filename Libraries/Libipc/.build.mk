@@ -1,1 +1,0 @@
-libipc_DEPENDENCIES = libc Libsystem
