@@ -4,7 +4,7 @@ namespace UI {
 
 void LinearLayout::on_measure(int width_measure_spec, int height_measure_spec)
 {
-    auto my_params = static_cast<LinearLayoutParams*>(m_layout_params);
+    auto my_params = static_cast<LayoutParams*>(m_layout_params);
 
     int remain_width = my_params->width;
     int remain_height = my_params->height;
@@ -21,7 +21,7 @@ void LinearLayout::on_measure(int width_measure_spec, int height_measure_spec)
             MeasureSpec::MakeMeasureSpec(child_params->width, MeasureSpec::EXACTLY),
             MeasureSpec::MakeMeasureSpec(child_params->height, MeasureSpec::EXACTLY));
 
-        if (my_params->gravity == LinearLayoutParams::Gravity::Horizontal) {
+        if (m_orienttion == Orientation::Horizontal) {
             remain_width = max(0, remain_width - child->measured_width());
         } else {
             remain_height = max(0, remain_height - child->measured_height());
@@ -43,7 +43,7 @@ void LinearLayout::on_layout(bool changed, int left, int top, int right, int bot
     for (auto child : m_children) {
         child->layout(child_left, child_top, child_left + child->measured_width(), child_top + child->measured_height());
 
-        if (my_params->gravity == LinearLayoutParams::Gravity::Horizontal) {
+        if (m_orienttion == Orientation::Horizontal) {
             child_left += child->width();
         } else {
             child_top += child->height();

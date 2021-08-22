@@ -19,12 +19,7 @@ struct MarginLayoutParams : public LayoutParams {
 };
 
 struct LinearLayoutParams : public MarginLayoutParams {
-    enum class Gravity {
-        Vertical,
-        Horizontal,
-    };
-    Gravity gravity;
-    // TODO: weight
+    int weight;
 };
 
 }

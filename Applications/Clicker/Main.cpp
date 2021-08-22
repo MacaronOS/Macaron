@@ -20,11 +20,11 @@ int main()
     app.set_intitial_window_titile("Clicker");
 
     auto layout = new UI::LinearLayout();
-    auto layout_params = new UI::LinearLayoutParams();
-    layout_params->gravity = UI::LinearLayoutParams::Gravity::Vertical;
+    auto layout_params = new UI::LayoutParams();
     layout_params->width = width;
     layout_params->height = height;
     layout->set_layout_params(layout_params);
+    layout->set_orientation(UI::LinearLayout::Orientation::Vertical);
 
     size_t counter = 0;
     auto counter_view = new UI::TextView();
