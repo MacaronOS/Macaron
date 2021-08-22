@@ -2,6 +2,8 @@
 <img src="https://github.com/vpachkov/MacaronOS/blob/master/Assets/MacaronOS_logo.png" width="500" alt="Macaron OS">
 </p>
 
+## Progress
+<img src="https://github.com/vpachkov/MacaronOS/blob/master/Assets/MacaronOS-august-2021.gif" width="400" alt="Macaron OS">
 
 ## Features
 ### Kernel
