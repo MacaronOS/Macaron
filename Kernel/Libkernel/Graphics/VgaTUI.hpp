@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 #include <Wisterialib/String.hpp>
 
 namespace VgaTUI {

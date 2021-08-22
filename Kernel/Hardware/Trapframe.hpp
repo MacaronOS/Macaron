@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Libkernel/Logger.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 struct [[gnu::packed]] Trapframe
 {

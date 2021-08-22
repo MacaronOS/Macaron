@@ -1,17 +1,16 @@
 #pragma once
-#include "common.hpp"
-#include "Vector.hpp"
+#include "Common.hpp"
 #include "SimpleIterator.hpp"
+#include "Vector.hpp"
 
 class String {
 
 public:
     String() = default;
+    explicit String(size_t size);
     String(const String& str);
     String(String&& str);
     String(const char* s);
-    String(int);
-    String(uint32_t);
     String(char);
 
     ~String();
@@ -56,6 +55,10 @@ public:
 
     ConstIterator end() const { return ConstIterator(*this, m_size); }
     Iterator end() { return Iterator(*this, m_size); }
+
+    // Convertation
+    static String From(uint32_t num);
+    static String From(int num);
 
 private:
     void realloc(size_t);

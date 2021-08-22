@@ -3,10 +3,10 @@
 
 #include <Wisterialib/StaticStack.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/posix/defines.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 #include "../Drivers/DriverManager.hpp"
-#include "../Drivers/Keyboard.hpp"
+#include "../Drivers/IO/Keyboard.hpp"
 #include "../Filesystem/Base/VNode.hpp"
 #include "../Filesystem/VFS/VFS.hpp"
 

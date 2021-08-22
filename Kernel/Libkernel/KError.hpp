@@ -1,7 +1,8 @@
 #pragma once
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/extras.hpp>
-#include <Wisterialib/posix/errors.hpp>
+
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Runtime.hpp>
+#include <Wisterialib/ABI/Errors.hpp>
 
 namespace Kernel {
 

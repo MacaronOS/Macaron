@@ -4,10 +4,10 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Tasking/Net/LocalSocket.hpp>
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 #include <Wisterialib/String.hpp>
 #include <Wisterialib/Vector.hpp>
-#include <Wisterialib/extras.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 namespace Kernel::FS {
 

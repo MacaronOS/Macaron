@@ -24,6 +24,6 @@ Commands:
 
 Build:
     Depends:
-        System, Kernel
+        System, Kernel, Applications/Clicker
 
 Default: Build, MakeDrive, InstallUserspace, Run

@@ -4,7 +4,7 @@
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Memory.hpp>
 
 namespace Graphics::FontLoader {
 

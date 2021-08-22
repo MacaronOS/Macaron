@@ -1,7 +1,12 @@
 #include <String.hpp>
 #include <Vector.hpp>
-#include <common.hpp>
-#include <memory.hpp>
+#include <Common.hpp>
+#include <Memory.hpp>
+
+String::String(size_t size)
+{
+    realloc(size);
+}
 
 String::String(const String& str)
 {
@@ -28,35 +33,6 @@ String::String(const char* s)
     for (size_t i = 0; s[i] != '\0'; i++) {
         push_back(s[i]);
     }
-}
-
-String::String(int val)
-{
-    bool negative = false;
-    if (val < 0) {
-        negative = true;
-        val *= -1;
-    }
-    do {
-        push_back('0' + (val % 10));
-        val /= 10;
-    } while (val);
-
-    if (negative) {
-        push_back('-');
-    }
-
-    swap();
-}
-
-String::String(uint32_t val)
-{
-    do {
-        push_back('0' + (val % 10));
-        val /= 10;
-    } while (val);
-
-    swap();
 }
 
 String::String(char c)
@@ -287,4 +263,39 @@ void String::swap()
         m_string[left] = m_string[right];
         m_string[right] = temp;
     }
+}
+
+String String::From(uint32_t num)
+{
+    String str {};
+
+    do {
+        str.push_back('0' + (num % 10));
+        num /= 10;
+    } while (num);
+
+    str.swap();
+    return str;
+}
+
+String String::From(int num)
+{
+    String str {};
+
+    bool negative = false;
+    if (num < 0) {
+        negative = true;
+        num *= -1;
+    }
+    do {
+        str.push_back('0' + (num % 10));
+        num /= 10;
+    } while (num);
+
+    if (negative) {
+        str.push_back('-');
+    }
+
+    str.swap();
+    return str;
 }

@@ -1,7 +1,7 @@
 #include "cmd.hpp"
 
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/posix/defines.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 #include <Filesystem/VFS/VFS.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>

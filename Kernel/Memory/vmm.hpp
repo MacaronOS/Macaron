@@ -10,8 +10,8 @@
 #include <Tasking/TaskManager.hpp>
 
 #include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 #define PAGE_SIZE 4096
 

@@ -10,8 +10,8 @@
 #include <Wisterialib/Bitmap.hpp>
 #include <Wisterialib/String.hpp>
 #include <Wisterialib/Vector.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 #define EXT2_MAGIC 0xEF53
 

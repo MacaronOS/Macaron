@@ -1,8 +1,6 @@
 #include "InterruptManager.hpp"
 
 #include <Hardware/Port.hpp>
-#include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 
 extern "C" void isr_handler(Trapframe* regs)
 {

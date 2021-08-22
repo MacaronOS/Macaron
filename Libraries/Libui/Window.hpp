@@ -5,7 +5,7 @@
 
 #include <Libgraphics/Bitmap.hpp>
 
-#include <Wisterialib/extras.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 namespace UI {
 

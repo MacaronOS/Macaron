@@ -7,7 +7,7 @@
 
 #include <Wisterialib/Singleton.hpp>
 #include <Wisterialib/Vector.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 #define MAX_DRIVERS 32
 

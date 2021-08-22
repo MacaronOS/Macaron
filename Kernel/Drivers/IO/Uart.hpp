@@ -1,6 +1,8 @@
 #pragma once
-#include "Base/Driver.hpp"
-#include <Wisterialib/common.hpp>
+
+#include <Drivers/Base/Driver.hpp>
+
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::Drivers {
 

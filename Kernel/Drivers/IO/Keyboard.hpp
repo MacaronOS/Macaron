@@ -1,8 +1,10 @@
 #pragma once
-#include <Wisterialib/Vector.hpp>
+
+#include <Drivers/Base/Driver.hpp>
+#include <Hardware/Interrupts/InterruptManager.hpp>
+
 #include <Wisterialib/Function.hpp>
-#include "../Hardware/Interrupts/InterruptManager.hpp"
-#include "Base/Driver.hpp"
+#include <Wisterialib/Vector.hpp>
 
 namespace Kernel::Drivers {
 
@@ -111,7 +113,7 @@ public:
     bool install() override;
     void handle_interrupt(Trapframe* tf) override;
 
-    inline void register_callback(const Function<void(KeyboardEvent&)>& callback) { m_callbacks.push_back(callback);}
+    inline void register_callback(const Function<void(KeyboardEvent&)>& callback) { m_callbacks.push_back(callback); }
     inline KeyboardEvent last_keybord_event() const { return m_last_keybord_event; }
     inline void discard_last_keyboard_event() { m_last_keybord_event = { Key::Undefined }; }
 

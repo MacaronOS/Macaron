@@ -1,5 +1,5 @@
 #pragma once
-#include <Drivers/Keyboard.hpp>
+#include <Drivers/IO/Keyboard.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
 namespace Kernel::shell {

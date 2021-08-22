@@ -2,7 +2,7 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 static volatile uint16_t* vga_buffer = (uint16_t*)0xC00B8000;
 

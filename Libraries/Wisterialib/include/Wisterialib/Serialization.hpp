@@ -2,8 +2,8 @@
 
 #include "String.hpp"
 #include "Vector.hpp"
-#include "common.hpp"
-#include "extras.hpp"
+#include "Common.hpp"
+#include "Runtime.hpp"
 
 class Encoder {
 public:

@@ -5,7 +5,7 @@
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
 
-#include <Wisterialib/extras.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 static uint32_t window_id = 0;
 uint32_t next_window_id()

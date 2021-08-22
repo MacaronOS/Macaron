@@ -3,7 +3,7 @@
 
 #include <Wisterialib/String.hpp>
 #include <Wisterialib/Vector.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::FS {
 

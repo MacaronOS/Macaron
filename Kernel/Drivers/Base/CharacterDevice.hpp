@@ -4,7 +4,7 @@
 
 #include <Libkernel/Logger.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::Drivers {
 

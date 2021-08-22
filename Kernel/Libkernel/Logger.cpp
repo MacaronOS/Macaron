@@ -1,6 +1,6 @@
 #include "Libkernel/Logger.hpp"
 #include <Drivers/DriverManager.hpp>
-#include <Drivers/Uart.hpp>
+#include <Drivers/IO/Uart.hpp>
 #include <Wisterialib/String.hpp>
 namespace Kernel {
 

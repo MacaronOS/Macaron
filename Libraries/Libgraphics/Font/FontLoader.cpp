@@ -2,7 +2,7 @@
 #include "../BMP/BMPLoader.hpp"
 #include <Libc/Syscalls.hpp>
 #include <Libsystem/Log.hpp>
-#include <Wisterialib/posix/defines.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 namespace Graphics::FontLoader {
 

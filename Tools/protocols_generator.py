@@ -2,10 +2,10 @@ import glob
 import os
 
 include = '''
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Runtime.hpp>
 #include <Wisterialib/Serialization.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/extras.hpp>
 '''
 
 get_type = '''

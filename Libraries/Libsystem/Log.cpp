@@ -11,13 +11,13 @@ BufferedLog& operator<<(BufferedLog& BufferedLog, const String& value)
 
 BufferedLog& operator<<(BufferedLog& BufferedLog, int value)
 {
-    BufferedLog.m_buffer += String(value);
+    BufferedLog.m_buffer += String::From(value);
     return BufferedLog;
 }
 
 BufferedLog& operator<<(BufferedLog& BufferedLog, uint32_t value)
 {
-    BufferedLog.m_buffer += String(value);
+    BufferedLog.m_buffer += String::From(value);
     return BufferedLog;
 }
 

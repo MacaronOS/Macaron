@@ -1,10 +1,11 @@
 #include "Screen.hpp"
+
 #include <Libc/Syscalls.hpp>
 
-#include <Wisterialib/extras.hpp>
-#include <Wisterialib/posix/defines.hpp>
-
 #include <Libsystem/Log.hpp>
+
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 Screen::Screen(uint8_t screen_fd, Graphics::Bitmap&& first_buffer, Graphics::Bitmap&& second_buffer)
     : m_screen_fd(screen_fd)

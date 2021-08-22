@@ -1,15 +1,16 @@
 #pragma once
-#include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/Vector.hpp>
-#include <Wisterialib/ObjectPool.hpp>
-#include <Wisterialib/StaticStack.hpp>
-#include <Wisterialib/posix/shared.hpp>
+
 #include <Memory/Region.hpp>
+
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/ObjectPool.hpp>
+#include <Wisterialib/Singleton.hpp>
 
 namespace Kernel {
 
 class SharedBufferStorage : public Singleton<SharedBufferStorage> {
     static constexpr uint32_t MAX_BUFFERS = 100;
+
 public:
     SharedBufferStorage() = default;
 

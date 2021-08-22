@@ -1,10 +1,10 @@
 #include <Libkernel/Logger.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Drivers/DriverManager.hpp>
-#include <Drivers/Keyboard.hpp>
-#include <Drivers/Mouse.hpp>
+#include <Drivers/IO/Keyboard.hpp>
+#include <Drivers/IO/Mouse.hpp>
 #include <Drivers/PIT.hpp>
-#include <Drivers/Uart.hpp>
+#include <Drivers/IO/Uart.hpp>
 #include <Drivers/Disk/Ata.hpp>
 #include <Drivers/PCI/PCI.hpp>
 #include <Filesystem/Base/VNode.hpp>

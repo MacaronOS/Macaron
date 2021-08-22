@@ -5,8 +5,8 @@
 
 #include <Hardware/Port.hpp>
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 namespace Kernel::DescriptorTables::IDT {
 

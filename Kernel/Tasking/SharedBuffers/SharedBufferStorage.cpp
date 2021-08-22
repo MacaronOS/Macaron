@@ -5,7 +5,7 @@
 #include <Tasking/TaskManager.hpp>
 
 #include <Wisterialib/ObjectPool.hpp>
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 namespace Kernel {
 

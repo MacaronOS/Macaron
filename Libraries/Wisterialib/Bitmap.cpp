@@ -1,5 +1,5 @@
 #include <Bitmap.hpp>
-#include <common.hpp>
+#include <Common.hpp>
 
 #define BITMAP_CHUNK_SIZE 32
 #define BITMAP_CHUNK_COUNT(sz) (sz / BITMAP_CHUNK_SIZE + ((sz % BITMAP_CHUNK_SIZE > 0) ? 1 : 0))

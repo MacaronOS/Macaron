@@ -3,11 +3,11 @@
  * POSIX SYSTEM CALLS WRAPPERS ARE THE PART OF LIBC LIBRARY
  */
 
-#pragma  once
+#pragma once
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/posix/shared.hpp>
 
 void write_string(const String&);
 

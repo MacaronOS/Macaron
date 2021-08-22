@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 
 int putc(char c);
 int exit(int error_code);

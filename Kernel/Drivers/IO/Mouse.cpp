@@ -1,10 +1,9 @@
 #include "Mouse.hpp"
 
 #include <Hardware/Port.hpp>
-
 #include <Libkernel/Logger.hpp>
 
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 namespace Kernel::Drivers {
 
@@ -108,13 +107,12 @@ uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
     size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
 
     if (packets_index > m_packets_buffer_ptr) {
-        for (; packets_index < m_packets_size && buffer_index < size / sizeof(MousePacket) ; packets_index++, buffer_index++) {
+        for (; packets_index < m_packets_size && buffer_index < size / sizeof(MousePacket); packets_index++, buffer_index++) {
             reinterpret_cast<MousePacket*>(buffer)[buffer_index] = m_packets_buffer[packets_index];
         }
 
         packets_index = 0;
     }
-
 
     for (; packets_index < m_packets_buffer_ptr && buffer_index < size / sizeof(MousePacket);
          packets_index++, buffer_index++) {
@@ -125,7 +123,7 @@ uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
     return buffer_index * sizeof(MousePacket);
 }
 
-bool Mouse::can_read(uint32_t offset) 
+bool Mouse::can_read(uint32_t offset)
 {
     size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
     return packets_index != m_packets_buffer_ptr;

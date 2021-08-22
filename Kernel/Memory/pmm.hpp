@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Multiboot.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 #include <Wisterialib/Bitmap.hpp>
 #include <Wisterialib/Singleton.hpp>

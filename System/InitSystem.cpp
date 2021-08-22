@@ -11,6 +11,7 @@ int main()
 {
     run("/ext2/System/WindowServer");
     run("/ext2/Applications/Clicker");
+    run("/ext2/Applications/Clicker");
     while (true) {
         asm volatile("hlt");
     }

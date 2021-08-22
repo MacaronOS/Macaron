@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Base/CharacterDevice.hpp"
-#include "Base/Driver.hpp"
-#include "Base/DriverEntity.hpp"
-
+#include <Drivers/Base/CharacterDevice.hpp>
+#include <Drivers/Base/Driver.hpp>
+#include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/PCI/PCIDevice.hpp>
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::Drivers {
 

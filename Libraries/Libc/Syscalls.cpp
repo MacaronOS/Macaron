@@ -1,8 +1,7 @@
 #include "Syscalls.hpp"
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/defines.hpp>
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 
 #define ToSysArg(arg) ((int)(arg))
 
@@ -91,10 +90,10 @@ int getpid()
 
 int clock_gettime(int clock_id, timespec* ts)
 {
-    return do_syscall(Syscall::ClockGettime, ToSysArg(clock_id), ToSysArg(ts)); 
+    return do_syscall(Syscall::ClockGettime, ToSysArg(clock_id), ToSysArg(ts));
 }
 
-int sched_yield() 
+int sched_yield()
 {
     return do_syscall(Syscall::SchedYield);
 }

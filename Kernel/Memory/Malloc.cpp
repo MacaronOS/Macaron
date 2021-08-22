@@ -4,7 +4,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 using namespace Kernel::Memory;
 

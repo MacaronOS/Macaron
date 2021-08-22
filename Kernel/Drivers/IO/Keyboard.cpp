@@ -1,6 +1,6 @@
 #include "Keyboard.hpp"
-#include "../Hardware/Port.hpp"
 
+#include <Hardware/Port.hpp>
 #include <Libkernel/Assert.hpp>
 
 namespace Kernel::Drivers {

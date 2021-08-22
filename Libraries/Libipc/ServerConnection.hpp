@@ -3,7 +3,7 @@
 #include "IPCHeader.hpp"
 
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/extras.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 namespace IPC {
 

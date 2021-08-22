@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Wisterialib/String.hpp>
-#include <Drivers/Uart.hpp>
+#include <Drivers/IO/Uart.hpp>
 
 namespace Kernel {
 

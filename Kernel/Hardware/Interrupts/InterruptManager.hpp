@@ -1,6 +1,6 @@
 #pragma once
 #include <Hardware/Trapframe.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 #include <Wisterialib/Singleton.hpp>
 
 class InterruptHandler;

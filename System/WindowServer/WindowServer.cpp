@@ -11,8 +11,8 @@
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
-#include <Wisterialib/extras.hpp>
-#include <Wisterialib/posix/defines.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 bool WindowServer::initialize()
 {

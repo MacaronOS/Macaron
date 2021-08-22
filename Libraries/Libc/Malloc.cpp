@@ -1,8 +1,9 @@
 #include "Malloc.hpp"
 
 #include <Libc/Syscalls.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/defines.hpp>
+
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 
 struct MallocHeader {
     MallocHeader* next;

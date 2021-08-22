@@ -7,7 +7,7 @@
 #include <Memory/vmm.hpp>
 
 #include <Wisterialib/StaticStack.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Memory.hpp>
 
 #define PAGE_SIZE 4096
 #define FRAME_SIZE 4096

@@ -1,14 +1,14 @@
 #include "Elf.hpp"
 #include "Elfstructs.hpp"
 
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/memory.hpp>
-#include <Wisterialib/posix/defines.hpp>
-
-#include <Libkernel/KError.hpp>
 #include <Filesystem/VFS/VFS.hpp>
+#include <Libkernel/KError.hpp>
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
+
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Memory.hpp>
+#include <Wisterialib/String.hpp>
 
 namespace Kernel::Tasking {
 
@@ -21,7 +21,6 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
 
     auto prog_fd_or_error = vfs.open(exec_path, 1);
     if (!prog_fd_or_error) {
-        Logger::Log() << "cant open";
         return prog_fd_or_error.error();
     }
 

@@ -1,8 +1,8 @@
 #include "Syscalls.hpp"
 
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/shared.hpp>
 
 #define ToSysArg(arg) ((int)(arg))
 

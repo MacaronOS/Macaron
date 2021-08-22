@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/shared.hpp>
-#include <Wisterialib/posix/defines.hpp>
-#include <Wisterialib/Singleton.hpp>
 #include <Drivers/PIT.hpp>
 #include <Libkernel/KError.hpp>
+
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Singleton.hpp>
 
 namespace Kernel::Time {
 

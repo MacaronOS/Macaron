@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Wisterialib/Vector.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 #include "../Hardware/Interrupts/InterruptManager.hpp"
 #include "Base/Driver.hpp"

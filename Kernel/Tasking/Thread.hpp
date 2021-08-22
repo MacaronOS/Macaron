@@ -41,7 +41,6 @@ public:
         User,
     };
 
-public:
     explicit Thread(Process* proc, Privilege pr = Privilege::User)
         : m_process(proc)
     {
@@ -56,7 +55,6 @@ public:
     void setup(Privilege pr = Privilege::User);
     static Thread* TieNewTo(Process* proc);
 
-public:
     ThreadState state() const { return m_state; }
     uint32_t kernel_stack() const { return m_kernel_stack; }
     uint32_t kernel_stack_top() const { return m_kernel_stack + KERNEL_STACK_SIZE; }
@@ -65,7 +63,6 @@ public:
     void* user_stack_ptr() const { return (void*)m_user_stack; }
     Trapframe* trapframe() const { return (Trapframe*)(m_kernel_stack + KERNEL_STACK_SIZE - sizeof(Trapframe)); }
 
-public:
     inline void Terminate() { m_state = ThreadState::Terminated; }
 
     inline void set_privilege(Privilege pr)

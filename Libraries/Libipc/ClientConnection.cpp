@@ -1,10 +1,10 @@
 #include "ClientConnection.hpp"
 
 #include <Libc/Syscalls.hpp>
-#include <Wisterialib/extras.hpp>
-#include <Wisterialib/posix/defines.hpp>
-#include <Wisterialib/memory.hpp>
 #include <Libsystem/Log.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Memory.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 namespace IPC {
 

@@ -1,7 +1,7 @@
 #include "DriverManager.hpp"
 #include "Base/Driver.hpp"
 #include "Base/DriverEntity.hpp"
-#include "BochVBE.hpp"
+#include "Graphics/BochVBE.hpp"
 
 #include <Drivers/PCI/PCI.hpp>
 #include <Drivers/PCI/PCIDevice.hpp>

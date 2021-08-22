@@ -9,8 +9,8 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Tasking/TaskManager.hpp>
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 namespace Kernel::Memory {
 

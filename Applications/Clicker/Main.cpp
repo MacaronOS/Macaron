@@ -41,7 +41,7 @@ int main()
     increase_button->set_typeface(font);
     increase_button->set_gravity(UI::Gravity::Center);
     increase_button->set_on_mouse_click_listener([&](UI::View& view) {
-        counter_view->set_text(++counter);
+        counter_view->set_text(String::From(++counter));
     });
     auto increase_button_paprams = new UI::LayoutParams();
     increase_button_paprams->width = 170;

@@ -4,10 +4,9 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 
-#include <Wisterialib/extras.hpp>
-#include <Wisterialib/memory.hpp>
-#include <Wisterialib/posix/defines.hpp>
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Memory.hpp>
+#include <Wisterialib/Runtime.hpp>
 
 namespace Kernel::FS {
 using namespace Logger;

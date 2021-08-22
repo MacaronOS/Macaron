@@ -1,16 +1,16 @@
 #include "BochVBE.hpp"
-#include "Base/CharacterDevice.hpp"
-#include "Base/DriverEntity.hpp"
 
-#include <Libkernel/Logger.hpp>
-#include <Libkernel/Assert.hpp>
+#include <Drivers/Base/CharacterDevice.hpp>
+#include <Drivers/Base/DriverEntity.hpp>
 #include <Hardware/Port.hpp>
+#include <Libkernel/Assert.hpp>
+#include <Libkernel/Logger.hpp>
 #include <Memory/pmm.hpp>
 #include <Memory/vmm.hpp>
 #include <Tasking/TaskManager.hpp>
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/posix/defines.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::Drivers {
 

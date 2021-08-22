@@ -1,5 +1,5 @@
 #pragma once
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Kernel::Tasking {
 

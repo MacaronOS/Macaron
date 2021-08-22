@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 #define EXT2_STATE_CLEAN 1
 #define EXT2_STATE_ERRORS 2

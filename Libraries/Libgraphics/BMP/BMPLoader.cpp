@@ -1,9 +1,9 @@
 #include "BMPLoader.hpp"
-#include <Wisterialib/posix/defines.hpp>
-#include <Libsystem/Log.hpp>
-#include <Libc/Syscalls.hpp>
-#include <Wisterialib/memory.hpp>
 
+#include <Libc/Syscalls.hpp>
+#include <Libsystem/Log.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Wisterialib/Memory.hpp>
 namespace Graphics::BMPLoader {
 
 struct [[gnu::packed]] BMPFileHeader {
@@ -74,7 +74,7 @@ Graphics::Bitmap load(const String& path)
     auto colors_flipped = (Graphics::Color*)malloc(4 * widht * height);
 
     for (int y = 0; y < height; y++) {
-        for (int x = 0 ; x < widht ; x++) {
+        for (int x = 0; x < widht; x++) {
             colors_flipped[y * widht + x] = colors[(height - y) * widht + x];
         }
     }

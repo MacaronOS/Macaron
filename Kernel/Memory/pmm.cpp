@@ -5,8 +5,8 @@
 
 #include <Wisterialib/Bitmap.hpp>
 #include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 #include <Libkernel/Logger.hpp>
 

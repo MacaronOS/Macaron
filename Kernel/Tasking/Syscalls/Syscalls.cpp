@@ -9,9 +9,8 @@
 #include <Tasking/TaskManager.hpp>
 #include <Time/TimeManager.hpp>
 
-#include <Wisterialib/posix/defines.hpp>
-#include <Wisterialib/posix/errors.hpp>
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Errors.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 namespace Kernel::Syscalls {
 

@@ -1,7 +1,7 @@
 #include "LocalSocket.hpp"
 
-#include <Wisterialib/common.hpp>
-#include <Wisterialib/memory.hpp>
+#include <Wisterialib/Common.hpp>
+#include <Wisterialib/Memory.hpp>
 
 #include <Libkernel/Logger.hpp>
 #include <Libkernel/Assert.hpp>

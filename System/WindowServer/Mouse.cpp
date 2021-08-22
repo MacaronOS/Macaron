@@ -4,7 +4,7 @@
 
 #include <Libsystem/Log.hpp>
 
-#include <Wisterialib/posix/shared.hpp>
+#include <Wisterialib/ABI/Syscalls.hpp>
 
 void Mouse::update_position()
 {

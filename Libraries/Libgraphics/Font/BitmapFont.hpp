@@ -3,7 +3,7 @@
 #include "../Bitmap.hpp"
 
 #include <Wisterialib/String.hpp>
-#include <Wisterialib/common.hpp>
+#include <Wisterialib/Common.hpp>
 
 namespace Graphics {
 
