@@ -4,4 +4,5 @@ build
 *.idea/
 .DS_Store
 **/BeelderBuild
+**/MacaBuild
 mountpoint

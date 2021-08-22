@@ -41,7 +41,7 @@ brew install e2fsprogs
 apt install e2fsprogs
 ```
 
-### Get [Macabuilder](https://github.com/vpachkov/Beelder) 
+### Get [Macabuilder](https://github.com/MacaronOS/Macabuilder) 
 Build system developed to simplify Macaron OS building process
 
 ### Get a crosscompiler:
@@ -54,6 +54,6 @@ brew install i686-elf-gcc
 ./i686-elf-tools.sh
 ```
 
-After evertythin's set up, just launch [Macabuilder](https://github.com/vpachkov/Beelder) from the root project directory.
+After evertythin's set up, just launch [Macabuilder](https://github.com/MacaronOS/Macabuilder) from the root project directory.
 </br>
 It will find MacaronOS.maca file, build and run MacaronOS.

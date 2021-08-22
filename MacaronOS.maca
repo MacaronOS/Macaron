@@ -2,7 +2,7 @@ Commands:
     MakeDrive: 
         rm -f drive.img
         qemu-img create -f raw drive.img 16M
-        sudo mkfs -t ext2 -r 0 -b 1024 drive.img
+        sudo /usr/local/opt/e2fsprogs/sbin/mkfs.ext2 -t ext2 -r 0 -b 1024 drive.img
         sudo mkdir -p mountpoint
         sudo fuse-ext2 drive.img mountpoint -o rw+
         sudo touch mountpoint/file.txt
@@ -20,7 +20,7 @@ Commands:
         sudo umount mountpoint
 
     Run:
-        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/BeelderBuild/Kernel
+        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel
 
 Build:
     Depends:
