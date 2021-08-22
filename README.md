@@ -5,11 +5,11 @@
 
 ## Features
 ### Kernel
-- Higher Half Kernel
-- Keyboard, mouse, ATA, PCI and BGA drivers
-- VFS with DevFS and EXT2 filesystem support
-- Paging, physical and virtual memory managers
-- Userspace processes and Threads
+- **Higher Half Kernel**
+- **Keyboard**, **mouse**, **ATA**, **PCI** and **BGA** drivers
+- **VFS** with **DevFS** and **EXT2** filesystem support
+- **Paging**, **physical** and **virtual** **memory managers**
+- **Userspace processes** and **threads**
 
 ### Userspace
 - **Libc** - At this moment contains Posix syscalls and malloc
