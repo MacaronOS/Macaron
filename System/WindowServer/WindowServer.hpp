@@ -6,8 +6,8 @@
 #include "Screen.hpp"
 #include "Window.hpp"
 
-#include <Wisterialib/List.hpp>
-#include <Wisterialib/ObjectPool.hpp>
+#include <Macaronlib/List.hpp>
+#include <Macaronlib/ObjectPool.hpp>
 
 #include <Libgraphics/Rect.hpp>
 #include <Libgraphics/Font/BitmapFont.hpp>

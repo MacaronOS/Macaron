@@ -1,9 +1,9 @@
 #include "Shell.hpp"
 #include "cmd.hpp"
 
-#include <Wisterialib/StaticStack.hpp>
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/StaticStack.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 #include "../Drivers/DriverManager.hpp"
 #include "../Drivers/IO/Keyboard.hpp"
@@ -240,7 +240,7 @@ static void execute_command(const String& command)
 void run()
 {
     VgaTUI::Initialize();
-    VgaTUI::Print("Wisteria Shell v0.1\n");
+    VgaTUI::Print("Macaron Shell v0.1\n");
 
     s_keyboard = static_cast<Keyboard*>(DriverManager::the().get_driver(DriverEntity::Keyboard));
     Kernel::shell::cmd::init();

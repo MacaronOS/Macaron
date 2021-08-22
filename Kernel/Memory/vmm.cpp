@@ -9,8 +9,8 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Tasking/TaskManager.hpp>
 
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Memory.hpp>
 
 namespace Kernel::Memory {
 

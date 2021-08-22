@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TextView.hpp"
-#include <Wisterialib/Function.hpp>
+#include <Macaronlib/Function.hpp>
 
 namespace UI {
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Runtime.hpp>
-#include <Wisterialib/Serialization.hpp>
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Runtime.hpp>
+#include <Macaronlib/Serialization.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace UI::Protocols {
 

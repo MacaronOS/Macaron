@@ -6,8 +6,8 @@
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
 
-#include <Wisterialib/StaticStack.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/StaticStack.hpp>
+#include <Macaronlib/Memory.hpp>
 
 #define PAGE_SIZE 4096
 #define FRAME_SIZE 4096

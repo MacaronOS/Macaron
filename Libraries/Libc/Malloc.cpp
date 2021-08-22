@@ -2,8 +2,8 @@
 
 #include <Libc/Syscalls.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Common.hpp>
 
 struct MallocHeader {
     MallocHeader* next;

@@ -5,9 +5,9 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
 
-#include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/Vector.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Singleton.hpp>
+#include <Macaronlib/Vector.hpp>
+#include <Macaronlib/Common.hpp>
 
 #define MAX_DRIVERS 32
 

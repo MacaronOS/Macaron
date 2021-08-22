@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 #include <Drivers/IO/Uart.hpp>
 
 namespace Kernel {

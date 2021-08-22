@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Multiboot.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
-#include <Wisterialib/Bitmap.hpp>
-#include <Wisterialib/Singleton.hpp>
+#include <Macaronlib/Bitmap.hpp>
+#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel::Memory {
 

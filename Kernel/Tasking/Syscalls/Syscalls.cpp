@@ -9,8 +9,8 @@
 #include <Tasking/TaskManager.hpp>
 #include <Time/TimeManager.hpp>
 
-#include <Wisterialib/ABI/Errors.hpp>
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/ABI/Errors.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 namespace Kernel::Syscalls {
 

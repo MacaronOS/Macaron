@@ -1,7 +1,7 @@
 #include "Log.hpp"
 #include "Syscalls.hpp"
 
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 
 BufferedLog& operator<<(BufferedLog& BufferedLog, const String& value)
 {

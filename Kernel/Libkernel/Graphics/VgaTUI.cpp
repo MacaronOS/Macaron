@@ -1,8 +1,8 @@
 #include <Hardware/Port.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Common.hpp>
 
 static volatile uint16_t* vga_buffer = (uint16_t*)0xC00B8000;
 

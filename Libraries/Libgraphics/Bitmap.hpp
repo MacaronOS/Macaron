@@ -2,7 +2,7 @@
 
 #include "Color.hpp"
 
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Graphics {
 

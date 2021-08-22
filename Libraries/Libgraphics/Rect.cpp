@@ -1,6 +1,6 @@
 #include "Rect.hpp"
 
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Graphics {
 

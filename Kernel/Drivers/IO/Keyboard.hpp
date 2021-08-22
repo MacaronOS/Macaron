@@ -3,8 +3,8 @@
 #include <Drivers/Base/Driver.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
 
-#include <Wisterialib/Function.hpp>
-#include <Wisterialib/Vector.hpp>
+#include <Macaronlib/Function.hpp>
+#include <Macaronlib/Vector.hpp>
 
 namespace Kernel::Drivers {
 

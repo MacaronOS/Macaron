@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 
 enum class BufferedLogOp {
     Endl,

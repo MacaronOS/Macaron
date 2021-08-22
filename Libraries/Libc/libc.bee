@@ -3,7 +3,7 @@ Build:
 
     Src: *.cpp, Crt0.s
 
-    Depends: ../Wisterialib
+    Depends: ../Macaronlib
 
     Extensions:
         cpp:
@@ -12,7 +12,7 @@ Build:
                 -O3, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding,
                 -m32, -fno-leading-underscore, -Wno-write-strings
                 -fno-use-cxa-atexit,-fno-rtti, -fno-exceptions
-                -I../Wisterialib/include, -I..
+                -I../Macaronlib/include, -I..
 
         s:
             Compiler: nasm

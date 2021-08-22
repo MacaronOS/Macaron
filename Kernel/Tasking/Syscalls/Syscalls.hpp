@@ -2,7 +2,7 @@
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Hardware/Trapframe.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 namespace Kernel::Syscalls {
 

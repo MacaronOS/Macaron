@@ -9,8 +9,8 @@
 
 #include <Drivers/PIT.hpp>
 
-#include <Wisterialib/List.hpp>
-#include <Wisterialib/Singleton.hpp>
+#include <Macaronlib/List.hpp>
+#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel::Tasking {
 

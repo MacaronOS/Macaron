@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Runtime.hpp>
-#include <Wisterialib/ABI/Errors.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Runtime.hpp>
+#include <Macaronlib/ABI/Errors.hpp>
 
 namespace Kernel {
 

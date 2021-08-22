@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
 struct [[gnu::packed]] Trapframe
 {

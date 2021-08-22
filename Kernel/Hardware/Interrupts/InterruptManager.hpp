@@ -1,7 +1,7 @@
 #pragma once
 #include <Hardware/Trapframe.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Singleton.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Singleton.hpp>
 
 class InterruptHandler;
 

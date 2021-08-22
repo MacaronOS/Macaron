@@ -2,8 +2,8 @@
 
 #include <Libc/Syscalls.hpp>
 #include <Libsystem/Log.hpp>
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Memory.hpp>
 namespace Graphics::BMPLoader {
 
 struct [[gnu::packed]] BMPFileHeader {

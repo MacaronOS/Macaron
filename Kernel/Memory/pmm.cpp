@@ -3,10 +3,10 @@
 
 #include <Multiboot.hpp>
 
-#include <Wisterialib/Bitmap.hpp>
-#include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/Bitmap.hpp>
+#include <Macaronlib/Singleton.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Memory.hpp>
 
 #include <Libkernel/Logger.hpp>
 

@@ -3,8 +3,8 @@
 #include "Driver.hpp"
 
 #include <Libkernel/Logger.hpp>
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Kernel::Drivers {
 

@@ -1,7 +1,7 @@
 #include "Libkernel/Logger.hpp"
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/IO/Uart.hpp>
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 namespace Kernel {
 
 using namespace Drivers;

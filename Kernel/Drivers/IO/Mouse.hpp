@@ -5,7 +5,7 @@
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Hardware/Port.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 namespace Kernel::Drivers {
 

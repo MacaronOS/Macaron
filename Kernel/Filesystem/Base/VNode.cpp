@@ -1,6 +1,6 @@
 #include "VNode.hpp"
 
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Kernel::FS {
 

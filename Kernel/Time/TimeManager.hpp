@@ -3,9 +3,9 @@
 #include <Drivers/PIT.hpp>
 #include <Libkernel/KError.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Singleton.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel::Time {
 

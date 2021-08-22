@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace VgaTUI {
 

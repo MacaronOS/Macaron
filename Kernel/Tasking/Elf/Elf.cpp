@@ -6,9 +6,9 @@
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Memory.hpp>
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Memory.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Kernel::Tasking {
 

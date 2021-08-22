@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Wisterialib/Vector.hpp>
+#include <Macaronlib/Vector.hpp>
 #include <Drivers/Base/Driver.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Kernel::Drivers {
 

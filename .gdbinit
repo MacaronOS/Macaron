@@ -1,2 +1,2 @@
-file build/kernel/WisteriaOS.bin
+file build/kernel/MacaronOS.bin
 target remote localhost:1234

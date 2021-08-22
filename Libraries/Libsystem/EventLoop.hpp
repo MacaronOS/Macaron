@@ -5,11 +5,11 @@
 #include <Libsystem/Log.hpp>
 #include <Libsystem/Syscalls.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Function.hpp>
-#include <Wisterialib/Runtime.hpp>
-#include <Wisterialib/Vector.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Function.hpp>
+#include <Macaronlib/Runtime.hpp>
+#include <Macaronlib/Vector.hpp>
 
 namespace Core {
 

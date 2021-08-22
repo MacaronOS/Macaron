@@ -2,7 +2,7 @@
 
 #include "../Bitmap.hpp"
 
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Graphics::BMPLoader {
 

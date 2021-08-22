@@ -9,9 +9,9 @@
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Tasking/TaskManager.hpp>
 
-#include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/Singleton.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Memory.hpp>
 
 #define PAGE_SIZE 4096
 

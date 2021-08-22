@@ -2,8 +2,8 @@
 
 #include "IPCHeader.hpp"
 
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Runtime.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Runtime.hpp>
 
 namespace IPC {
 

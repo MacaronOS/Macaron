@@ -4,9 +4,9 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Memory.hpp>
-#include <Wisterialib/Runtime.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Memory.hpp>
+#include <Macaronlib/Runtime.hpp>
 
 namespace Kernel::FS {
 using namespace Logger;

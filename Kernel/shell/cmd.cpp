@@ -1,7 +1,7 @@
 #include "cmd.hpp"
 
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 #include <Filesystem/VFS/VFS.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>

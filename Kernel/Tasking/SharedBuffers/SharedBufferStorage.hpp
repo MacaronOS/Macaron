@@ -2,9 +2,9 @@
 
 #include <Memory/Region.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/ObjectPool.hpp>
-#include <Wisterialib/Singleton.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/ObjectPool.hpp>
+#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel {
 

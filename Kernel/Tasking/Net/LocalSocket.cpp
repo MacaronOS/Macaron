@@ -1,7 +1,7 @@
 #include "LocalSocket.hpp"
 
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Memory.hpp>
 
 #include <Libkernel/Logger.hpp>
 #include <Libkernel/Assert.hpp>

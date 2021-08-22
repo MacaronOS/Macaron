@@ -7,11 +7,11 @@
 #include <Drivers/Disk/DiskDriver.hpp>
 #include <Filesystem/Base/FS.hpp>
 #include <Filesystem/Base/VNode.hpp>
-#include <Wisterialib/Bitmap.hpp>
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Vector.hpp>
+#include <Macaronlib/Bitmap.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Vector.hpp>
 
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Kernel::FS::EXT2 {
 

@@ -7,11 +7,11 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
-#include <Wisterialib/Bitmap.hpp>
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Vector.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Memory.hpp>
+#include <Macaronlib/Bitmap.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Vector.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Memory.hpp>
 
 #define EXT2_MAGIC 0xEF53
 

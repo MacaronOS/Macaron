@@ -2,8 +2,8 @@
 
 #include "../Bitmap.hpp"
 
-#include <Wisterialib/String.hpp>
-#include <Wisterialib/Common.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Graphics {
 

@@ -3,7 +3,7 @@ Build:
 
     Src: *.cpp, **/*.cpp
 
-    Depends: ../Wisterialib, ../Libgraphics, ../Libc, ../Libsystem
+    Depends: ../Macaronlib, ../Libgraphics, ../Libc, ../Libsystem
 
     Extensions:
         cpp:
@@ -12,6 +12,6 @@ Build:
                 -O3, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
                 -m32, -fno-leading-underscore, -Wno-write-strings,
                 -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions, -fno-threadsafe-statics,
-                -I../Wisterialib/include, -I..
+                -I../Macaronlib/include, -I..
 
     Archiver: i686-elf-ar

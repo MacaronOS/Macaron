@@ -11,8 +11,8 @@
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Runtime.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Runtime.hpp>
 
 bool WindowServer::initialize()
 {

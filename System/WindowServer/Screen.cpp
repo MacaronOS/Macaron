@@ -4,8 +4,8 @@
 
 #include <Libsystem/Log.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Runtime.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Runtime.hpp>
 
 Screen::Screen(uint8_t screen_fd, Graphics::Bitmap&& first_buffer, Graphics::Bitmap&& second_buffer)
     : m_screen_fd(screen_fd)

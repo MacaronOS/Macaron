@@ -4,8 +4,8 @@
 #include <Tasking/Process.hpp>
 #include <Tasking/TaskManager.hpp>
 
-#include <Wisterialib/ObjectPool.hpp>
-#include <Wisterialib/ABI/Syscalls.hpp>
+#include <Macaronlib/ObjectPool.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
 
 namespace Kernel {
 

@@ -5,11 +5,11 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Array.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/Singleton.hpp>
-#include <Wisterialib/StaticStack.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Array.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/Singleton.hpp>
+#include <Macaronlib/StaticStack.hpp>
 
 namespace Kernel::FS {
 
@@ -71,7 +71,7 @@ public:
     KError bind(fd_t sockfd, const String& path);
     KError connect(fd_t sockfd, const String& path);
 
-    // custom WisteriaOS api fuctions
+    // custom MacaronOS api fuctions
     KErrorOr<size_t> file_size(fd_t fd);
     Vector<String> listdir(const String& path);
     bool can_read(fd_t fd);

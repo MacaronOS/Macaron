@@ -1,8 +1,8 @@
 #include "Syscalls.hpp"
 
-#include <Wisterialib/ABI/Syscalls.hpp>
-#include <Wisterialib/Common.hpp>
-#include <Wisterialib/String.hpp>
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Common.hpp>
+#include <Macaronlib/String.hpp>
 
 #define ToSysArg(arg) ((int)(arg))
 
