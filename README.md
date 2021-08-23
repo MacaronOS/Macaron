@@ -27,7 +27,7 @@
 
 ### Get fuse-ext2 tools
 #### MacOS
-Install from here [fuse-ext2](https://github.com/alperakcan/fuse-ext2)
+The building process is described [here](https://apple.stackexchange.com/questions/226981/how-do-i-install-fuse-ext2-to-use-with-osxfuse). Just follow the top answer.
 #### Linux
 ```bash
 apt install fuseext2
@@ -43,8 +43,16 @@ brew install e2fsprogs
 apt install e2fsprogs
 ```
 
-### Get [Macabuilder](https://github.com/MacaronOS/Macabuilder) 
-Build system developed to simplify Macaron OS building process
+### Get qemu
+#### MacOS
+```bash
+brew install qemu
+```
+But the best option for mac is to build it yourself. More info [here](https://www.reddit.com/r/osdev/comments/j1a6hn/bga_driver_double_buffering_issue/).
+#### Linux
+```bash
+apt install qemu-system-i386 qemu-utils
+```
 
 ### Get a crosscompiler:
 #### MacOS
@@ -53,9 +61,22 @@ brew install i686-elf-gcc
 ```
 #### Linux
 ```bash
-./i686-elf-tools.sh
+./Scripts/i686-elf-tools.sh
 ```
 
-After evertythin's set up, just launch [Macabuilder](https://github.com/MacaronOS/Macabuilder) from the root project directory.
-</br>
-It will find MacaronOS.maca file, build and run MacaronOS.
+### Get NASM
+#### MacOS
+```bash
+brew install nasm
+```
+#### Linux
+```bash
+apt install nasm
+```
+
+### Get [Macabuilder](https://github.com/MacaronOS/Macabuilder) 
+Macabuilder is a build system developed to simplify Macaron OS building process.
+You can find build instructions [here](https://github.com/MacaronOS/Macabuilder#how-to-build-this-project).
+
+### Run Macaron OS
+After everything's set up, just launch Macabuilder executable from the root project directory. It will find MacaronOS.maca file, build and run MacaronOS.
