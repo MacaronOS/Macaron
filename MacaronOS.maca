@@ -1,13 +1,6 @@
 Commands:
     MakeDrive: 
-        rm -f drive.img
-        qemu-img create -f raw drive.img 16M
-        sudo /usr/local/opt/e2fsprogs/sbin/mkfs.ext2 -t ext2 -r 0 -b 1024 drive.img
-        sudo mkdir -p mountpoint
-        sudo fuse-ext2 drive.img mountpoint -o rw+
-        sudo touch mountpoint/file.txt
-        sudo bash -c 'echo "testing..." > mountpoint/file.txt'
-        sudo umount mountpoint
+        ./Scripts/make_drive.sh
 
     InstallUserspace:
         sudo fuse-ext2 drive.img mountpoint -o rw+
