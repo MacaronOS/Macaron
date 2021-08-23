@@ -15,7 +15,7 @@ namespace Core {
 
 template <typename EventHolder>
 struct QueuedEvent {
-    const Function<void(EventHolder& event)>& callback;
+    Function<void(EventHolder& event)> callback;
     EventHolder event;
 
     void operator()()

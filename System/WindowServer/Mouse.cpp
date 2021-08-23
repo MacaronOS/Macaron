@@ -2,7 +2,7 @@
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 
-void Mouse::update_position()
+void Mouse::pump()
 {
     m_prev_x = m_x;
     m_prev_y = m_y;
@@ -18,7 +18,13 @@ void Mouse::update_position()
         m_y -= mouse_buffer[packet_index].y_move;
         m_y = max(m_y, 0);
         m_y = min(m_y, m_clipping_height - m_cursor.height() - 1);
+
+        auto pressed = mouse_buffer[packet_index].left_btn;
         
-        m_pressed = mouse_buffer[packet_index].left_btn;
+        if (!m_pressed && pressed) {
+            m_clicks.push_back({ m_x, m_y });
+        }
+        
+        m_pressed = pressed;
     }
 }

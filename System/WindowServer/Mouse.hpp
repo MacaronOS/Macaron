@@ -8,6 +8,14 @@
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Rect.hpp>
 
+#include <Macaronlib/Vector.hpp>
+#include <Macaronlib/Runtime.hpp>
+
+struct Click 
+{
+    int x, y;
+};
+
 class Mouse {
 public:
     Mouse() = default;
@@ -29,9 +37,11 @@ public:
         m_clipping_height = height;
     }
 
-    void update_position();
+    void pump();
 
     inline bool pressed() { return m_pressed; }
+    
+    inline Vector<Click> take_over_clicks() { return move(m_clicks); }
 
     inline int x() const { return m_x; }
     inline int y() const { return m_y; }
@@ -56,6 +66,7 @@ private:
     int m_prev_y {};
 
     bool m_pressed {};
+    Vector<Click> m_clicks {};
 
     Graphics::Bitmap m_cursor {};
 };

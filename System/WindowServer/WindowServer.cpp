@@ -68,7 +68,7 @@ bool WindowServer::initialize()
         1000 / 60);
 
     m_event_loop.register_fd_for_select([this]() {
-        m_mouse.update_position();
+        m_mouse.pump();
 
         if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
             m_invalid_areas.push_back(m_mouse.prev_bounds());
@@ -98,14 +98,20 @@ bool WindowServer::initialize()
 
         for (auto window : m_windows) {
             if (window->bounds().contains(m_mouse.x(), m_mouse.y())) {
-                if (m_mouse.pressed()) {
+                m_connection.send_MouseMoveRequest(
+                    UI::Protocols::MouseMoveRequest(
+                        window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
+                    window->pid());
+            }
+        }
+
+        auto clicks = m_mouse.take_over_clicks();
+        for (auto& click : clicks) {
+            for (auto window : m_windows) {
+                if (window->bounds().contains(click.x, click.y)) {
                     m_connection.send_MouseClickRequest(
-                        UI::Protocols::MouseClickRequest(window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
-                        window->pid());
-                } else {
-                    m_connection.send_MouseMoveRequest(
-                        UI::Protocols::MouseMoveRequest(
-                            window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
+                        UI::Protocols::MouseClickRequest(
+                            window->id, click.x - window->x(), click.y - window->y()),
                         window->pid());
                 }
             }
