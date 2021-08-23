@@ -18,7 +18,7 @@ public:
     Canvas(Bitmap& bitmap)
         : m_bitmap(bitmap)
     {
-        state() = { { 0, 0, bitmap.width() - 1, bitmap.height() - 1 }, 0, 0 };
+        state() = { { 0, 0, bitmap.width(), bitmap.height() }, 0, 0 };
     }
 
     inline int save()
@@ -58,8 +58,8 @@ public:
     // Drawing
     inline void draw_color(const Color& color)
     {
-        for (int y = state().clip_rect.top; y <= state().clip_rect.bottom; y++) {
-            for (int x = state().clip_rect.left; x <= state().clip_rect.right; x++) {
+        for (int y = state().clip_rect.top; y < state().clip_rect.bottom; y++) {
+            for (int x = state().clip_rect.left; x < state().clip_rect.right; x++) {
                 m_bitmap[y][x] = color;
             }
         }

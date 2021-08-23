@@ -43,7 +43,7 @@ void View::request_layout()
     window.content_view()->measure(
         View::MeasureSpec::MakeMeasureSpec(window.width(), View::MeasureSpec::EXACTLY),
         View::MeasureSpec::MakeMeasureSpec(window.height(), View::MeasureSpec::EXACTLY));
-    window.content_view()->layout(0, 0, m_width - 1, m_height - 1);
+    window.content_view()->layout(0, 0, m_width, m_height);
     window.content_view()->draw(canvas);
     Application::the().invalidate_area(0, 0, window.width(), window.height());
 }

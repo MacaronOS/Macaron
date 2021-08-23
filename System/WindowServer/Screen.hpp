@@ -1,5 +1,6 @@
 #pragma once
 #include <Libgraphics/Bitmap.hpp>
+#include <Libgraphics/Rect.hpp>
 
 class Screen {
     static constexpr uint32_t width = 1024;
@@ -23,6 +24,8 @@ public:
 
     void swap_buffers();
 
+    const Graphics::Rect& bounds() const { return m_bounds; }
+
 private:
     uint8_t m_screen_fd {};
     Graphics::Bitmap m_first_buffer {};
@@ -30,4 +33,6 @@ private:
 
     Graphics::Bitmap* m_front_buffer {};
     Graphics::Bitmap* m_back_buffer {};
+
+    Graphics::Rect m_bounds { Graphics::Rect(0, 0, width, height) };
 };

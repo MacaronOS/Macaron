@@ -20,9 +20,9 @@ public:
     int x() const { return m_x; }
     int y() const { return m_y; }
 
-    inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + width() - 1, y() + height() - 1); }
-    inline Graphics::Rect frame_bounds() { return Graphics::Rect(x(), y() - frame_height + 1, x() + width() - 1, y()); }
-    inline Graphics::Rect all_bounds() { return Graphics::Rect(x(), y() - frame_height + 1, x() + width() - 1, y() + height() - 1); }
+    inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + width(), y() + height()); }
+    inline Graphics::Rect frame_bounds() { return Graphics::Rect(x(), y() - frame_height, x() + width(), y()); }
+    inline Graphics::Rect all_bounds() { return Graphics::Rect(x(), y() - frame_height, x() + width(), y() + height()); }
 
     void move_position(int del_x, int del_y)
     {

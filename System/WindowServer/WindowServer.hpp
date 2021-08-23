@@ -44,7 +44,7 @@ private:
 private:
     Screen m_screen {};
     Graphics::Bitmap m_wallpaper {};
-    Graphics::Bitmap m_cursor {};
+    // Graphics::Bitmap m_cursor {};
     Graphics::BitmapFont m_font_medium {};
     Graphics::BitmapFont m_font_bold {};
     Mouse m_mouse {};

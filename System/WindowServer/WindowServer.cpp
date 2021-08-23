@@ -60,12 +60,7 @@ bool WindowServer::initialize()
     }
 
     m_mouse = Mouse(mouse_fd, 1024 / 2, 768 / 2);
-
-    m_cursor = Graphics::BMPLoader::load("/ext2/Resources/cursor.bmp");
-    if (m_cursor.height() == 0 || m_cursor.width() == 0) {
-        Log << m_cursor.height() << " " << m_cursor.width() << endl;
-        exit(1);
-    }
+    m_mouse.set_clipping(1024, 768);
 
     m_event_loop.register_timer([this]() {
         redraw();
@@ -76,19 +71,20 @@ bool WindowServer::initialize()
         m_mouse.update_position();
 
         if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
-            m_invalid_areas.push_back(Graphics::Rect(m_mouse.prev_x(), m_mouse.prev_y(), m_mouse.prev_x() + m_cursor.width() - 1, m_mouse.prev_y() + m_cursor.height() - 1));
+            m_invalid_areas.push_back(m_mouse.prev_bounds());
             m_mouse_needs_draw_since_moved = true;
         }
 
         if (m_mouse.pressed()) {
             if (m_selected_window) {
-                m_invalid_areas.push_back(m_selected_window->all_bounds());
+                m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
 
                 int del_x = m_mouse.x() - m_mouse.prev_x();
                 int del_y = m_mouse.y() - m_mouse.prev_y();
+
                 m_selected_window->move_position(del_x, del_y);
 
-                m_invalid_areas.push_back(m_selected_window->all_bounds());
+                m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
             } else {
                 for (auto window : m_windows) {
                     if (window->frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
@@ -154,9 +150,11 @@ void WindowServer::on_InvalidateRequest(InvalidateRequest& request, int pid_from
     Log << "Recieved InvalidateRequest " << request.window_id() << " " << request.width() << " " << request.height() << endl;
 
     auto window = get_window_by_id(request.window_id());
-    m_invalid_areas.push_back(Graphics::Rect(
-        window->x() + request.x(), window->y() + request.y(),
-        window->x() + request.x() + request.width() - 1, window->y() + request.y() + request.height() - 1));
+    m_invalid_areas.push_back(
+        Graphics::Rect(
+            window->x() + request.x(), window->y() + request.y(),
+            window->x() + request.x() + request.width(), window->y() + request.y() + request.height())
+            .intersection(m_screen.bounds()));
 }
 
 void WindowServer::redraw()
@@ -175,8 +173,8 @@ void WindowServer::draw_background()
     for (size_t at = 0; at < m_invalid_areas.size(); at++) {
         auto invalid_area = m_invalid_areas[at];
 
-        for (size_t y = invalid_area.top; y <= invalid_area.bottom; y++) {
-            for (size_t x = invalid_area.left; x <= invalid_area.right; x++) {
+        for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
+            for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
                 m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
             }
         }
@@ -192,8 +190,8 @@ void WindowServer::draw_windows()
             if (invalid_area.intersects(window->bounds())) {
                 auto intersection = invalid_area.intersection(window->bounds());
 
-                for (int y = intersection.top; y <= intersection.bottom; y++) {
-                    for (int x = intersection.left; x <= intersection.right; x++) {
+                for (int y = intersection.top; y < intersection.bottom; y++) {
+                    for (int x = intersection.left; x < intersection.right; x++) {
                         m_screen.back_buffer()[y][x] = window->buffer()[y - window->y()][x - window->x()];
                     }
                 }
@@ -204,8 +202,8 @@ void WindowServer::draw_windows()
 
                 auto bounds = window->frame_bounds();
 
-                for (int y = intersection.top; y <= intersection.bottom; y++) {
-                    for (int x = intersection.left; x <= intersection.right; x++) {
+                for (int y = intersection.top; y < intersection.bottom; y++) {
+                    for (int x = intersection.left; x < intersection.right; x++) {
                         m_screen.back_buffer()[y][x] = window->frame_buffer()[y - bounds.top][x - bounds.left];
                     }
                 }
@@ -219,7 +217,8 @@ void WindowServer::draw_mouse()
     if (m_mouse.x() < 0 || m_mouse.y() < 0 || m_mouse.x() >= 1024 || m_mouse.y() >= 768) {
         return;
     }
-    auto mouse_rect = Graphics::Rect(m_mouse.x(), m_mouse.y(), m_mouse.x() + m_cursor.width(), m_mouse.y() + m_cursor.height());
+    auto mouse_rect = m_mouse.bounds().intersection(m_screen.bounds());
+
     bool intersects = false;
     for (size_t at = 0; at < m_invalid_areas.size(); at++) {
         auto invalid_area = m_invalid_areas[at];
@@ -230,11 +229,12 @@ void WindowServer::draw_mouse()
     }
 
     if (intersects || m_mouse_needs_draw_since_moved) {
-        for (int h = 0; h < m_cursor.height(); h++) {
-            for (int w = 0; w < m_cursor.width(); w++) {
-                m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w].mix_with(m_cursor[h][w]);
+        for (int y = mouse_rect.top; y < mouse_rect.bottom; y++) {
+            for (int x = mouse_rect.left; x < mouse_rect.right; x++) {
+                m_screen.back_buffer()[y][x].mix_with(m_mouse.cursor()[y - m_mouse.y()][x - m_mouse.x()]);
             }
         }
+
         m_mouse_needs_draw_since_moved = false;
     }
 }
@@ -244,18 +244,25 @@ void WindowServer::copy_changes_to_second_buffer()
     for (size_t at = 0; at < m_invalid_areas.size(); at++) {
         auto invalid_area = m_invalid_areas[at];
 
-        for (size_t y = invalid_area.top; y <= invalid_area.bottom; y++) {
-            for (size_t x = invalid_area.left; x <= invalid_area.right; x++) {
+        for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
+            for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
                 m_screen.back_buffer()[y][x] = m_screen.front_buffer()[y][x];
             }
         }
     }
 
-    for (int h = 0; h < m_cursor.height(); h++) {
-        for (int w = 0; w < m_cursor.width(); w++) {
-            m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w] = m_screen.front_buffer()[m_mouse.y() + h][m_mouse.x() + w];
+    auto mouse_rect = m_mouse.bounds().intersection(m_screen.bounds());
+    for (int y = mouse_rect.top; y < mouse_rect.bottom; y++) {
+        for (int x = mouse_rect.left; x < mouse_rect.right; x++) {
+            m_screen.back_buffer()[y][x] = m_screen.front_buffer()[y][x];
         }
     }
+
+    // for (int h = 0; h < m_cursor.height(); h++) {
+    //     for (int w = 0; w < m_cursor.width(); w++) {
+    //         m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w] = m_screen.front_buffer()[m_mouse.y() + h][m_mouse.x() + w];
+    //     }
+    // }
 }
 
 Window* WindowServer::get_window_by_id(int id)

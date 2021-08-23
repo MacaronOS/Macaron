@@ -27,6 +27,7 @@ public:
 public:
     int left {};
     int top {};
+    // Note that the right and bottom coordinates are exclusive.
     int right {};
     int bottom {};
 };

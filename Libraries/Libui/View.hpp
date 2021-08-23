@@ -116,7 +116,7 @@ public:
     inline int width() const { return m_width; }
     inline int height() const { return m_height; }
 
-    inline Graphics::Rect bounds() const { return Graphics::Rect(left(), top(), right() - 1, bottom() - 1); }
+    inline Graphics::Rect bounds() const { return Graphics::Rect(left(), top(), right(), bottom()); }
 
 protected:
     inline void set_measured_dimensions(int width, int height)

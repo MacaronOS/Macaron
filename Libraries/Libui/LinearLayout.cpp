@@ -56,7 +56,7 @@ void LinearLayout::on_draw(Graphics::Canvas& canvas)
     for (auto child : m_children) {
         canvas.save();
 
-        canvas.clip_rect(child->left(), child->top(), child->right() - 1, child->bottom() - 1);
+        canvas.clip_rect(child->left(), child->top(), child->right(), child->bottom());
         canvas.move_cursor_by(child->left(), child->top());
         child->draw(canvas);
 

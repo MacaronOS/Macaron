@@ -34,7 +34,7 @@ bool Rect::contains(const Rect& rect) const
 
 bool Rect::contains(int x, int y) const
 {
-    return left <= x && top <= y && right >= x && bottom >= y;
+    return left <= x && top <= y && right > x && bottom > y;
 }
 
 bool Rect::operator==(const Rect& rect) const
@@ -42,16 +42,18 @@ bool Rect::operator==(const Rect& rect) const
     return left == rect.left && top == rect.top && right == rect.right && bottom == rect.bottom;
 }
 
-bool Rect::intersects(const Rect& rect) const {
+bool Rect::intersects(const Rect& rect) const
+{
     int l = max(left, rect.left);
     int t = max(top, rect.top);
     int r = min(right, rect.right);
     int b = min(bottom, rect.bottom);
 
-    return r >= l && b >= t; 
+    return r >= l && b >= t;
 }
 
-Rect Rect::intersection(const Rect& rect) const {
+Rect Rect::intersection(const Rect& rect) const
+{
     int l = max(left, rect.left);
     int t = max(top, rect.top);
     int r = min(right, rect.right);
