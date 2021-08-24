@@ -1,4 +1,6 @@
-#include <Libui/Application.hpp>
+#include "MainActivity.hpp"
+
+#include <Libui/App/Application.hpp>
 #include <Libui/Button.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
@@ -7,51 +9,10 @@
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
+MainActivity main_activity {};
+
 int main()
 {
-    constexpr uint32_t width = 170;
-    constexpr uint32_t height = 200;
-
-    auto font = new Graphics::BitmapFont(Graphics::FontLoader::load("/ext2/Resources/Roboto12Medium.fnt", "/ext2/Resources/Roboto12Medium.bmp"));
-
-    auto& app = UI::Application::the();
-    app.set_intitial_window_width(width);
-    app.set_intitial_window_height(height);
-    app.set_intitial_window_titile("Clicker");
-
-    auto layout = new UI::LinearLayout();
-    auto layout_params = new UI::LayoutParams();
-    layout_params->width = width;
-    layout_params->height = height;
-    layout->set_layout_params(layout_params);
-    layout->set_orientation(UI::LinearLayout::Orientation::Vertical);
-
-    size_t counter = 0;
-    auto counter_view = new UI::TextView();
-    counter_view->set_text("0");
-    counter_view->set_typeface(font);
-    counter_view->set_background_color(Graphics::Color(240, 240, 240));
-    counter_view->set_gravity(UI::Gravity::Center);
-    auto counter_view_paprams = new UI::LayoutParams();
-    counter_view_paprams->width = 170;
-    counter_view_paprams->height = 100;
-
-    auto increase_button = new UI::Button();
-    increase_button->set_text("Click!");
-    increase_button->set_typeface(font);
-    increase_button->set_gravity(UI::Gravity::Center);
-    increase_button->set_on_mouse_click_listener([&](UI::View& view) {
-        counter_view->set_text(String::From(++counter));
-    });
-    auto increase_button_paprams = new UI::LayoutParams();
-    increase_button_paprams->width = 170;
-    increase_button_paprams->height = 100;
-
-    layout->add_view(counter_view, counter_view_paprams);
-    layout->add_view(increase_button, increase_button_paprams);
-
-    app.set_contnt_view(layout);
-    app.run();
-
+    UI::Application::the().run();
     return 0;
 }

@@ -94,6 +94,11 @@ public:
         m_event_holders.push_back({ callback, event });
     }
 
+    void enqueue_callback(const Function<void()>& callback)
+    {
+        m_callbacks.push_back(callback);
+    }
+
     inline void run()
     {
         while (true) {
@@ -104,6 +109,7 @@ public:
     void pump()
     {
         bool processed = false;
+        processed |= process_callbasks();
         processed |= process_timers();
         processed |= process_fd_selectors();
         processed |= process_event_holders();
@@ -154,11 +160,24 @@ public:
         return true;
     }
 
+    bool process_callbasks()
+    {
+        if (m_callbacks.size() == 0) {
+            return false;
+        }
+        for (auto& callback : m_callbacks) {
+            callback();
+        }
+        m_callbacks.clear();
+        return true;
+    }
+
 public:
     static EventLoop<EventHolder> s_the;
 
     Vector<Timer<EventHolder>> m_timers {};
     Vector<QueuedEvent<EventHolder>> m_event_holders {};
+    Vector<Function<void()>> m_callbacks {};
     Vector<FDSelector> m_fd_selectors {};
     int m_nfds {};
 };

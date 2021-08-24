@@ -1,7 +1,5 @@
 #include "WindowServer.hpp"
 
-#include <Libui/Application.hpp>
-
 int main()
 {
     auto wm = WindowServer();

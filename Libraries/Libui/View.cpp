@@ -1,5 +1,6 @@
 #include "View.hpp"
-#include "Application.hpp"
+#include "App/Activity.hpp"
+#include "App/Application.hpp"
 #include <Libsystem/Log.hpp>
 
 namespace UI {
@@ -35,17 +36,23 @@ void View::request_layout()
 {
     // TODO: currently request_layout calculates layout for every view in a tree
     // this should be done more efficenly by moving from bottom to top
-    auto& window = Application::the().window();
-    if (!window.content_view()) {
+    auto activity = Application::the().activity_stack().back();
+    auto window = activity->window();
+    auto content_view = activity->content_view();
+
+    if (!window || !content_view) {
         return;
     }
-    auto canvas = Graphics::Canvas(window.buffer());
-    window.content_view()->measure(
-        View::MeasureSpec::MakeMeasureSpec(window.width(), View::MeasureSpec::EXACTLY),
-        View::MeasureSpec::MakeMeasureSpec(window.height(), View::MeasureSpec::EXACTLY));
-    window.content_view()->layout(0, 0, m_width, m_height);
-    window.content_view()->draw(canvas);
-    Application::the().invalidate_area(0, 0, window.width(), window.height());
+    
+    auto canvas = Graphics::Canvas(window->buffer());
+
+    content_view->measure(
+        View::MeasureSpec::MakeMeasureSpec(window->width(), View::MeasureSpec::EXACTLY),
+        View::MeasureSpec::MakeMeasureSpec(window->height(), View::MeasureSpec::EXACTLY));
+    content_view->layout(0, 0, m_width, m_height);
+    content_view->draw(canvas);
+
+    Application::the().invalidate_area(0, 0, window->width(), window->height());
 }
 
 void View::layout(int left, int top, int right, int bottom)

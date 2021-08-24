@@ -11,6 +11,7 @@ public:
     void on_measure(int width_measure_spec, int height_measure_spec) override;
     void on_draw(Graphics::Canvas& canvas) override;
 
+    inline const String& text() const { return m_text; }
     inline void set_text(const String& text)
     {
         m_text = text;
