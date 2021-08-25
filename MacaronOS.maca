@@ -1,6 +1,6 @@
 Commands:
     MakeDrive: 
-        ./Scripts/make_drive.sh
+        ./Scripts/MakeDrive.sh
 
     InstallUserspace:
         sudo fuse-ext2 drive.img mountpoint -o rw+
