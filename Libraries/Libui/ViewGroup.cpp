@@ -24,9 +24,4 @@ bool ViewGroup::on_mouse_click_event(const MouseClickEvent& event)
     return handled;
 }
 
-LayoutParams* ViewGroup::generate_default_layout_params()
-{
-    return new LayoutParams { LayoutParams::MATCH_PARENT, LayoutParams::MATCH_PARENT };
-}
-
 }

@@ -10,6 +10,9 @@ class ViewGroup : public View {
 public:
     inline void add_view(View* view, LayoutParams* layout_params)
     {
+        if (!check_layout_params(layout_params)) {
+            layout_params = generate_layout_params(layout_params);
+        }
         view->set_layout_params(layout_params);
         m_children.push_back(view);
     }
@@ -19,11 +22,11 @@ public:
 
 protected:
     // Validates layout params of its children
-    bool check_layout_params(LayoutParams* params);
+    virtual bool check_layout_params(LayoutParams* params) { return true; };
     // Returns a safe set of layout parameters based on the supplied layout params
-    bool generate_layout_params(LayoutParams* params);
+    virtual LayoutParams* generate_layout_params(LayoutParams* params) { return nullptr; }
     // These parameters are requested when the View has no layout already set
-    LayoutParams* generate_default_layout_params();
+    virtual LayoutParams* generate_default_layout_params() { return nullptr; }
 
 protected:
     Vector<View*> m_children {};

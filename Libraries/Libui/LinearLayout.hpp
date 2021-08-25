@@ -19,6 +19,10 @@ public:
     inline void set_orientation(Orientation orientation) { m_orienttion = orientation; }
     inline Orientation orientation() const { return m_orienttion; }
 
+protected:
+    bool check_layout_params(LayoutParams* params) override;
+    LayoutParams* generate_layout_params(LayoutParams* params) override;
+
 private:
     Orientation m_orienttion;
 };
