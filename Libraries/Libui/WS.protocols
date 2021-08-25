@@ -1,7 +1,9 @@
 namespace UI
 
 Client -> Server:
-    CreateWindow(int widht, int height, String titile) -> (int window_id, int shared_buffer_id)
+    CreateWindow(int widht, int height, int frameless, String titile) -> (int window_id, int shared_buffer_id)
+    ScreenSize() -> (int width, int height)
+    SetPosition(int window_id, int left, int top) -> void
     Invalidate(int window_id, int x, int y, int width, int height) -> void
 
 Server -> Client:

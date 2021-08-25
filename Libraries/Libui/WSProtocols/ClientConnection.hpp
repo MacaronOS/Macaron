@@ -12,6 +12,7 @@ public:
 	virtual void on_MouseMoveRequest(MouseMoveRequest& request);
 	virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request);
 	virtual void on_CreateWindowResponse(CreateWindowResponse& response);
+	virtual void on_ScreenSizeResponse(ScreenSizeResponse& response);
 };
 
 class ClientConnection : public IPC::ClientConnection {
@@ -49,10 +50,27 @@ public:
 				auto message = CreateWindowResponse(message_bytes);
 				m_reciever.on_CreateWindowResponse(message);
 			}
+
+			if (type == MessageType::ScreenSizeResponse) {
+				auto message = ScreenSizeResponse(message_bytes);
+				m_reciever.on_ScreenSizeResponse(message);
+			}
 		}
 	}
 
 	void send_CreateWindowRequest(const CreateWindowRequest& request)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size());
+	}
+
+	void send_ScreenSizeRequest(const ScreenSizeRequest& request)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size());
+	}
+
+	void send_SetPositionRequest(const SetPositionRequest& request)
 	{
 		auto serialized = request.serialize();
 		send_data(serialized.data(), serialized.size());

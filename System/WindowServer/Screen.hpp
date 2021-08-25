@@ -3,10 +3,10 @@
 #include <Libgraphics/Rect.hpp>
 
 class Screen {
+public:
     static constexpr uint32_t width = 1024;
     static constexpr uint32_t height = 768;
 
-public:
     Screen() = default;
     Screen(uint8_t screen_fd, Graphics::Bitmap&& front_buffer, Graphics::Bitmap&& back_buffer);
 

@@ -9,29 +9,41 @@ public:
 
     uint32_t id;
 
-    int pid() const { return m_pid; }
+    inline int pid() const { return m_pid; }
 
-    Graphics::Bitmap& buffer() { return m_buffer; }
-    Graphics::Bitmap& frame_buffer() { return m_frame_buffer; }
+    inline Graphics::Bitmap& buffer() { return m_buffer; }
+    inline Graphics::Bitmap& frame_buffer() { return m_frame_buffer; }
 
-    uint32_t width() const { return m_width; }
-    uint32_t height() const { return m_height; }
+    inline uint32_t width() const { return m_width; }
+    inline uint32_t height() const { return m_height; }
 
-    int x() const { return m_x; }
-    int y() const { return m_y; }
+    inline int x() const { return m_x; }
+    inline int y() const { return m_y; }
 
     inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + width(), y() + height()); }
-    inline Graphics::Rect frame_bounds() { return Graphics::Rect(x(), y() - frame_height, x() + width(), y()); }
-    inline Graphics::Rect all_bounds() { return Graphics::Rect(x(), y() - frame_height, x() + width(), y() + height()); }
+    inline Graphics::Rect frame_bounds() { return Graphics::Rect(x(), y() - m_frame_height, x() + width(), y()); }
+    inline Graphics::Rect all_bounds() { return Graphics::Rect(x(), y() - m_frame_height, x() + width(), y() + height()); }
 
-    void move_position(int del_x, int del_y)
+    inline void move_position(int del_x, int del_y)
     {
         m_x += del_x;
         m_y += del_y;
     }
 
+    inline void set_position(int x, int y)
+    {
+        m_x = x;
+        m_y = y;
+    }
+
+    inline void make_frameless()
+    {
+        m_frame_height = 0;
+    }
+
 private:
     static constexpr int frame_height = 24;
+    int m_frame_height { frame_height };
     int m_pid;
     uint32_t m_width {};
     uint32_t m_height {};

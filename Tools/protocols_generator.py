@@ -108,7 +108,7 @@ def write_connection(
     with open(outfilepath, 'w') as out:
         out.write('#pragma once\n\n')
         out.write(f'#include "{messages_relative_path}"\n\n')
-        out.write(f'#include <libipc/{server_or_client}Connection.hpp>\n\n')
+        out.write(f'#include <Libipc/{server_or_client}Connection.hpp>\n\n')
 
         out.write(f'{namespace} {{\n\n')
         out.write(f'class {server_or_client}MessageReciever {{\n')

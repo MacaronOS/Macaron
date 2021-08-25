@@ -9,6 +9,8 @@ namespace UI::Protocols {
 class ServerMessageReciever {
 public:
 	virtual CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from);
+	virtual ScreenSizeResponse on_ScreenSizeRequest(ScreenSizeRequest& request, int pid_from);
+	virtual void on_SetPositionRequest(SetPositionRequest& request, int pid_from);
 	virtual void on_InvalidateRequest(InvalidateRequest& request, int pid_from);
 	virtual void on_CloseWindowResponse(CloseWindowResponse& response, int pid_from);
 };
@@ -34,6 +36,17 @@ public:
 				auto message = CreateWindowRequest(message_bytes);
 				auto response = m_reciever.on_CreateWindowRequest(message, message_pid).serialize();
 				send_data(response.data(), response.size(), message_pid);
+			}
+
+			if (type == MessageType::ScreenSizeRequest) {
+				auto message = ScreenSizeRequest(message_bytes);
+				auto response = m_reciever.on_ScreenSizeRequest(message, message_pid).serialize();
+				send_data(response.data(), response.size(), message_pid);
+			}
+
+			if (type == MessageType::SetPositionRequest) {
+				auto message = SetPositionRequest(message_bytes);
+				m_reciever.on_SetPositionRequest(message, message_pid);
 			}
 
 			if (type == MessageType::InvalidateRequest) {

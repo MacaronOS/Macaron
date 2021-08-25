@@ -1,10 +1,11 @@
 Build:
     Type: Executable
 
-    Src: InitSystem.cpp
+    Src: *.cpp, **/*.cpp
 
     Depends:
-        WindowServer, Dock, ../Libraries/Libc
+        ../../Libraries/Libui, ../../Libraries/Libgraphics, ../../Libraries/Libipc,
+        ../../Libraries/Libsystem, ../../Libraries/Libc, ../../Libraries/Macaronlib
 
     Extensions:
         cpp:
@@ -13,7 +14,7 @@ Build:
                 -O3, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
                 -m32, -fno-leading-underscore, -Wno-write-strings
                 -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions, -fno-threadsafe-statics,
-                -I../Libraries/Macaronlib/include, -I../Libraries
+                -I../../Libraries/Macaronlib/include, -I../../Libraries/
 
     Link:
         Linker: i686-elf-g++

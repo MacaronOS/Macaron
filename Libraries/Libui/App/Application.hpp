@@ -24,15 +24,22 @@ public:
     virtual void on_MouseMoveRequest(MouseMoveRequest& request) override;
     virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override { }
     virtual void on_CreateWindowResponse(CreateWindowResponse& response) override;
+    virtual void on_ScreenSizeResponse(ScreenSizeResponse& response) override;
 
+    inline void make_frameless() { m_frameless = true; }
     inline void push_activity_onto_the_stack(Activity* activity) { m_activity_stack.push_back(activity); }
     inline void run() { EventLoop::the().run(); }
 
     void invalidate_area(int x, int y, int width, int height);
+    void create_window(int width, int height, const String& titile);
+    void ask_screen_size(const Function<void(int width, int height)>& callback);
+    void set_position(Activity* activity, int left, int top);
 
 protected:
+    bool m_frameless {};
     Vector<Activity*> m_activity_stack {};
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
+    Vector<Function<void(int width, int height)>> m_on_screen_size_callbacks {};
 };
 
 }

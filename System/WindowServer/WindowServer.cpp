@@ -141,6 +141,9 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
 
     auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
+    if (request.frameless() > 0) {
+        window->make_frameless();
+    }
     x_offset += 20 + request.widht();
     y_offset += 20 + request.height();
     m_windows.push_back(window);
@@ -161,6 +164,20 @@ void WindowServer::on_InvalidateRequest(InvalidateRequest& request, int pid_from
             window->x() + request.x(), window->y() + request.y(),
             window->x() + request.x() + request.width(), window->y() + request.y() + request.height())
             .intersection(m_screen.bounds()));
+}
+
+ScreenSizeResponse WindowServer::on_ScreenSizeRequest(ScreenSizeRequest& request, int pid_from)
+{
+    return ScreenSizeResponse(m_screen.width, m_screen.height);
+}
+
+void WindowServer::on_SetPositionRequest(SetPositionRequest& request, int pid_from)
+{
+    auto window = get_window_by_id(request.window_id());
+    
+    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
+    window->set_position(request.left(), request.top());
+    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
 }
 
 void WindowServer::redraw()

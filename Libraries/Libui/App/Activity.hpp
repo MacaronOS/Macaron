@@ -33,8 +33,7 @@ public:
         int width = view->measured_width();
         int height = view->measured_height();
 
-        Application::the().connection().send_CreateWindowRequest(
-            CreateWindowRequest(width, height, m_titile));
+        Application::the().create_window(width, height, m_titile);
 
         m_content_view = view;
         // The next step is on_window function. It's called when WindowServer assigns us a window

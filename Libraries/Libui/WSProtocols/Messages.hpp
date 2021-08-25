@@ -10,6 +10,9 @@ namespace UI::Protocols {
 enum class MessageType : int {
 	CreateWindowRequest,
 	CreateWindowResponse,
+	ScreenSizeRequest,
+	ScreenSizeResponse,
+	SetPositionRequest,
 	InvalidateRequest,
 	MouseClickRequest,
 	MouseMoveRequest,
@@ -26,9 +29,10 @@ class CreateWindowRequest {
 	static constexpr MessageType m_type = MessageType::CreateWindowRequest;
 
 public:
-	CreateWindowRequest(int widht, int height, String titile)
+	CreateWindowRequest(int widht, int height, int frameless, String titile)
 		: m_widht(widht)
 		, m_height(height)
+		, m_frameless(frameless)
 		, m_titile(move(titile))
 	{
 	}
@@ -39,11 +43,13 @@ public:
 		decoder.skip(sizeof(MessageType));
 		m_widht = decoder.get_int();
 		m_height = decoder.get_int();
+		m_frameless = decoder.get_int();
 		m_titile = decoder.get_String();
 	}
 
 	int widht() const { return m_widht; }
 	int height() const { return m_height; }
+	int frameless() const { return m_frameless; }
 	const String& titile() const { return m_titile; }
 	String take_titile() { return move(m_titile); }
 
@@ -53,6 +59,7 @@ public:
 		encoder.push((int)m_type);
 		encoder.push(m_widht);
 		encoder.push(m_height);
+		encoder.push(m_frameless);
 		encoder.push(m_titile);
 		return encoder.done();
 	}
@@ -60,6 +67,7 @@ public:
 private:
 	int m_widht;
 	int m_height;
+	int m_frameless;
 	String m_titile;
 };
 
@@ -96,6 +104,106 @@ public:
 private:
 	int m_window_id;
 	int m_shared_buffer_id;
+};
+
+class ScreenSizeRequest {
+	static constexpr MessageType m_type = MessageType::ScreenSizeRequest;
+
+public:
+	ScreenSizeRequest()
+	{
+	}
+
+	ScreenSizeRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+	}
+
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		return encoder.done();
+	}
+
+private:
+};
+
+class ScreenSizeResponse {
+	static constexpr MessageType m_type = MessageType::ScreenSizeResponse;
+
+public:
+	ScreenSizeResponse(int width, int height)
+		: m_width(width)
+		, m_height(height)
+	{
+	}
+
+	ScreenSizeResponse(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_width = decoder.get_int();
+		m_height = decoder.get_int();
+	}
+
+	int width() const { return m_width; }
+	int height() const { return m_height; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_width);
+		encoder.push(m_height);
+		return encoder.done();
+	}
+
+private:
+	int m_width;
+	int m_height;
+};
+
+class SetPositionRequest {
+	static constexpr MessageType m_type = MessageType::SetPositionRequest;
+
+public:
+	SetPositionRequest(int window_id, int left, int top)
+		: m_window_id(window_id)
+		, m_left(left)
+		, m_top(top)
+	{
+	}
+
+	SetPositionRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_window_id = decoder.get_int();
+		m_left = decoder.get_int();
+		m_top = decoder.get_int();
+	}
+
+	int window_id() const { return m_window_id; }
+	int left() const { return m_left; }
+	int top() const { return m_top; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_window_id);
+		encoder.push(m_left);
+		encoder.push(m_top);
+		return encoder.done();
+	}
+
+private:
+	int m_window_id;
+	int m_left;
+	int m_top;
 };
 
 class InvalidateRequest {

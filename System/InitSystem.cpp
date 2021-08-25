@@ -10,6 +10,7 @@ void run(const char* path)
 int main()
 {
     run("/ext2/System/WindowServer");
+    run("/ext2/System/Dock");
     run("/ext2/Applications/Clicker");
     run("/ext2/Applications/Clicker");
     while (true) {
