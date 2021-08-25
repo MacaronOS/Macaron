@@ -1,7 +1,5 @@
 #include "Thread.hpp"
 
-#include <Memory/Region.hpp>
-
 namespace Kernel::Tasking {
 
 using namespace Memory;

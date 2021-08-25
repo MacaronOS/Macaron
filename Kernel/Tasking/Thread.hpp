@@ -1,7 +1,7 @@
 #pragma once
-#include "../Hardware/Trapframe.hpp"
 
 #include <Hardware/DescriptorTables/GDT.hpp>
+#include <Hardware/Trapframe.hpp>
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
 
@@ -32,7 +32,7 @@ struct KernelContext {
 class Process;
 
 class Thread {
-    friend class TaskManager;
+    friend class Scheduler;
     friend class Process;
 
 public:

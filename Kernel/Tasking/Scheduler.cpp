@@ -1,12 +1,11 @@
-#include "TaskManager.hpp"
-
-#include <Libkernel/Logger.hpp>
+#include "Scheduler.hpp"
 
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/PIT.hpp>
 #include <Filesystem/VFS/VFS.hpp>
 #include <Hardware/DescriptorTables/GDT.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Tasking {
 
@@ -15,32 +14,31 @@ extern "C" void return_to_the_kernel_handler(KernelContext* kc);
 extern "C" void switch_to_user_mode();
 
 template <>
-TaskManager* Singleton<TaskManager>::s_t = nullptr;
+Scheduler* Singleton<Scheduler>::s_t = nullptr;
 template <>
-bool Singleton<TaskManager>::s_initialized = false;
+bool Singleton<Scheduler>::s_initialized = false;
 
 using namespace Memory;
 using namespace Logger;
 
-TaskManager::TaskManager()
+Scheduler::Scheduler()
 {
     m_process_storage = new ProcessStorage();
 }
 
-bool TaskManager::run()
+bool Scheduler::run()
 {
     auto* pit = reinterpret_cast<Drivers::PIT*>(Drivers::DriverManager::the().get_driver(Drivers::DriverEntity::PIT));
     if (pit) {
         m_cur_thread = m_threads.begin();
         pit->register_tick_reciever(this);
-        // pit->register_callback({ Drivers::default_frequency, [](Trapframe* tf) { TaskManager::the().schedule(tf); } });
         switch_to_user_mode();
-        STOP();
+        reschedule();
     }
     return false;
 }
 
-void TaskManager::on_tick(Trapframe* tf)
+void Scheduler::reschedule()
 {
     auto next_thread = m_cur_thread;
 
@@ -61,7 +59,7 @@ void TaskManager::on_tick(Trapframe* tf)
     auto next_thread_ptr = *next_thread;
 
     // switch to the new thread's tss entry
-    Kernel::DescriptorTables::GDT::SetKernelStack(next_thread_ptr->kernel_stack_top());
+    DescriptorTables::GDT::SetKernelStack(next_thread_ptr->kernel_stack_top());
 
     // swtich to the new process address space
     VMM::the().set_page_directory(next_thread_ptr->m_process->m_pdir_phys);
@@ -73,7 +71,7 @@ void TaskManager::on_tick(Trapframe* tf)
     return_from_scheduler(next_thread_ptr->trapframe());
 }
 
-void TaskManager::create_process(const String& filepath)
+void Scheduler::create_process(const String& filepath)
 {
     auto new_process = m_process_storage->allocate_process();
     if (new_process) {
@@ -83,14 +81,14 @@ void TaskManager::create_process(const String& filepath)
     }
 }
 
-void TaskManager::sys_exit_handler(int error_code)
+void Scheduler::sys_exit_handler(int error_code)
 {
     Log() << "Handling exit, PID: " << (*m_cur_thread)->m_process->id() << ", error code: " << error_code << "\n";
     cur_process()->Terminate();
-    on_tick(nullptr);
+    reschedule();
 }
 
-int TaskManager::sys_fork_handler()
+int Scheduler::sys_fork_handler()
 {
     Log() << "Handling fork\n";
     auto forked_process = cur_process()->Fork();
@@ -100,19 +98,19 @@ int TaskManager::sys_fork_handler()
     return forked_process->id();
 }
 
-int TaskManager::sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp)
+int Scheduler::sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp)
 {
     // TODO: error handling
     cur_process()->LoadAndPrepare(filename);
     return 1;
 }
 
-Thread* TaskManager::cur_thread()
+Thread* Scheduler::cur_thread()
 {
     return *m_cur_thread;
 }
 
-Process* TaskManager::cur_process()
+Process* Scheduler::cur_process()
 {
     return cur_thread()->m_process;
 }

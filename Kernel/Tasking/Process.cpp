@@ -1,5 +1,5 @@
 #include "Process.hpp"
-#include "TaskManager.hpp"
+#include "Scheduler.hpp"
 
 #include <Libkernel/Logger.hpp>
 #include <Memory/Region.hpp>
@@ -38,7 +38,7 @@ Process& ProcessStorage::operator[](pid_t pid)
 Process::Process(uint32_t id)
     : m_id(id)
 {
-    m_task_manager = &TaskManager::the();
+    m_task_manager = &Scheduler::the();
     m_pdir_phys = VMM::the().create_page_directory();
 }
 

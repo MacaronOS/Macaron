@@ -18,7 +18,7 @@
 #include <Memory/vmm.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Multiboot.hpp>
-#include <Tasking/TaskManager.hpp>
+#include <Tasking/Scheduler.hpp>
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Hardware/DescriptorTables/IDT.hpp>
 #include <Tasking/Syscalls/Syscalls.hpp>
@@ -44,7 +44,7 @@ extern "C" void call_constructors()
     }
 }
 
-extern "C" void KernelEntryPoint(multiboot_info_t* multiboot_structure)
+extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 {
     DescriptorTables::GDT::Setup();
     DescriptorTables::IDT::Setup();
@@ -87,7 +87,7 @@ extern "C" void KernelEntryPoint(multiboot_info_t* multiboot_structure)
 
     SharedBufferStorage::initialize();
 
-    TaskManager::initialize();
-    TaskManager::the().create_process("/ext2/System/System");
-    TaskManager::the().run();
+    Scheduler::initialize();
+    Scheduler::the().create_process("/ext2/System/System");
+    Scheduler::the().run();
 }

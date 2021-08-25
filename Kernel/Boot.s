@@ -86,7 +86,7 @@ L3:
 
 SECTION .text
 
-[EXTERN KernelEntryPoint]
+[EXTERN kernel_entry_point]
 [EXTERN call_constructors]
 
 L4:
@@ -100,5 +100,5 @@ L4:
   cli
   add ebx, 0xC0000000
   push ebx ; saving multiboot structure
-  call KernelEntryPoint
+  call kernel_entry_point
   jmp $

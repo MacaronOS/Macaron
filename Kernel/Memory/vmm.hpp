@@ -7,7 +7,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
-#include <Tasking/TaskManager.hpp>
+#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/Singleton.hpp>
 #include <Macaronlib/Common.hpp>

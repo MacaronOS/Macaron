@@ -6,7 +6,7 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
-#include <Tasking/TaskManager.hpp>
+#include <Tasking/Scheduler.hpp>
 #include <Time/TimeManager.hpp>
 
 #include <Macaronlib/ABI/Errors.hpp>
@@ -29,13 +29,13 @@ static int sys_putc(char a)
 
 static int sys_exit(int error_code)
 {
-    TaskManager::the().sys_exit_handler(error_code);
+    Scheduler::the().sys_exit_handler(error_code);
     return 1;
 }
 
 static int sys_fork()
 {
-    return TaskManager::the().sys_fork_handler();
+    return Scheduler::the().sys_fork_handler();
 }
 
 static int sys_read(fd_t fd, uint8_t* buf, size_t cnt)
@@ -62,13 +62,13 @@ static int sys_open(const char* filename, int flags, unsigned short mode)
 static int sys_execve(const char* filename, const char* const* argv, const char* const* envp)
 {
     Log() << "handling excve\n";
-    return TaskManager::the().sys_execve_handler(filename, argv, envp);
+    return Scheduler::the().sys_execve_handler(filename, argv, envp);
 }
 
 static int sys_mmap(MmapParams* params)
 {
     Log() << "handling mmap\n";
-    auto cur_process = TaskManager::the().cur_process();
+    auto cur_process = Scheduler::the().cur_process();
 
     if (params->flags & MAP_ANONYMOUS) {
         auto mem = cur_process->allocate_space(params->size, Flags::Present | Flags::Write | Flags::User);
@@ -100,7 +100,7 @@ static int sys_mmap(MmapParams* params)
 
 static int sys_write_string(String const* str)
 {
-    Logger::Log() << "PID" << TaskManager::the().cur_process()->id() << ": " << *str << "\n";
+    Logger::Log() << "PID" << Scheduler::the().cur_process()->id() << ": " << *str << "\n";
     return 0;
 }
 
@@ -146,7 +146,7 @@ static int sys_select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execf
 
 static int sys_getpid()
 {
-    return TaskManager::the().cur_process()->id();
+    return Scheduler::the().cur_process()->id();
 }
 
 static int sys_clock_gettime(int clock_id, timespec* ts)
@@ -198,7 +198,7 @@ void SyscallsManager::handle_interrupt(Trapframe* regs)
 {
     if (static_cast<Syscall>(regs->eax) == Syscall::SchedYield) {
         regs->eax = 0;
-        TaskManager::the().on_tick(regs);
+        Scheduler::the().on_tick(regs);
     }
     if (regs->eax >= syscall_count || !m_syscalls[regs->eax]) {
         return;

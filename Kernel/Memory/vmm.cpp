@@ -3,11 +3,11 @@
 #include "pagingstructs.hpp"
 #include "pmm.hpp"
 
-#include <Libkernel/Logger.hpp>
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/KError.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
-#include <Tasking/TaskManager.hpp>
+#include <Libkernel/KError.hpp>
+#include <Libkernel/Logger.hpp>
+#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -228,10 +228,10 @@ void VMM::handle_interrupt(Trapframe* tf)
         }
     }
 
-    if (Tasking::TaskManager::s_initialized) {
+    if (Tasking::Scheduler::s_initialized) {
 
-        Log() << "\nPID: " << Tasking::TaskManager::the().cur_process()->id() << "\n";
-        auto thread = Tasking::TaskManager::the().cur_thread();
+        Log() << "\nPID: " << Tasking::Scheduler::the().cur_process()->id() << "\n";
+        auto thread = Tasking::Scheduler::the().cur_thread();
         Log() << "Registers:\n";
         Log() << "eip: " << thread->trapframe()->eip << "\n";
         Log() << "esp: " << thread->trapframe()->useresp << "\n";

@@ -1,6 +1,6 @@
 #pragma once
 #include "Elf/Elf.hpp"
-#include "TaskManager.hpp"
+#include "Scheduler.hpp"
 #include "Thread.hpp"
 
 #include <Memory/Region.hpp>
@@ -22,13 +22,13 @@ using namespace Memory;
 constexpr pid_t MAX_PROCESSES_ALLOWED = 20;
 
 class ProcessStorage;
-class TaskManager;
+class Scheduler;
 class Thread;
 
 class Process {
     friend class ProcessStorage;
     friend class Thread;
-    friend class TaskManager;
+    friend class Scheduler;
 
 public:
     inline uint32_t id() const { return m_id; }
@@ -84,7 +84,7 @@ private:
     List<Thread*>& TS() const;
 
 public:
-    TaskManager* m_task_manager {};
+    Scheduler* m_task_manager {};
 
     uint32_t m_id {};
     Thread* cur_thread {};
