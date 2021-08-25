@@ -1,3 +1,9 @@
+/*
+std::function with small size optimization
+My implementation of the idea taken from here - https://www.youtube.com/watch?v=VY83afAJUIg
+*/
+
+
 #pragma once
 
 #include "Common.hpp"
@@ -99,11 +105,6 @@ public:
     {
         return m_invoke_ptr(m_storage, forward<Args>(args)...);
     }
-
-    // Result operator()(Args... args) const
-    // {
-    //     return m_invoke_ptr(m_storage, args...);
-    // }
 
     template <typename Functor>
     static Result invoke(Functor* functor, Args&&... args)
