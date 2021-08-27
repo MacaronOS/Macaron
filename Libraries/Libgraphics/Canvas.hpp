@@ -60,7 +60,7 @@ public:
     {
         for (int y = state().clip_rect.top; y < state().clip_rect.bottom; y++) {
             for (int x = state().clip_rect.left; x < state().clip_rect.right; x++) {
-                m_bitmap[y][x] = color;
+                m_bitmap[y][x].mix_with(color);
             }
         }
     }
@@ -94,8 +94,25 @@ public:
         }
     }
 
+    inline void draw_bitmap(const Graphics::Bitmap& bitmap)
+    {
+        int top = max(state().clip_rect.top, state().cursor_y);
+        int left = max(state().clip_rect.left, state().cursor_x);
+
+        for (int y = top; y < state().clip_rect.bottom; y++) {
+            if (y - top >= bitmap.height()) {
+                break;
+            }
+            for (int x = left; x < state().clip_rect.right; x++) {
+                if (x - left >= bitmap.width()) {
+                    break;
+                }
+                m_bitmap[y][x].mix_with(bitmap[y - top][x - left]);
+            }
+        }
+    }
+
     void draw_rect(const Rect& rect, const Paint& paint);
-    void draw_text();
 
 private:
     inline State& state() { return m_saved_states[m_saved_state_ptr]; }

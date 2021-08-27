@@ -4,18 +4,27 @@
 #include <Libui/App/Activity.hpp>
 #include <Libui/App/Application.hpp>
 #include <Libui/Button.hpp>
+#include <Libui/ImageView.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
 
+#include <Libgraphics/BMP/BMPLoader.hpp>
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
 class MainActivity : public UI::Activity {
 protected:
-    void add(UI::LinearLayout* layout)
+    void add(UI::LinearLayout* layout, const Graphics::Bitmap& image)
     {
-        auto view = new UI::View();
+        auto image_view = new UI::ImageView();
+        image_view->set_image_bitmap(image);
+        image_view->set_on_mouse_click_listener([](UI::View& view) {
+            if (!fork()) {
+                execve("/ext2/Applications/Clicker", nullptr, nullptr);
+            }
+        });
+
         auto view_params = new UI::MarginLayoutParams();
         view_params->width = 32;
         view_params->height = 32;
@@ -23,8 +32,8 @@ protected:
         view_params->top_margin = 10;
         view_params->right_margin = 5;
         view_params->bottom_margin = 10;
-        layout->add_view(view, view_params);
-        view->set_background_color(Graphics::Color(255, 255, 255));
+
+        layout->add_view(image_view, view_params);
     }
 
     void on_create() override
@@ -35,10 +44,13 @@ protected:
         constexpr uint32_t height = 32 + 10 + 10;
 
         auto layout = new UI::LinearLayout();
+        layout->set_background_color(Graphics::Color(215, 215, 215));
+
+        auto image = Graphics::BMPLoader::load("/ext2/Resources/icon.bmp");
 
         static int width = 0;
-        for (int app = 0 ; app < 6 ; app++) {
-            add(layout);
+        for (int app = 0; app < 6; app++) {
+            add(layout, image);
             width += (32 + 2 * 5);
         }
 

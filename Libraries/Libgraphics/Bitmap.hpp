@@ -11,8 +11,8 @@ public:
     Bitmap() = default;
     Bitmap(Color* colors, size_t width, size_t height);
 
-    Bitmap(const Bitmap&) = delete;
-    Bitmap& operator=(const Bitmap&) = delete;
+    Bitmap(const Bitmap&) = default;
+    Bitmap& operator=(const Bitmap&) = default;
 
     Bitmap(Bitmap&& bitmap);
     Bitmap& operator=(Bitmap&&);

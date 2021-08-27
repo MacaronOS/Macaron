@@ -124,8 +124,8 @@ bool WindowServer::initialize()
 
 // in debug purpose
 // make windows spawn in different places
-int x_offset = 50;
-int y_offset = 50;
+int x_offset = 0;
+int y_offset = 0;
 
 void WindowServer::run()
 {
@@ -139,13 +139,20 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     Log << "Recieved CreateWindowRequst" << endl;
     auto shared_buffer = create_shared_buffer(request.widht() * request.height() * 4);
     auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
+    
+    x_offset += 50;
+    y_offset += 50;
 
+    if (y_offset + request.height() >= m_screen.height || x_offset + request.widht() >= m_screen.width) {
+        y_offset = 50;
+        x_offset = 50;
+    }
+    
     auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
     if (request.frameless() > 0) {
         window->make_frameless();
     }
-    x_offset += 20 + request.widht();
-    y_offset += 20 + request.height();
+
     m_windows.push_back(window);
 
     draw_text(request.titile(), window->frame_buffer(), 8, 3, m_font_bold);
@@ -174,7 +181,7 @@ ScreenSizeResponse WindowServer::on_ScreenSizeRequest(ScreenSizeRequest& request
 void WindowServer::on_SetPositionRequest(SetPositionRequest& request, int pid_from)
 {
     auto window = get_window_by_id(request.window_id());
-    
+
     m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
     window->set_position(request.left(), request.top());
     m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));

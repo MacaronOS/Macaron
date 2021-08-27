@@ -152,7 +152,7 @@ protected:
     int m_padding_top {};
     int m_padding_right {};
     int m_padding_bottom {};
-    Graphics::Color m_background_color {};
+    Graphics::Color m_background_color { Graphics::Color(0, 0, 0, 0) };
 
     OnMouseClickListener m_on_mouse_click_listener {};
     OnMouseMoveListener m_on_mouse_move_listener {};
