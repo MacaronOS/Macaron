@@ -4,12 +4,15 @@ Commands:
 
     InstallUserspace:
         sudo fuse-ext2 drive.img mountpoint -o rw+
-        sudo mkdir -p mountpoint/Applications/
-        sudo find Applications/* -type f ! -name "*.*" -exec cp {} ./mountpoint/Applications/ \\;
+
+        sudo python3 Scripts/install_userspace.py
+
         sudo mkdir -p mountpoint/System/
         sudo find System/* -type f ! -name "*.*" -exec cp {} ./mountpoint/System/ \\;
+
         sudo mkdir -p mountpoint/Resources/
         sudo cp -r Resources/* mountpoint/Resources/
+        
         sudo umount mountpoint
 
     Run:

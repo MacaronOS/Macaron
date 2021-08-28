@@ -15,13 +15,21 @@
 
 class MainActivity : public UI::Activity {
 protected:
-    void add(UI::LinearLayout* layout, const Graphics::Bitmap& image)
+    void add(UI::LinearLayout* layout, const Graphics::Bitmap& defalt_image)
     {
         auto image_view = new UI::ImageView();
-        image_view->set_image_bitmap(image);
+        
+        auto bitmap = Graphics::BMPLoader::load("/ext2/Applications/Clicker/icon.bmp");
+
+        if (bitmap.width() == 0 || bitmap.height() == 0) {
+            image_view->set_image_bitmap(defalt_image);
+        } else {
+            image_view->set_image_bitmap(bitmap);
+        }
+        
         image_view->set_on_mouse_click_listener([](UI::View& view) {
             if (!fork()) {
-                execve("/ext2/Applications/Clicker", nullptr, nullptr);
+                execve("/ext2/Applications/Clicker/Clicker", nullptr, nullptr);
             }
         });
 
