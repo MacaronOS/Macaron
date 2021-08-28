@@ -4,15 +4,14 @@
 
 namespace Kernel::Time {
 
-template <>
-TimeManager* Singleton<TimeManager>::s_t = nullptr;
-template <>
-bool Singleton<TimeManager>::s_initialized = false;
-
-TimeManager::TimeManager()
+bool TimeManager::initialize()
 {
     auto pit = reinterpret_cast<PIT*>(Drivers::DriverManager::the().get_driver(DriverEntity::PIT));
-    pit->register_tick_reciever(this);
+    if (pit) {
+        pit->register_tick_reciever(this);
+        return true;
+    }
+    return false;
 }
 
 void TimeManager::on_tick(Trapframe* tf)

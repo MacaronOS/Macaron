@@ -9,7 +9,6 @@
 #include <Memory/vmm.hpp>
 
 #include <Macaronlib/List.hpp>
-#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel::Tasking {
 
@@ -19,13 +18,19 @@ class ProcessStorage;
 class Process;
 class Thread;
 
-class Scheduler : public Singleton<Scheduler>, public TickReciever {
+class Scheduler : public TickReciever {
     friend class Process;
 
 public:
-    Scheduler();
+    static Scheduler& the()
+    {
+        static Scheduler the {};
+        return the;
+    }
+
     bool run();
 
+    inline bool running() const { return m_running; }
     Thread* cur_thread();
     Process* cur_process();
 
@@ -42,11 +47,14 @@ public:
         reschedule();
     }
 
-public:
+private:
+    Scheduler();
+
     // TODO: support kernel processes / threads
     ProcessStorage* m_process_storage {};
     List<Thread*> m_threads {};
     List<Thread*>::Iterator<ListNode<Thread*>> m_cur_thread { m_threads.end() };
+    bool m_running {};
 };
 
 }

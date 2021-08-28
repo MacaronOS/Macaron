@@ -20,7 +20,6 @@
 #include <Memory/vmm.hpp>
 #include <Multiboot.hpp>
 #include <Tasking/Scheduler.hpp>
-#include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
 #include <Tasking/Syscalls/Syscalls.hpp>
 #include <Time/TimeManager.hpp>
 
@@ -34,16 +33,6 @@ using namespace Memory;
 using namespace Logger;
 using namespace Time;
 
-typedef void (*constructor)();
-extern "C" constructor start_ctors;
-extern "C" constructor end_ctors;
-extern "C" void call_constructors()
-{
-    for (constructor* i = &start_ctors; i != &end_ctors; i++) {
-        (*i)();
-    }
-}
-
 extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 {
     DescriptorTables::GDT::Setup();
@@ -53,16 +42,13 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     VgaTUI::Print("hello\n");
 
     Memory::SetupMalloc();
+    PMM::the().initialize(multiboot_structure);
 
-    InterruptManager::initialize();
-    PMM::initialize<multiboot_info*>(multiboot_structure);
-    VMM::initialize();
     SyscallsManager::initialize();
 
-    // setting Drivers/
-    DriverManager::initialize();
-    auto* ata = new Ata(0x1F0, true, DriverEntity::Ata0);
-    auto* pit = new PIT();
+    // setting Drivers
+    auto ata = new Ata(0x1F0, true, DriverEntity::Ata0);
+    auto pit = new PIT();
     DriverManager::the().add_driver(ata);
     DriverManager::the().add_driver(pit);
     DriverManager::the().add_driver(new Kernel::Drivers::Keyboard());
@@ -70,11 +56,6 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     DriverManager::the().add_driver(new Kernel::Drivers::PCI());
     DriverManager::the().add_driver(new Kernel::Drivers::Mouse());
     DriverManager::the().install_all();
-
-    TimeManager::initialize();
-
-    // setting VFS
-    VFS::initialize();
 
     Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
     ext2->init();
@@ -85,9 +66,10 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
     VFS::the().mount(VFS::the().root(), devfs->root(), "dev");
 
-    SharedBufferStorage::initialize();
+    if (!TimeManager::the().initialize()) {
+        ASSERT_PANIC("Could not initialize TimeManager");
+    }
 
-    Scheduler::initialize();
     Scheduler::the().create_process("/ext2/System/System");
     Scheduler::the().run();
 }

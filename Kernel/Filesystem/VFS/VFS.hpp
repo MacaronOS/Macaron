@@ -4,11 +4,11 @@
 #include <Filesystem/Base/VNode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
+#include <Libkernel/Logger.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Array.hpp>
 #include <Macaronlib/Common.hpp>
-#include <Macaronlib/Singleton.hpp>
 #include <Macaronlib/StaticStack.hpp>
 
 namespace Kernel::FS {
@@ -22,8 +22,7 @@ struct Relation {
     VNode* file;
 };
 
-class VFS : public Singleton<VFS> {
-
+class VFS {
     class FileDescriptor {
     public:
         FileDescriptor() = default;
@@ -47,8 +46,11 @@ class VFS : public Singleton<VFS> {
     };
 
 public:
-    VFS();
-    ~VFS() = default;
+    static VFS& the()
+    {
+        static VFS the {};
+        return the;
+    }
 
     VNode& root() { return *m_root; }
     VNodeStorage& file_storage() { return m_file_storage; }
@@ -87,10 +89,10 @@ public:
     bool erase(VNode& directory, const VNode& file);
 
 private:
+    VFS();
+    
     KErrorOr<VNode*> resolve_path(const String& path);
     FileDescriptor* get_file_descriptor(const fd_t fd);
-
-private:
     KErrorOr<Relation> resolve_relation(const String& path);
 
 private:

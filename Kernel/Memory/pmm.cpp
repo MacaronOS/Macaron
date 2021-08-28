@@ -1,26 +1,18 @@
 #include "pmm.hpp"
 #include "Layout.hpp"
 
+#include <Libkernel/Logger.hpp>
 #include <Multiboot.hpp>
 
 #include <Macaronlib/Bitmap.hpp>
-#include <Macaronlib/Singleton.hpp>
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
 
-#include <Libkernel/Logger.hpp>
-
 namespace Kernel::Memory {
 
-template <>
-PMM* Singleton<PMM>::s_t = nullptr;
-template <>
-bool Singleton<PMM>::s_initialized = false;
-
-PMM::PMM(multiboot_info_t* multiboot_info)
-    : m_multiboot_info(multiboot_info)
+void PMM::initialize(multiboot_info_t* multiboot_info)
 {
-    const uint32_t mem_size = (m_multiboot_info->mem_upper + 1024) * KB; // how much memory we have
+    const uint32_t mem_size = (multiboot_info->mem_upper + 1024) * KB; // how much memory we have
     const uint32_t blocks_size = mem_size / FRAME_SIZE; // how much blocks of memory we manage
 
     // initializing pmmap bitmap right after the kernel
@@ -28,8 +20,8 @@ PMM::PMM(multiboot_info_t* multiboot_info)
     m_pmmap.fill();
 
     for (
-        auto* mmap = reinterpret_cast<multiboot_memory_map_t*>(m_multiboot_info->mmap_addr + HIGHER_HALF_OFFSET);
-        mmap < (multiboot_memory_map_t*)(m_multiboot_info->mmap_addr + HIGHER_HALF_OFFSET + m_multiboot_info->mmap_length);
+        auto* mmap = reinterpret_cast<multiboot_memory_map_t*>(multiboot_info->mmap_addr + HIGHER_HALF_OFFSET);
+        mmap < (multiboot_memory_map_t*)(multiboot_info->mmap_addr + HIGHER_HALF_OFFSET + multiboot_info->mmap_length);
         mmap++) {
         if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
             free_range(mmap->addr, mmap->addr + mmap->len - 1);

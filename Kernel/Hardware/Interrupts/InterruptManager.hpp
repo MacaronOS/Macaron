@@ -1,13 +1,18 @@
 #pragma once
+
 #include <Hardware/Trapframe.hpp>
+
 #include <Macaronlib/Common.hpp>
-#include <Macaronlib/Singleton.hpp>
 
 class InterruptHandler;
 
-class InterruptManager : public Singleton<InterruptManager> {
+class InterruptManager {
 public:
-    InterruptManager() = default;
+    static InterruptManager& the()
+    {
+        static InterruptManager the {};
+        return the;
+    }
 
     void register_interrupt_handler(InterruptHandler* handler);
     void handle_interrupt(Trapframe* tf);

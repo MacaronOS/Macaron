@@ -17,11 +17,6 @@ namespace Kernel::Memory {
 using namespace Logger;
 using namespace Tasking;
 
-template <>
-VMM* Singleton<VMM>::s_t = nullptr;
-template <>
-bool Singleton<VMM>::s_initialized = false;
-
 VMM::VMM()
     : InterruptHandler(14)
     , m_buffer_1(Layout::GetLocationVirt(LayoutElement::PagingBuffer1))
@@ -228,8 +223,7 @@ void VMM::handle_interrupt(Trapframe* tf)
         }
     }
 
-    if (Tasking::Scheduler::s_initialized) {
-
+    if (Tasking::Scheduler::the().running()) {
         Log() << "\nPID: " << Tasking::Scheduler::the().cur_process()->id() << "\n";
         auto thread = Tasking::Scheduler::the().cur_thread();
         Log() << "Registers:\n";

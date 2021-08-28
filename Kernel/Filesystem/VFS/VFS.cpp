@@ -9,11 +9,6 @@
 #include <Macaronlib/Runtime.hpp>
 
 namespace Kernel::FS {
-using namespace Logger;
-template <>
-VFS* Singleton<VFS>::s_t = nullptr;
-template <>
-bool Singleton<VFS>::s_initialized = false;
 
 VFS::VFS()
 {

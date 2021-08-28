@@ -1,18 +1,23 @@
 #pragma once
 
 #include <Multiboot.hpp>
-#include <Macaronlib/Common.hpp>
 
 #include <Macaronlib/Bitmap.hpp>
-#include <Macaronlib/Singleton.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Kernel::Memory {
 
 constexpr uint32_t FRAME_SIZE = 4096;
 
-class PMM : public Singleton<PMM> {
+class PMM {
 public:
-    explicit PMM(multiboot_info* multiboot_info);
+    static PMM& the()
+    {
+        static PMM the {};
+        return the;
+    }
+
+    void initialize(multiboot_info* multiboot_info);
 
     // allocates available frame
     // frame represents a FRAME_SIZE sized chunk of main memory
@@ -38,7 +43,6 @@ private:
     void free_range(uint32_t left, size_t right);
 
 private:
-    multiboot_info* m_multiboot_info; // initial disk layout information, provided by GRUB
     Bitmap m_pmmap; // contains the state of each memory block (0 - unused, 1 - used)
 };
 

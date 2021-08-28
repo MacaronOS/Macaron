@@ -13,11 +13,6 @@ extern "C" void return_from_scheduler(Trapframe* tf);
 extern "C" void return_to_the_kernel_handler(KernelContext* kc);
 extern "C" void switch_to_user_mode();
 
-template <>
-Scheduler* Singleton<Scheduler>::s_t = nullptr;
-template <>
-bool Singleton<Scheduler>::s_initialized = false;
-
 using namespace Memory;
 using namespace Logger;
 
@@ -30,6 +25,7 @@ bool Scheduler::run()
 {
     auto* pit = reinterpret_cast<Drivers::PIT*>(Drivers::DriverManager::the().get_driver(Drivers::DriverEntity::PIT));
     if (pit) {
+        m_running = true;
         m_cur_thread = m_threads.begin();
         pit->register_tick_reciever(this);
         switch_to_user_mode();

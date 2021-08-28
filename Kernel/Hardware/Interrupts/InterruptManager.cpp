@@ -1,12 +1,8 @@
 #include "InterruptManager.hpp"
-#include <Libkernel/Logger.hpp>
+
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
-
-template <>
-InterruptManager* Singleton<InterruptManager>::s_t = nullptr;
-template <>
-bool Singleton<InterruptManager>::s_initialized = false;
+#include <Libkernel/Logger.hpp>
 
 void InterruptManager::register_interrupt_handler(InterruptHandler* handler)
 {

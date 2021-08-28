@@ -5,18 +5,21 @@
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
-#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel::Time {
 
 using namespace Drivers;
 
-class TimeManager : public Singleton<TimeManager>, public TickReciever {
+class TimeManager : public TickReciever {
 public:
-    TimeManager();
+    static TimeManager& the()
+    {
+        static TimeManager the {};
+        return the;
+    }
 
+    bool initialize();
     void on_tick(Trapframe* tf) override;
-
     KErrorOr<timespec> get_time(int clock_id);
 
 private:

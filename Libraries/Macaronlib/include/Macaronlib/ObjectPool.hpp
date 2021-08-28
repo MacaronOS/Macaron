@@ -1,7 +1,7 @@
 #pragma once
+#include "Common.hpp"
 #include "StaticStack.hpp"
 #include "Vector.hpp"
-#include "Common.hpp"
 
 template <typename T, size_t size>
 class ObjectPool {

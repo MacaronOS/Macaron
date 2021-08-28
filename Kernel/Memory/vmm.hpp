@@ -1,15 +1,15 @@
 #pragma once
+
 #include "Layout.hpp"
+#include "Region.hpp"
 #include "pagingstructs.hpp"
 #include "pmm.hpp"
-#include "Region.hpp"
 
+#include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
-#include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Tasking/Scheduler.hpp>
 
-#include <Macaronlib/Singleton.hpp>
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
 
@@ -91,9 +91,13 @@ private:
     uint32_t m_buffered_phys_address;
 };
 
-class VMM : public Singleton<VMM>, InterruptHandler {
+class VMM : public InterruptHandler {
 public:
-    VMM();
+    static VMM& the()
+    {
+        static VMM the {};
+        return the;
+    }
 
     uint32_t kernel_page_directory() const { return m_kernel_directory_phys; }
     uint32_t current_page_directory() const { return m_cur_page_dir_phys; }
@@ -184,6 +188,8 @@ public:
     void inspect_page_table(uint32_t page_table_phys, uint32_t page_table_index);
 
 private:
+    VMM();
+
     inline uint32_t create_page_table()
     {
         uint32_t page_table_phys = PMM::the().allocate_frame() * FRAME_SIZE;
@@ -192,7 +198,8 @@ private:
         return page_table_phys;
     }
 
-    inline void create_ptable_if_neccesary(PDEntry& pde, uint32_t flags) {
+    inline void create_ptable_if_neccesary(PDEntry& pde, uint32_t flags)
+    {
         if (!pde._bits) {
             pde.pt_base = create_page_table() / PAGE_SIZE;
             pde._bits |= (flags & 0x7);

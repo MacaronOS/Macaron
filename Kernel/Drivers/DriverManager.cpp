@@ -11,11 +11,6 @@
 
 namespace Kernel::Drivers {
 
-template <>
-DriverManager* Singleton<DriverManager>::s_t = nullptr;
-template <>
-bool Singleton<DriverManager>::s_initialized = false;
-
 void DriverManager::add_driver(Driver& driver)
 {
     m_drivers[(uint8_t)driver.driver_entity()] = &driver;

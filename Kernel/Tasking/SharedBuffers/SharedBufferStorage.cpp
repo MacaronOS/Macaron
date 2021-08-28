@@ -4,18 +4,13 @@
 #include <Tasking/Process.hpp>
 #include <Tasking/Scheduler.hpp>
 
-#include <Macaronlib/ObjectPool.hpp>
 #include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/ObjectPool.hpp>
 
 namespace Kernel {
 
 using namespace Tasking;
 using namespace Memory;
-
-template <>
-SharedBufferStorage* Singleton<SharedBufferStorage>::s_t = nullptr;
-template <>
-bool Singleton<SharedBufferStorage>::s_initialized = false;
 
 CreateBufferResult SharedBufferStorage::create_buffer(uint32_t size)
 {

@@ -4,15 +4,18 @@
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/ObjectPool.hpp>
-#include <Macaronlib/Singleton.hpp>
 
 namespace Kernel {
 
-class SharedBufferStorage : public Singleton<SharedBufferStorage> {
+class SharedBufferStorage {
     static constexpr uint32_t MAX_BUFFERS = 100;
 
 public:
-    SharedBufferStorage() = default;
+    static SharedBufferStorage& the()
+    {
+        static SharedBufferStorage the {};
+        return the;
+    }
 
     CreateBufferResult create_buffer(uint32_t size);
     uint32_t get_buffer(uint32_t id);
