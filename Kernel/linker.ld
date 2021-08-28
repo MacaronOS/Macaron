@@ -15,7 +15,7 @@ SECTIONS
 
  .text ALIGN(4K) : AT(ADDR(.text)-0xC0000000)
  {
-  *(.text)
+  *(.text*)
  }
 
  _kernel_text_end = .;
@@ -24,7 +24,7 @@ SECTIONS
  /* Read-only data. */
  .rodata ALIGN(4K) : AT(ADDR(.rodata)-0xC0000000)
  {
-  *(.rodata)
+  *(.rodata*)
  }
 
  _kernel_rodata_end = .;
@@ -36,10 +36,11 @@ SECTIONS
   start_ctors = .;
   KEEP(*( .init_array ));
   KEEP(*(SORT_BY_INIT_PRIORITY( .init_array.* )));
+  KEEP(*(.ctor*));
   end_ctors = .;
 
   data = .;
-  *(.data)
+  *(.data*)
  }
 
  _kernel_data_end = .;
@@ -50,7 +51,7 @@ SECTIONS
  {
   bss = .;
   *(COMMON)
-  *(.bss)
+  *(.bss*)
   _kernel_stack_start = .;
   *(.bootstrap_stack)
   _kernel_stack_end = .;

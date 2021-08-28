@@ -1,28 +1,28 @@
-#include <Libkernel/Logger.hpp>
-#include <Libkernel/Assert.hpp>
+#include <Drivers/Disk/Ata.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/IO/Keyboard.hpp>
 #include <Drivers/IO/Mouse.hpp>
-#include <Drivers/PIT.hpp>
 #include <Drivers/IO/Uart.hpp>
-#include <Drivers/Disk/Ata.hpp>
 #include <Drivers/PCI/PCI.hpp>
+#include <Drivers/PIT.hpp>
 #include <Filesystem/Base/VNode.hpp>
 #include <Filesystem/DevFS/DevFS.hpp>
 #include <Filesystem/Ext2/Ext2.hpp>
 #include <Filesystem/VFS/VFS.hpp>
-#include <Time/TimeManager.hpp>
+#include <Hardware/DescriptorTables/GDT.hpp>
+#include <Hardware/DescriptorTables/IDT.hpp>
+#include <Libkernel/Assert.hpp>
+#include <Libkernel/Graphics/VgaTUI.hpp>
+#include <Libkernel/Logger.hpp>
 #include <Memory/Layout.hpp>
 #include <Memory/Malloc.hpp>
 #include <Memory/pmm.hpp>
 #include <Memory/vmm.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Multiboot.hpp>
 #include <Tasking/Scheduler.hpp>
-#include <Hardware/DescriptorTables/GDT.hpp>
-#include <Hardware/DescriptorTables/IDT.hpp>
-#include <Tasking/Syscalls/Syscalls.hpp>
 #include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
+#include <Tasking/Syscalls/Syscalls.hpp>
+#include <Time/TimeManager.hpp>
 
 using namespace Kernel;
 using namespace Drivers;
@@ -51,7 +51,7 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     VgaTUI::Initialize();
     VgaTUI::Print("hello\n");
-    
+
     Memory::SetupMalloc();
 
     InterruptManager::initialize();

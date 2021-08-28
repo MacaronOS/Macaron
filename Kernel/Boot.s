@@ -97,7 +97,6 @@ L4:
 
   call    call_constructors
 
-  cli
   add ebx, 0xC0000000
   push ebx ; saving multiboot structure
   call kernel_entry_point
