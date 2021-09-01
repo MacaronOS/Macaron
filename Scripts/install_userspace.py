@@ -3,6 +3,7 @@ import os
 from shutil import copyfile
 
 iconname = 'icon.bmp'
+binaryname = 'bin'
 build_folder = 'MacaBuild'
 
 
@@ -16,7 +17,7 @@ def main(apps_path, mountpoint):
             app_folder_on_drive = os.path.join(mountpoint, application)
             os.makedirs(app_folder_on_drive, exist_ok=True)
 
-            bin_path_on_drive = os.path.join(app_folder_on_drive, application)
+            bin_path_on_drive = os.path.join(app_folder_on_drive, binaryname)
             icon_path_on_drive = os.path.join(app_folder_on_drive, iconname)
 
             copyfile(bin_path, bin_path_on_drive)

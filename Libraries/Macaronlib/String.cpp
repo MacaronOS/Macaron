@@ -1,7 +1,7 @@
-#include <String.hpp>
-#include <Vector.hpp>
 #include <Common.hpp>
 #include <Memory.hpp>
+#include <String.hpp>
+#include <Vector.hpp>
 
 String::String(size_t size)
 {
@@ -194,7 +194,7 @@ bool String::operator==(const char* s) const
 
 String String::operator+(const String& str) const
 {
-    auto new_string = *this;
+    auto new_string(*this);
     if (new_string.m_capacity - new_string.m_size - str.m_size < 0) {
         new_string.realloc(new_string.m_capacity + str.m_capacity);
     }
@@ -208,7 +208,7 @@ String String::operator+(const String& str) const
 
 String String::operator+(const char* cstr) const
 {
-    auto new_string = *this;
+    auto new_string(*this);
     for (size_t i = 0; cstr[i] != '\0'; i++) {
         new_string.push_back(cstr[i]);
     }
