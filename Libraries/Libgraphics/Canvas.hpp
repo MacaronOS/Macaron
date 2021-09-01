@@ -94,10 +94,10 @@ public:
         }
     }
 
-    inline void draw_bitmap(const Graphics::Bitmap& bitmap)
+    inline void draw_bitmap(const Graphics::Bitmap& bitmap, int xoffset = 0, int yoffset = 0)
     {
-        int top = max(state().clip_rect.top, state().cursor_y);
-        int left = max(state().clip_rect.left, state().cursor_x);
+        int top = max(state().clip_rect.top, state().cursor_y + yoffset);
+        int left = max(state().clip_rect.left, state().cursor_x + xoffset);
 
         for (int y = top; y < state().clip_rect.bottom; y++) {
             if (y - top >= bitmap.height()) {

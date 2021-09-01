@@ -8,6 +8,7 @@
 
 #include <Libgraphics/BMP/BMPLoader.hpp>
 #include <Libgraphics/Bitmap.hpp>
+#include <Libgraphics/Canvas.hpp>
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
@@ -139,7 +140,7 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     Log << "Recieved CreateWindowRequst" << endl;
     auto shared_buffer = create_shared_buffer(request.widht() * request.height() * 4);
     auto pixel_bitmap = Graphics::Bitmap((Graphics::Color*)shared_buffer.mem, request.widht(), request.height());
-    
+
     x_offset += 50;
     y_offset += 50;
 
@@ -147,7 +148,7 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
         y_offset = 50;
         x_offset = 50;
     }
-    
+
     auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
     if (request.frameless() > 0) {
         window->make_frameless();
@@ -155,7 +156,20 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
 
     m_windows.push_back(window);
 
-    draw_text(request.titile(), window->frame_buffer(), 8, 3, m_font_bold);
+    auto maximize_bitmap = Graphics::BMPLoader::load("/ext2/Resources/maximize.bmp");
+    auto minimize_bitmap = Graphics::BMPLoader::load("/ext2/Resources/minimize.bmp");
+    auto close_bitmap = Graphics::BMPLoader::load("/ext2/Resources/close.bmp");
+
+    auto close_offset = window->width() - 6 - maximize_bitmap.width();
+    auto minimize_offset = close_offset - 20;
+    auto maximize_offset = minimize_offset - 20;
+
+    auto canvas = Graphics::Canvas(window->frame_buffer());
+    canvas.draw_text(request.titile(), 8, 3, m_font_bold);
+    canvas.draw_bitmap(maximize_bitmap, maximize_offset, 4);
+    canvas.draw_bitmap(minimize_bitmap, minimize_offset, 4);
+    canvas.draw_bitmap(close_bitmap, close_offset, 4);
+
     m_invalid_areas.push_back(window->frame_bounds());
 
     return CreateWindowResponse(window->id, shared_buffer.id);
@@ -303,44 +317,4 @@ Window* WindowServer::get_window_by_id(int id)
         }
     }
     return nullptr;
-}
-
-void WindowServer::draw_text(const String& text, int pos_x, int pos_y, const Graphics::BitmapFont& font)
-{
-    char last_symbol = 0;
-    for (size_t i = 0; i < text.size(); i++) {
-        char symbol = text[i];
-        auto& descr = font.chars[symbol];
-
-        // dont know why it's shifted by 1
-        // may be there's some kind of an error in font generator tool
-        for (size_t h = 1; h < descr.height + 1; h++) {
-            for (size_t w = 0; w < descr.width; w++) {
-                m_screen.back_buffer()[pos_y + descr.yoffset + h][pos_x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);
-            }
-        }
-
-        pos_x += descr.xadvantage;
-        last_symbol = symbol;
-    }
-}
-
-void WindowServer::draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Graphics::BitmapFont& font)
-{
-    char last_symbol = 0;
-    for (size_t i = 0; i < text.size(); i++) {
-        char symbol = text[i];
-        auto& descr = font.chars[symbol];
-
-        // dont know why it's shifted by 1
-        // may be there's some kind of an error in font generator tool
-        for (size_t h = 1; h < descr.height + 1; h++) {
-            for (size_t w = 0; w < descr.width; w++) {
-                pixels[y + descr.yoffset + h][x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);
-            }
-        }
-
-        x += descr.xadvantage;
-        last_symbol = symbol;
-    }
 }

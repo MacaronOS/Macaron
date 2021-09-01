@@ -37,10 +37,6 @@ private:
     void draw_background();
     void copy_changes_to_second_buffer();
 
-    void draw_text(const String& text, int x, int y, const Graphics::BitmapFont& font);
-
-    void draw_text(const String& text, Graphics::Bitmap& pixels, int x, int y, const Graphics::BitmapFont& font);
-
     Window* get_window_by_id(int id);
 
 private:
