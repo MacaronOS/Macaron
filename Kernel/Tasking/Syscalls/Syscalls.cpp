@@ -5,8 +5,8 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
-#include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
 #include <Tasking/Scheduler.hpp>
+#include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
 #include <Time/TimeManager.hpp>
 
 #include <Macaronlib/ABI/Errors.hpp>
@@ -159,6 +159,11 @@ static int sys_clock_gettime(int clock_id, timespec* ts)
     return 0;
 }
 
+static int sys_getdents(fd_t fd, linux_dirent* dirp, size_t size)
+{
+    return int(VFS::the().getdents(fd, dirp, size));
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -182,6 +187,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::GetPid, (uint32_t)sys_getpid);
     register_syscall(Syscall::Lseek, (uint32_t)sys_lseek);
     register_syscall(Syscall::ClockGettime, (uint32_t)sys_clock_gettime);
+    register_syscall(Syscall::GetDents, (uint32_t)sys_getdents);
 }
 
 void SyscallsManager::initialize()
@@ -198,7 +204,7 @@ void SyscallsManager::handle_interrupt(Trapframe* regs)
 {
     if (static_cast<Syscall>(regs->eax) == Syscall::SchedYield) {
         regs->eax = 0;
-        Scheduler::the().on_tick(regs);
+        Scheduler::the().reschedule();
     }
     if (regs->eax >= syscall_count || !m_syscalls[regs->eax]) {
         return;

@@ -269,7 +269,7 @@ Vector<String> VFS::listdir(const String& path)
 
 Vector<String> VFS::listdir(VNode& directory)
 {
-    Vector<String> result;
+    Vector<String> result {};
 
     if (directory.fs()) {
         result = directory.fs()->listdir(directory);
@@ -506,6 +506,21 @@ KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds,
     }
 
     return KError(0);
+}
+
+KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    if (file_descr->vnode() && file_descr->vnode()->fs()) {
+        memset(dirp, 0, size);
+        return file_descr->vnode()->fs()->getdents(*file_descr->vnode(), dirp, size);
+    }
+
+    return KError(ENOENT);
 }
 
 }

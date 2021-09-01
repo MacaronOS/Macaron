@@ -35,7 +35,6 @@
 #define CLOCK_REALTIME_COARSE 5
 #define CLOCK_MONOTONIC_COARSE 6
 
-
 enum class Syscall {
     Putc = 0,
     Exit,
@@ -48,7 +47,7 @@ enum class Syscall {
     Execve = 9,
 
     Printd,
-    
+
     Lseek = 19,
     GetPid = 20,
 
@@ -57,6 +56,8 @@ enum class Syscall {
     Select = 82,
 
     Mmap = 90,
+
+    GetDents = 141,
 
     SchedYield = 158,
 
@@ -75,7 +76,6 @@ enum class Syscall {
 
     END,
 };
-
 
 struct [[gnu::packed]] MmapParams {
     uint32_t start;
@@ -114,4 +114,11 @@ struct MousePacket {
 struct timespec {
     size_t tv_sec;
     size_t tv_nsec;
+};
+
+struct [[gnu::packed]] linux_dirent {
+    uint32_t d_ino; /* Inode number */
+    uint32_t d_off; /* Offset to next linux_dirent */
+    uint16_t d_reclen; /* Length of this linux_dirent */
+    char d_name[]; /* Filename (null-terminated) */
 };

@@ -24,3 +24,4 @@ int select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* t
 int getpid();
 int clock_gettime(int clock_id, timespec* ts);
 int sched_yield();
+int getdents(int fd, linux_dirent* dirp, size_t size);

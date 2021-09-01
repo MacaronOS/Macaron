@@ -10,8 +10,6 @@
 #include <Macaronlib/String.hpp>
 
 void write_string(const String&);
-
 CreateBufferResult create_shared_buffer(uint32_t size);
 uint32_t get_shared_buffer(uint32_t id);
-
 bool can_read(int pid);

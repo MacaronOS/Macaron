@@ -1,9 +1,10 @@
 #pragma once
 #include "VNode.hpp"
 
+#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Common.hpp>
 #include <Macaronlib/String.hpp>
 #include <Macaronlib/Vector.hpp>
-#include <Macaronlib/Common.hpp>
 
 namespace Kernel::FS {
 
@@ -27,6 +28,8 @@ public:
 
     // returns all filenames inside the directory
     virtual Vector<String> listdir(VNode& directory) { return {}; }
+
+    virtual size_t getdents(VNode& directory, linux_dirent* dirp, size_t size) { return 0; }
 
     // creates a file inside file storage and returns it
     virtual VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) { return nullptr; }

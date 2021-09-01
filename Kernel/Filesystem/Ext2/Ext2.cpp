@@ -6,12 +6,13 @@
 #include <Filesystem/Base/VNode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
+#include <Libkernel/Logger.hpp>
 
 #include <Macaronlib/Bitmap.hpp>
-#include <Macaronlib/String.hpp>
-#include <Macaronlib/Vector.hpp>
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
+#include <Macaronlib/String.hpp>
+#include <Macaronlib/Vector.hpp>
 
 #define EXT2_MAGIC 0xEF53
 
@@ -151,13 +152,73 @@ Vector<String> Ext2::listdir(VNode& directory)
         memcpy(name, &((dir_entry_t*)((size_t)directory_content + entry_pointer))[0].name_characters, entry.name_len_low);
         name[entry.name_len_low] = '\0';
 
-        filenames.push_back(name);
-
         entry_pointer += entry.size;
+
+        if (strcmp(name, ".") == 0) {
+            continue;
+        }
+
+        if (strcmp(name, "..") == 0) {
+            continue;
+        }
+
+        filenames.push_back(name);
     }
 
     free(directory_content);
     return filenames;
+}
+
+size_t Ext2::getdents(VNode& directory, linux_dirent* dirp, size_t size)
+{
+    auto& i_directory = ToExt2Inode(directory);
+    uint8_t* directory_content = (uint8_t*)malloc(i_directory.inode_struct()->size);
+    read_inode_content(i_directory, 0, i_directory.inode_struct()->size, directory_content);
+
+    size_t ext2_dirent_pointer = 0;
+    size_t linux_dirent_pointer = 0;
+    linux_dirent* last_linux_dirent = nullptr;
+
+    while (ext2_dirent_pointer < i_directory.inode_struct()->size && linux_dirent_pointer < size) {
+        // Read entries by byte pointers
+        dir_entry_t& ext2_entry = ((dir_entry_t*)((size_t)directory_content + ext2_dirent_pointer))[0];
+        linux_dirent& linux_entry = ((linux_dirent*)((size_t)dirp + linux_dirent_pointer))[0];
+
+        // Move ext2 pointer since ext2_entry has been read
+        ext2_dirent_pointer += ext2_entry.size;
+
+        auto size_of_linux_entry = 2 * sizeof(uint32_t) + sizeof(uint16_t) + ext2_entry.name_len_low + 1;
+        // Out of memory in linux_dirent buffer
+        if (linux_dirent_pointer + size_of_linux_entry > size) {
+            break;
+        }
+
+        // Get filename
+        char name[256];
+        memcpy(name, &ext2_entry.name_characters, ext2_entry.name_len_low);
+        name[ext2_entry.name_len_low] = '\0';
+
+        // Skip Ext2 irrelevant entries
+        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+            continue;
+        }
+
+        memcpy(linux_entry.d_name, name, ext2_entry.name_len_low + 1);
+
+        // Get inode
+        linux_entry.d_ino = ext2_entry.inode;
+        linux_entry.d_reclen = size_of_linux_entry;
+        linux_dirent_pointer += linux_entry.d_reclen;
+
+        // Set offset to the next entry
+        if (last_linux_dirent) {
+            last_linux_dirent->d_off = (size_t)&linux_entry - (size_t)last_linux_dirent;
+        }
+
+        last_linux_dirent = &linux_entry;
+    }
+
+    return linux_dirent_pointer;
 }
 
 VNode* Ext2::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)

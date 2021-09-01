@@ -7,11 +7,12 @@
 #include <Drivers/Disk/DiskDriver.hpp>
 #include <Filesystem/Base/FS.hpp>
 #include <Filesystem/Base/VNode.hpp>
+
+#include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Bitmap.hpp>
+#include <Macaronlib/Common.hpp>
 #include <Macaronlib/String.hpp>
 #include <Macaronlib/Vector.hpp>
-
-#include <Macaronlib/Common.hpp>
 
 namespace Kernel::FS::EXT2 {
 
@@ -38,6 +39,7 @@ public:
 
     VNode* finddir(VNode& directory, const String& filename) override;
     Vector<String> listdir(VNode& directory) override;
+    size_t getdents(VNode& directory, linux_dirent* dirp, size_t size) override;
 
     VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) override;
     bool erase(VNode& directory, const VNode& file) override;

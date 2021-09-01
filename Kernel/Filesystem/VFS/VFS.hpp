@@ -67,6 +67,7 @@ public:
     KError mmap(fd_t fd, uint32_t addr, uint32_t size);
     KError ioctl(fd_t fd, uint32_t request);
     KError select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
+    KErrorOr<size_t> getdents(fd_t fd, linux_dirent* dirp, size_t size);
 
     // sockets
     KErrorOr<fd_t> socket(int domain, int type, int protocol);

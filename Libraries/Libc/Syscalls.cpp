@@ -97,3 +97,8 @@ int sched_yield()
 {
     return do_syscall(Syscall::SchedYield);
 }
+
+int getdents(int fd, linux_dirent* dirp, size_t size)
+{
+    return do_syscall(Syscall::GetDents, ToSysArg(fd), ToSysArg(dirp), ToSysArg(size));
+}
