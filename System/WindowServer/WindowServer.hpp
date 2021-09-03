@@ -41,9 +41,7 @@ private:
 
 private:
     Screen m_screen {};
-    Graphics::Bitmap m_wallpaper {};
-    Graphics::BitmapFont m_font_medium {};
-    Graphics::BitmapFont m_font_bold {};
+    Graphics::Bitmap& m_wallpaper { Resources::the().wallapaper() };
     Mouse m_mouse {};
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
     List<Window*> m_windows {};

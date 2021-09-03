@@ -1,4 +1,5 @@
 #include "WindowServer.hpp"
+#include "Resources.hpp"
 
 #include <Libc/Malloc.hpp>
 #include <Libc/Syscalls.hpp>
@@ -10,15 +11,12 @@
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Canvas.hpp>
 #include <Libgraphics/Color.hpp>
-#include <Libgraphics/Font/FontLoader.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Runtime.hpp>
 
 bool WindowServer::initialize()
 {
-    m_font_medium = Graphics::FontLoader::load("/ext2/Resources/Roboto12Medium.fnt", "/ext2/Resources/Roboto12Medium.bmp");
-    m_font_bold = Graphics::FontLoader::load("/ext2/Resources/Roboto12Bold.fnt", "/ext2/Resources/Roboto12Bold.bmp");
     // setup the screen
     int screen_fd = open("/dev/bga", 1, 1);
     if (screen_fd < 0) {
@@ -35,14 +33,13 @@ bool WindowServer::initialize()
 
     m_screen = Screen(screen_fd, move(front_buffer), move(back_buffer));
 
-    // setup wallpaper
-    m_wallpaper = Graphics::BMPLoader::load("/ext2/Resources/wallpaper.bmp");
+    // setup m_wallpaper
     if (m_wallpaper.height() == 0 || m_wallpaper.width() == 0) {
         Log << m_wallpaper.height() << " " << m_wallpaper.width() << endl;
         exit(1);
     }
 
-    auto initialize_buffer = [this]() {
+    auto initialize_buffer = [&]() {
         for (int y = 0; y < 768; y++) {
             for (int x = 0; x < 1024; x++) {
                 m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
@@ -109,11 +106,18 @@ bool WindowServer::initialize()
         auto clicks = m_mouse.take_over_clicks();
         for (auto& click : clicks) {
             for (auto window : m_windows) {
+
+                if (window->back_button_clicked(click.x, click.y)) {
+                    Log << "back " << endl;
+                    break;
+                }
+
                 if (window->bounds().contains(click.x, click.y)) {
                     m_connection.send_MouseClickRequest(
                         UI::Protocols::MouseClickRequest(
                             window->id, click.x - window->x(), click.y - window->y()),
                         window->pid());
+                    break;
                 }
             }
         }
@@ -149,26 +153,12 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
         x_offset = 50;
     }
 
-    auto window = new Window(request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
+    auto window = new Window(request.titile(), request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
     if (request.frameless() > 0) {
         window->make_frameless();
     }
 
     m_windows.push_back(window);
-
-    auto maximize_bitmap = Graphics::BMPLoader::load("/ext2/Resources/maximize.bmp");
-    auto minimize_bitmap = Graphics::BMPLoader::load("/ext2/Resources/minimize.bmp");
-    auto close_bitmap = Graphics::BMPLoader::load("/ext2/Resources/close.bmp");
-
-    auto close_offset = window->width() - 6 - maximize_bitmap.width();
-    auto minimize_offset = close_offset - 20;
-    auto maximize_offset = minimize_offset - 20;
-
-    auto canvas = Graphics::Canvas(window->frame_buffer());
-    canvas.draw_text(request.titile(), 8, 3, m_font_bold);
-    canvas.draw_bitmap(maximize_bitmap, maximize_offset, 4);
-    canvas.draw_bitmap(minimize_bitmap, minimize_offset, 4);
-    canvas.draw_bitmap(close_bitmap, close_offset, 4);
 
     m_invalid_areas.push_back(window->frame_bounds());
 

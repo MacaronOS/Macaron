@@ -3,9 +3,11 @@
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Rect.hpp>
 
+#include <Macaronlib/String.hpp>
+
 class Window {
 public:
-    Window(uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int pid, int x, int y);
+    Window(const String& titile, uint32_t width, uint32_t height, Graphics::Bitmap&& buffer, uint32_t buffer_id, int pid, int x, int y);
 
     uint32_t id;
 
@@ -41,6 +43,26 @@ public:
         m_frame_height = 0;
     }
 
+    inline bool close_button_clicked(int x, int y)
+    {
+        return m_close_button_position.contains(x - m_x, y - m_y + m_frame_height);
+    }
+
+    inline bool minimize_button_clicked(int x, int y)
+    {
+        return m_minimize_button_position.contains(x - m_x, y - m_y + m_frame_height);
+    }
+
+    inline bool maximize_button_clicked(int x, int y)
+    {
+        return m_maximize_button_position.contains(x - m_x, y - m_y + m_frame_height);
+    }
+
+    inline bool back_button_clicked(int x, int y)
+    {
+        return m_back_button_position.contains(x - m_x, y - m_y + m_frame_height);
+    }
+
 private:
     static constexpr int frame_height = 24;
     int m_frame_height { frame_height };
@@ -55,4 +77,9 @@ private:
     Graphics::Bitmap m_buffer {};
 
     Graphics::Bitmap m_frame_buffer;
+
+    Graphics::Rect m_close_button_position {};
+    Graphics::Rect m_minimize_button_position {};
+    Graphics::Rect m_maximize_button_position {};
+    Graphics::Rect m_back_button_position {};
 };

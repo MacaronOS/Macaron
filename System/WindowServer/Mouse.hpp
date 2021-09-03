@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Resources.hpp"
+
 #include <Libc/Syscalls.hpp>
 
 #include <Libsystem/Log.hpp>
@@ -8,11 +10,10 @@
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Rect.hpp>
 
-#include <Macaronlib/Vector.hpp>
 #include <Macaronlib/Runtime.hpp>
+#include <Macaronlib/Vector.hpp>
 
-struct Click 
-{
+struct Click {
     int x, y;
 };
 
@@ -23,10 +24,10 @@ public:
         : m_fd(fd)
         , m_x(x)
         , m_y(y)
+        , m_cursor(&Resources::the().mouse_cursor())
     {
-        m_cursor = Graphics::BMPLoader::load("/ext2/Resources/cursor.bmp");
-        if (m_cursor.height() == 0 || m_cursor.width() == 0) {
-            Log << "Could not read cursor resource" << endl;
+        if (cursor().height() == 0 || cursor().width() == 0) {
+            Log << "Could not load cursor resource" << endl;
             exit(1);
         }
     }
@@ -40,18 +41,18 @@ public:
     void pump();
 
     inline bool pressed() { return m_pressed; }
-    
+
     inline Vector<Click> take_over_clicks() { return move(m_clicks); }
 
     inline int x() const { return m_x; }
     inline int y() const { return m_y; }
-    inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + m_cursor.width(), y() + m_cursor.height()); }
+    inline Graphics::Rect bounds() { return Graphics::Rect(x(), y(), x() + Resources::the().mouse_cursor().width(), y() + Resources::the().mouse_cursor().height()); }
 
     inline int prev_x() const { return m_prev_x; }
     inline int prev_y() const { return m_prev_y; }
-    inline Graphics::Rect prev_bounds() { return Graphics::Rect(prev_x(), prev_y(), prev_x() + m_cursor.width(), prev_y() + m_cursor.height()); }
+    inline Graphics::Rect prev_bounds() { return Graphics::Rect(prev_x(), prev_y(), prev_x() + Resources::the().mouse_cursor().width(), prev_y() + Resources::the().mouse_cursor().height()); }
 
-    const Graphics::Bitmap& cursor() const { return m_cursor; }
+    const Graphics::Bitmap& cursor() const { return *m_cursor; }
 
 private:
     int m_fd {};
@@ -67,6 +68,5 @@ private:
 
     bool m_pressed {};
     Vector<Click> m_clicks {};
-
-    Graphics::Bitmap m_cursor {};
+    Graphics::Bitmap* m_cursor {};
 };

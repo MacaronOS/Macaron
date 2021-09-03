@@ -13,11 +13,11 @@ void Mouse::pump()
     for (size_t packet_index = 0; packet_index < bytes / sizeof(MousePacket); packet_index++) {
         m_x += mouse_buffer[packet_index].x_move;
         m_x = max(m_x, 0);
-        m_x = min(m_x, m_clipping_width - m_cursor.width() - 1);
+        m_x = min(m_x, m_clipping_width - cursor().width() - 1);
 
         m_y -= mouse_buffer[packet_index].y_move;
         m_y = max(m_y, 0);
-        m_y = min(m_y, m_clipping_height - m_cursor.height() - 1);
+        m_y = min(m_y, m_clipping_height - cursor().height() - 1);
 
         auto pressed = mouse_buffer[packet_index].left_btn;
         
