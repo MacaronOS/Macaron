@@ -10,6 +10,7 @@ namespace UI::Protocols {
 enum class MessageType : int {
 	CreateWindowRequest,
 	CreateWindowResponse,
+	DestroyWindowRequest,
 	ScreenSizeRequest,
 	ScreenSizeResponse,
 	SetPositionRequest,
@@ -18,6 +19,7 @@ enum class MessageType : int {
 	MouseMoveRequest,
 	CloseWindowRequest,
 	CloseWindowResponse,
+	BackRequest,
 };
 
 inline MessageType GetType(const Vector<unsigned char>& buffer)
@@ -104,6 +106,36 @@ public:
 private:
 	int m_window_id;
 	int m_shared_buffer_id;
+};
+
+class DestroyWindowRequest {
+	static constexpr MessageType m_type = MessageType::DestroyWindowRequest;
+
+public:
+	DestroyWindowRequest(int widnow_id)
+		: m_widnow_id(widnow_id)
+	{
+	}
+
+	DestroyWindowRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_widnow_id = decoder.get_int();
+	}
+
+	int widnow_id() const { return m_widnow_id; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_widnow_id);
+		return encoder.done();
+	}
+
+private:
+	int m_widnow_id;
 };
 
 class ScreenSizeRequest {
@@ -415,6 +447,36 @@ public:
 private:
 	int m_window_id;
 	int m_decision;
+};
+
+class BackRequest {
+	static constexpr MessageType m_type = MessageType::BackRequest;
+
+public:
+	BackRequest(int window_id)
+		: m_window_id(window_id)
+	{
+	}
+
+	BackRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_window_id = decoder.get_int();
+	}
+
+	int window_id() const { return m_window_id; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_window_id);
+		return encoder.done();
+	}
+
+private:
+	int m_window_id;
 };
 
 }

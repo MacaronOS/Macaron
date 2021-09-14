@@ -25,6 +25,7 @@ public:
     virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override { }
     virtual void on_CreateWindowResponse(CreateWindowResponse& response) override;
     virtual void on_ScreenSizeResponse(ScreenSizeResponse& response) override;
+    virtual void on_BackRequest(BackRequest& request) override;
 
     inline void make_frameless() { m_frameless = true; }
     inline void push_activity_onto_the_stack(Activity* activity) { m_activity_stack.push_back(activity); }

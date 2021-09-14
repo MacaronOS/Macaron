@@ -11,6 +11,7 @@ public:
 	virtual void on_MouseClickRequest(MouseClickRequest& request);
 	virtual void on_MouseMoveRequest(MouseMoveRequest& request);
 	virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request);
+	virtual void on_BackRequest(BackRequest& request);
 	virtual void on_CreateWindowResponse(CreateWindowResponse& response);
 	virtual void on_ScreenSizeResponse(ScreenSizeResponse& response);
 };
@@ -46,6 +47,11 @@ public:
 				send_data(response.data(), response.size());
 			}
 
+			if (type == MessageType::BackRequest) {
+				auto message = BackRequest(message_bytes);
+				m_reciever.on_BackRequest(message);
+			}
+
 			if (type == MessageType::CreateWindowResponse) {
 				auto message = CreateWindowResponse(message_bytes);
 				m_reciever.on_CreateWindowResponse(message);
@@ -59,6 +65,12 @@ public:
 	}
 
 	void send_CreateWindowRequest(const CreateWindowRequest& request)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size());
+	}
+
+	void send_DestroyWindowRequest(const DestroyWindowRequest& request)
 	{
 		auto serialized = request.serialize();
 		send_data(serialized.data(), serialized.size());

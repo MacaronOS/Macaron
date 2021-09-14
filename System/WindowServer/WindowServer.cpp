@@ -108,7 +108,7 @@ bool WindowServer::initialize()
             for (auto window : m_windows) {
 
                 if (window->back_button_clicked(click.x, click.y)) {
-                    Log << "back " << endl;
+                    m_connection.send_BackRequest(UI::Protocols::BackRequest(window->id), window->pid());
                     break;
                 }
 
@@ -163,6 +163,13 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     m_invalid_areas.push_back(window->frame_bounds());
 
     return CreateWindowResponse(window->id, shared_buffer.id);
+}
+
+void WindowServer::on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from)
+{
+    auto window = get_window_by_id(request.widnow_id());
+    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
+    m_windows.remove(m_windows.find(window));
 }
 
 void WindowServer::on_InvalidateRequest(InvalidateRequest& request, int pid_from)

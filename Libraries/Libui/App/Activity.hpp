@@ -7,6 +7,8 @@
 namespace UI {
 
 class Activity {
+    friend class Application;
+
 public:
     Activity()
     {
@@ -14,6 +16,14 @@ public:
             Application::the().push_activity_onto_the_stack(this);
             on_create();
             on_start();
+        });
+    }
+
+    ~Activity()
+    {
+        EventLoop::the().enqueue_callback([this]() {
+            Application::the().connection().send_DestroyWindowRequest(
+                UI::Protocols::DestroyWindowRequest(m_window->id()));
         });
     }
 

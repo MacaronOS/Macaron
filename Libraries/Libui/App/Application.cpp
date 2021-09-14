@@ -63,4 +63,13 @@ void Application::set_position(Activity* activity, int left, int top)
     m_connection.send_SetPositionRequest(SetPositionRequest(activity->window()->id(), left, top));
 }
 
+void Application::on_BackRequest(BackRequest& request)
+{
+    auto activivty = m_activity_stack.back();
+    activivty->on_stop();
+    activivty->on_destroy();
+    delete activivty;
+    m_activity_stack.pop_back();
+}
+
 }

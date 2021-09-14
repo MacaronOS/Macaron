@@ -9,6 +9,7 @@ namespace UI::Protocols {
 class ServerMessageReciever {
 public:
 	virtual CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from);
+	virtual void on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from);
 	virtual ScreenSizeResponse on_ScreenSizeRequest(ScreenSizeRequest& request, int pid_from);
 	virtual void on_SetPositionRequest(SetPositionRequest& request, int pid_from);
 	virtual void on_InvalidateRequest(InvalidateRequest& request, int pid_from);
@@ -36,6 +37,11 @@ public:
 				auto message = CreateWindowRequest(message_bytes);
 				auto response = m_reciever.on_CreateWindowRequest(message, message_pid).serialize();
 				send_data(response.data(), response.size(), message_pid);
+			}
+
+			if (type == MessageType::DestroyWindowRequest) {
+				auto message = DestroyWindowRequest(message_bytes);
+				m_reciever.on_DestroyWindowRequest(message, message_pid);
 			}
 
 			if (type == MessageType::ScreenSizeRequest) {
@@ -74,6 +80,12 @@ public:
 	}
 
 	void send_CloseWindowRequest(const CloseWindowRequest& request, int pid_to)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size(), pid_to);
+	}
+
+	void send_BackRequest(const BackRequest& request, int pid_to)
 	{
 		auto serialized = request.serialize();
 		send_data(serialized.data(), serialized.size(), pid_to);

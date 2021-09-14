@@ -2,6 +2,7 @@ namespace UI
 
 Client -> Server:
     CreateWindow(int widht, int height, int frameless, String titile) -> (int window_id, int shared_buffer_id)
+    DestroyWindow(int widnow_id) -> void
     ScreenSize() -> (int width, int height)
     SetPosition(int window_id, int left, int top) -> void
     Invalidate(int window_id, int x, int y, int width, int height) -> void
@@ -10,3 +11,4 @@ Server -> Client:
     MouseClick(int window_id, int x, int y) -> void
     MouseMove(int widnow_id, int x, int y) -> void
     CloseWindow(int window_id, int widht, int height, String titile) -> (int window_id, int decision)
+    Back(int window_id) -> void
