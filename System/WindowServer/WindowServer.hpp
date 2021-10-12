@@ -25,6 +25,7 @@ public:
     void run();
 
     CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from) override;
+    void on_MakeWindowVisibleRequest(MakeWindowVisibleRequest& request, int pid_from) override;
     void on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from) override;
     void on_InvalidateRequest(InvalidateRequest& request, int pid_from) override;
     void on_CloseWindowResponse(CloseWindowResponse& response, int pid_from) override {};

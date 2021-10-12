@@ -9,6 +9,7 @@ namespace UI::Protocols {
 class ServerMessageReciever {
 public:
 	virtual CreateWindowResponse on_CreateWindowRequest(CreateWindowRequest& request, int pid_from);
+	virtual void on_MakeWindowVisibleRequest(MakeWindowVisibleRequest& request, int pid_from);
 	virtual void on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from);
 	virtual ScreenSizeResponse on_ScreenSizeRequest(ScreenSizeRequest& request, int pid_from);
 	virtual void on_SetPositionRequest(SetPositionRequest& request, int pid_from);
@@ -37,6 +38,11 @@ public:
 				auto message = CreateWindowRequest(message_bytes);
 				auto response = m_reciever.on_CreateWindowRequest(message, message_pid).serialize();
 				send_data(response.data(), response.size(), message_pid);
+			}
+
+			if (type == MessageType::MakeWindowVisibleRequest) {
+				auto message = MakeWindowVisibleRequest(message_bytes);
+				m_reciever.on_MakeWindowVisibleRequest(message, message_pid);
 			}
 
 			if (type == MessageType::DestroyWindowRequest) {

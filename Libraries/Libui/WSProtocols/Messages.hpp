@@ -10,6 +10,7 @@ namespace UI::Protocols {
 enum class MessageType : int {
 	CreateWindowRequest,
 	CreateWindowResponse,
+	MakeWindowVisibleRequest,
 	DestroyWindowRequest,
 	ScreenSizeRequest,
 	ScreenSizeResponse,
@@ -106,6 +107,41 @@ public:
 private:
 	int m_window_id;
 	int m_shared_buffer_id;
+};
+
+class MakeWindowVisibleRequest {
+	static constexpr MessageType m_type = MessageType::MakeWindowVisibleRequest;
+
+public:
+	MakeWindowVisibleRequest(int widnow_id, int visibility)
+		: m_widnow_id(widnow_id)
+		, m_visibility(visibility)
+	{
+	}
+
+	MakeWindowVisibleRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_widnow_id = decoder.get_int();
+		m_visibility = decoder.get_int();
+	}
+
+	int widnow_id() const { return m_widnow_id; }
+	int visibility() const { return m_visibility; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_widnow_id);
+		encoder.push(m_visibility);
+		return encoder.done();
+	}
+
+private:
+	int m_widnow_id;
+	int m_visibility;
 };
 
 class DestroyWindowRequest {

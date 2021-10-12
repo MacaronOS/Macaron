@@ -1,9 +1,11 @@
 #pragma once
 
 #include "../Connection.hpp"
+#include "../Content/Intent.hpp"
 #include "../Events.hpp"
 
 #include <Macaronlib/Vector.hpp>
+#include <Macaronlib/List.hpp>
 
 namespace UI {
 
@@ -33,14 +35,19 @@ public:
 
     void invalidate_area(int x, int y, int width, int height);
     void create_window(int width, int height, const String& titile);
+    void enqueue_on_window(int width, int height, const String& titile, Activity* activity);
     void ask_screen_size(const Function<void(int width, int height)>& callback);
     void set_position(Activity* activity, int left, int top);
+
+    void register_new_activity(Activity* activity);
 
 protected:
     bool m_frameless {};
     Vector<Activity*> m_activity_stack {};
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
     Vector<Function<void(int width, int height)>> m_on_screen_size_callbacks {};
+
+    List<Activity*> m_pending_on_window {};
 };
 
 }

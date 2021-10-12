@@ -1,29 +1,23 @@
 #pragma once
 
+#include "Application.hpp"
+
+#include "../Content/Context.hpp"
 #include "../View.hpp"
 #include "../Window.hpp"
-#include "Application.hpp"
 
 namespace UI {
 
-class Activity {
+class Activity : public Context {
     friend class Application;
 
 public:
     Activity()
     {
         EventLoop::the().enqueue_callback([this]() {
-            Application::the().push_activity_onto_the_stack(this);
+            Application::the().register_new_activity(this);
             on_create();
             on_start();
-        });
-    }
-
-    ~Activity()
-    {
-        EventLoop::the().enqueue_callback([this]() {
-            Application::the().connection().send_DestroyWindowRequest(
-                UI::Protocols::DestroyWindowRequest(m_window->id()));
         });
     }
 
@@ -43,7 +37,7 @@ public:
         int width = view->measured_width();
         int height = view->measured_height();
 
-        Application::the().create_window(width, height, m_titile);
+        Application::the().enqueue_on_window(width, height, m_titile, this);
 
         m_content_view = view;
         // The next step is on_window function. It's called when WindowServer assigns us a window

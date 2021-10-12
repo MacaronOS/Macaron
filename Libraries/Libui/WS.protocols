@@ -2,6 +2,7 @@ namespace UI
 
 Client -> Server:
     CreateWindow(int widht, int height, int frameless, String titile) -> (int window_id, int shared_buffer_id)
+    MakeWindowVisible(int widnow_id, int visibility) -> void
     DestroyWindow(int widnow_id) -> void
     ScreenSize() -> (int width, int height)
     SetPosition(int window_id, int left, int top) -> void

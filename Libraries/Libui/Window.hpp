@@ -24,7 +24,6 @@ public:
     {
     }
 
-    // properties
     inline int id() const { return m_window_id; }
     inline int width() const { return m_width; }
     inline int height() const { return m_height; }

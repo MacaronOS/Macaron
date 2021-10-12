@@ -1,0 +1,21 @@
+Build:
+    Type: Executable
+
+    Src: *.cpp, **/*.cpp
+
+    Depends:
+        ../../Libraries/Libui, ../../Libraries/Libgraphics, ../../Libraries/Libipc,
+        ../../Libraries/Libsystem, ../../Libraries/Libc, ../../Libraries/Macaronlib
+
+    Extensions:
+        cpp:
+            Compiler: i686-elf-g++
+            Flags: 
+                -O3, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
+                -m32, -fno-leading-underscore, -Wno-write-strings
+                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                -I../../Libraries/Macaronlib/include, -I../../Libraries/
+
+    Link:
+        Linker: i686-elf-g++
+        Flags: -Wl\,--gc-sections, -ffreestanding, -nostdlib, -nostdinc, -fno-pie

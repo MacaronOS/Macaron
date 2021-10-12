@@ -16,6 +16,8 @@ public:
     inline Graphics::Bitmap& buffer() { return m_buffer; }
     inline Graphics::Bitmap& frame_buffer() { return m_frame_buffer; }
 
+    inline bool visibility() const { return m_visibility; }
+
     inline uint32_t width() const { return m_width; }
     inline uint32_t height() const { return m_height; }
 
@@ -41,6 +43,11 @@ public:
     inline void make_frameless()
     {
         m_frame_height = 0;
+    }
+
+    inline void set_visibility(int visibility)
+    {
+        m_visibility = visibility;
     }
 
     inline bool close_button_clicked(int x, int y)
@@ -72,6 +79,8 @@ private:
 
     int m_x {};
     int m_y {};
+
+    int m_visibility { 255 };
 
     uint32_t m_buffer_id {};
     Graphics::Bitmap m_buffer {};

@@ -85,6 +85,9 @@ bool WindowServer::initialize()
                 m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
             } else {
                 for (auto window : m_windows) {
+                    if (window->visibility() == 0) {
+                        continue;
+                    }
                     if (window->frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
                         m_selected_window = window;
                     }
@@ -95,6 +98,10 @@ bool WindowServer::initialize()
         }
 
         for (auto window : m_windows) {
+            if (window->visibility() == 0) {
+                continue;
+            }
+            
             if (window->bounds().contains(m_mouse.x(), m_mouse.y())) {
                 m_connection.send_MouseMoveRequest(
                     UI::Protocols::MouseMoveRequest(
@@ -106,7 +113,9 @@ bool WindowServer::initialize()
         auto clicks = m_mouse.take_over_clicks();
         for (auto& click : clicks) {
             for (auto window : m_windows) {
-
+                if (window->visibility() == 0) {
+                    continue;
+                }
                 if (window->back_button_clicked(click.x, click.y)) {
                     m_connection.send_BackRequest(UI::Protocols::BackRequest(window->id), window->pid());
                     break;
@@ -129,8 +138,8 @@ bool WindowServer::initialize()
 
 // in debug purpose
 // make windows spawn in different places
-int x_offset = 0;
-int y_offset = 0;
+int x_offset = 50;
+int y_offset = 50;
 
 void WindowServer::run()
 {
@@ -153,7 +162,11 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
         x_offset = 50;
     }
 
-    auto window = new Window(request.titile(), request.widht(), request.height(), move(pixel_bitmap), shared_buffer.id, pid_from, x_offset, y_offset);
+    auto window = new Window(
+        request.titile(), request.widht(), request.height(),
+        move(pixel_bitmap), shared_buffer.id, pid_from,
+        x_offset, y_offset);
+    
     if (request.frameless() > 0) {
         window->make_frameless();
     }
@@ -165,8 +178,19 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
     return CreateWindowResponse(window->id, shared_buffer.id);
 }
 
+void WindowServer::on_MakeWindowVisibleRequest(MakeWindowVisibleRequest& request, int pid_from)
+{
+    Log << "on_MakeWindowVisibleRequest" << endl;
+    
+    auto window = get_window_by_id(request.widnow_id());
+    window->set_visibility(request.visibility());
+    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
+}
+
 void WindowServer::on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from)
 {
+    Log << "on_DestroyWindowRequest" << endl;
+
     auto window = get_window_by_id(request.widnow_id());
     m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
     m_windows.remove(m_windows.find(window));
@@ -228,6 +252,10 @@ void WindowServer::draw_windows()
         auto invalid_area = m_invalid_areas[at];
 
         for (auto window : m_windows) {
+            if (window->visibility() == 0) {
+                continue;
+            }
+
             if (invalid_area.intersects(window->bounds())) {
                 auto intersection = invalid_area.intersection(window->bounds());
 

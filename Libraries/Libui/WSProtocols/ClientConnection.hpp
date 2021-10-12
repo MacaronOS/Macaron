@@ -70,6 +70,12 @@ public:
 		send_data(serialized.data(), serialized.size());
 	}
 
+	void send_MakeWindowVisibleRequest(const MakeWindowVisibleRequest& request)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size());
+	}
+
 	void send_DestroyWindowRequest(const DestroyWindowRequest& request)
 	{
 		auto serialized = request.serialize();

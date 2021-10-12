@@ -65,7 +65,7 @@ protected:
         if (size > 0) {
             size_t dirent_offset = 0;
             while (true) {
-                linux_dirent& cur_dirent = ((linux_dirent*)dirents)[dirent_offset];
+                linux_dirent& cur_dirent = *(linux_dirent*)((size_t)dirents + dirent_offset);
                 add(layout, String("/ext2/Applications/") + cur_dirent.d_name);
                 width += (32 + 2 * 5);
 
