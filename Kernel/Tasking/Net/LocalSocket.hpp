@@ -15,6 +15,8 @@ public:
 
     bool can_read(uint32_t offset) const;
 
+    inline uint32_t write_offset() { return m_write_offset; }
+
 private:
     uint8_t* m_buffer;
     uint32_t m_buffer_size;

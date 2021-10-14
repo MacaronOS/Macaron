@@ -80,15 +80,16 @@ void Application::on_BackRequest(BackRequest& request)
     m_connection.send_DestroyWindowRequest(
         UI::Protocols::DestroyWindowRequest(activivty->window()->id()));
 
-
     m_activity_stack.pop_back();
 
-    if (m_activity_stack.size() > 0) {
-        auto resumed_activity = m_activity_stack.back();
-        resumed_activity->on_resume();
-        m_connection.send_MakeWindowVisibleRequest(
-            UI::Protocols::MakeWindowVisibleRequest(resumed_activity->window()->id(), 255));
+    if (m_activity_stack.size() == 0) {
+        exit(0);
     }
+
+    auto resumed_activity = m_activity_stack.back();
+    resumed_activity->on_resume();
+    m_connection.send_MakeWindowVisibleRequest(
+        UI::Protocols::MakeWindowVisibleRequest(resumed_activity->window()->id(), 255));
 }
 
 void Application::register_new_activity(Activity* activity)

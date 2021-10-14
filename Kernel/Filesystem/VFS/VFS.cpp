@@ -371,6 +371,7 @@ KError VFS::connect(fd_t sockfd, const String& path)
     }
 
     file_descr->set_file(file);
+    file_descr->set_offset(file->socket()->write_offset());
 
     return KError(0);
 }

@@ -180,6 +180,31 @@ public:
         return pd_phys;
     }
 
+    inline void free_page_directory(uint32_t pd_phys)
+    {
+        set_page_directory(m_kernel_directory_phys);
+
+        auto pd_virt = PageBinder<PageDir*>(pd_phys, m_buffer_1);
+
+        size_t pd_index = 0;
+        for (auto& pd_entry : pd_virt.get()->entries) {
+            if (pd_index != 768 && pd_index != 769) {
+                if (pd_entry.pt_base) {
+                    auto pt_virt = PageBinder<PageTable*>(pd_entry.pt_base, m_buffer_2);
+                    for (auto& pt_entry : pt_virt.get()->entries) {
+                        if (pt_entry.frame_adress) {
+                            PMM::the().free_frame(pt_entry.frame_adress);
+                        }
+                    }
+                    PMM::the().free_frame(pd_entry.pt_base);
+                }
+            }
+            pd_index++;
+        }
+
+        PMM::the().free_frame(pd_phys / FRAME_SIZE);
+    }
+
     // interrupt handler functions:
     void handle_interrupt(Trapframe* tf) override;
 

@@ -42,6 +42,11 @@ Process::Process(uint32_t id)
     m_pdir_phys = VMM::the().create_page_directory();
 }
 
+Process::~Process()
+{
+    VMM::the().free_page_directory(m_pdir_phys);
+}
+
 void Process::Terminate()
 {
     for (auto thread : m_threads) {
@@ -77,7 +82,7 @@ Process* Process::Fork()
     memcpy(&stack_buff, cur_thread->user_stack_ptr(), USER_STACK_SIZE);
     VMM::the().set_page_directory(new_proc->m_pdir_phys);
     memcpy(new_thread->user_stack_ptr(), &stack_buff, USER_STACK_SIZE);
-  	VMM::the().set_page_directory(m_pdir_phys);
+    VMM::the().set_page_directory(m_pdir_phys);
 
     return new_proc;
 }

@@ -44,7 +44,6 @@ public:
 
     KErrorOr<uint32_t> psized_allocate_space(uint32_t pages, uint32_t flags, Region::Mapping mapping = Region::Mapping::Shared);
     KErrorOr<uint32_t> psized_find_free_space(uint32_t pages) const;
-    KErrorOr<uint32_t> find_free_space(uint32_t sz) const;
 
     inline void map(uint32_t virt_addr, uint32_t phys_addr, uint32_t sz, uint32_t flags)
     {
@@ -65,9 +64,12 @@ public:
         return page_or_error;
     }
 
+    KErrorOr<uint32_t> find_free_space(uint32_t sz) const;
+
 private:
     Process() = default;
     explicit Process(uint32_t id);
+    ~Process();
 
 private:
     void free_threads_except_one();
