@@ -102,3 +102,18 @@ int getdents(int fd, linux_dirent* dirp, size_t size)
 {
     return do_syscall(Syscall::GetDents, ToSysArg(fd), ToSysArg(dirp), ToSysArg(size));
 }
+
+int sigaction(int sig, const struct sigaction* act, struct sigaction* old_act)
+{
+    return do_syscall(Syscall::Sigaction, ToSysArg(sig), ToSysArg(act), ToSysArg(old_act));
+}
+
+int sigprocmask(int how, const sigset_t* set, sigset_t* old_set)
+{
+    return do_syscall(Syscall::Sigprocmask, ToSysArg(how), ToSysArg(set), ToSysArg(old_set));
+}
+
+int kill(int pid, int sig)
+{
+    return do_syscall(Syscall::Kill, ToSysArg(pid), ToSysArg(sig));
+}

@@ -1,5 +1,5 @@
 #include "Scheduler.hpp"
-
+#include "Signal.hpp"
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/PIT.hpp>
@@ -64,6 +64,37 @@ void Scheduler::reschedule()
 
     m_cur_thread = next_thread;
 
+    // Dispatch pending signals
+    for (int signo = 1; signo < NSIG; signo++) {
+        if (next_thread_ptr->signal_is_pending(signo)) {
+            next_thread_ptr->signal_remove_pending(signo);
+            if (next_thread_ptr->signal_handler(signo)) {
+                auto trapframe = next_thread_ptr->trapframe();
+                trapframe->push(trapframe->useresp);
+                trapframe->push(trapframe->eflags);
+                trapframe->push(trapframe->eip);
+                trapframe->push(trapframe->eax);
+                trapframe->push(trapframe->ecx);
+                trapframe->push(trapframe->edx);
+                trapframe->push(trapframe->ebx);
+                trapframe->push(trapframe->esp);
+                trapframe->push(trapframe->ebp);
+                trapframe->push(trapframe->esi);
+                trapframe->push(trapframe->edi);
+                trapframe->push(signo);
+                trapframe->eax = (uint32_t)next_thread_ptr->signal_handler(signo);
+                trapframe->eip = next_thread_ptr->m_process->m_signal_handler_ip;
+            } else {
+                auto action = default_action(signo);
+                if (action == DefaultAction::Terminate) {
+                    next_thread_ptr->m_process->Terminate();
+                    reschedule();
+                    return;
+                }
+            }
+        }
+    }
+
     return_from_scheduler(next_thread_ptr->trapframe());
 }
 
@@ -109,6 +140,11 @@ Thread* Scheduler::cur_thread()
 Process* Scheduler::cur_process()
 {
     return cur_thread()->m_process;
+}
+
+Process& Scheduler::get_process(int pid)
+{
+    return (*m_process_storage)[pid];
 }
 
 }

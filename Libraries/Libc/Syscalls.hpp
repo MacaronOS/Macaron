@@ -25,3 +25,6 @@ int getpid();
 int clock_gettime(int clock_id, timespec* ts);
 int sched_yield();
 int getdents(int fd, linux_dirent* dirp, size_t size);
+int sigaction(int sig, const struct sigaction* act, struct sigaction* old_act);
+int sigprocmask(int how, const sigset_t* set, sigset_t* old_set);
+int kill(int pid, int sig);

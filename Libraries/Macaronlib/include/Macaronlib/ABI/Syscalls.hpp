@@ -51,11 +51,19 @@ enum class Syscall {
     Lseek = 19,
     GetPid = 20,
 
+    Kill = 37,
+
     Ioctl = 54,
+
+    Sigaction = 67,
 
     Select = 82,
 
     Mmap = 90,
+
+    Sigreturn = 119,
+
+    Sigprocmask = 126,
 
     GetDents = 141,
 
@@ -121,4 +129,12 @@ struct [[gnu::packed]] linux_dirent {
     uint32_t d_off; /* Offset to next linux_dirent */
     uint16_t d_reclen; /* Length of this linux_dirent */
     char d_name[]; /* Filename (null-terminated) */
+};
+
+typedef uint32_t sigset_t;
+
+struct sigaction {
+    void (*sa_handler)(int);
+    sigset_t sa_mask;
+    int sa_flags;
 };
