@@ -94,6 +94,8 @@ public:
 
     List<Thread*> m_threads {};
     List<Region> m_regions {};
+
+    uint32_t m_signal_handler_ip {};
 };
 
 // TODO: implement object pool

@@ -13,6 +13,16 @@
 #include <Libgraphics/Color.hpp>
 #include <Libgraphics/Font/FontLoader.hpp>
 
+#include <Libsystem/Log.hpp>
+
+#include <Macaronlib/ABI/Signals.hpp>
+
+void signal_handler(int signo)
+{
+    Log << "Dock launched application!" << endl;
+    return;
+}
+
 class MainActivity : public UI::Activity {
 protected:
     void add(UI::LinearLayout* layout, const String& application_folder)
@@ -29,6 +39,8 @@ protected:
             image_view->set_on_mouse_click_listener([=](UI::View& view) {
                 if (!fork()) {
                     execve((application_folder + "/bin").cstr(), nullptr, nullptr);
+                } else {
+                    kill(getpid(), SIGUSR1);
                 }
             });
         }
@@ -98,5 +110,9 @@ protected:
         UI::Application::the().ask_screen_size([this](int screen_width, int screen_height) {
             UI::Application::the().set_position(this, (screen_width - width) / 2, screen_height - height - 10);
         });
+
+        struct sigaction sa;
+        sa.sa_handler = signal_handler;
+        sigaction(SIGUSR1, &sa, nullptr);
     }
 };

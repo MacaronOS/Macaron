@@ -47,6 +47,8 @@ public:
         reschedule();
     }
 
+    Process& get_process(int pid);
+
 private:
     Scheduler();
 

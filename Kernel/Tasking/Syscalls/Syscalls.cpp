@@ -10,6 +10,7 @@
 #include <Time/TimeManager.hpp>
 
 #include <Macaronlib/ABI/Errors.hpp>
+#include <Macaronlib/ABI/Signals.hpp>
 #include <Macaronlib/ABI/Syscalls.hpp>
 
 namespace Kernel::Syscalls {
@@ -164,6 +165,55 @@ static int sys_getdents(fd_t fd, linux_dirent* dirp, size_t size)
     return int(VFS::the().getdents(fd, dirp, size));
 }
 
+static int sys_sigaction(int sig, const sigaction* act, sigaction* old_act)
+{
+    auto cur_thread = Scheduler::the().cur_thread();
+    cur_thread->set_signal_handler(sig, (void*)act->sa_handler);
+    return 0;
+}
+
+static int sys_sigprocmask(int how, const sigset_t* set, sigset_t* old_set)
+{
+    auto cur_thread = Scheduler::the().cur_thread();
+    if (old_set != nullptr) {
+        *old_set = cur_thread->signal_mask();
+    }
+    if (how == SIG_BLOCK) {
+        cur_thread->signal_mask_block(*set);
+    } else if (how == SIG_UNBLOCK) {
+        cur_thread->signal_mask_unblock(*set);
+    } else if (how == SIG_SETMASK) {
+        cur_thread->signal_mask_set(*set);
+    }
+    return 0;
+}
+
+static int sys_sigreturn()
+{
+    auto cur_thread = Scheduler::the().cur_thread();
+    auto trapframe = cur_thread->trapframe();
+    trapframe->useresp += sizeof(uint32_t); // cleaning signo argument
+    trapframe->edi = trapframe->pop();
+    trapframe->esi = trapframe->pop();
+    trapframe->ebp = trapframe->pop();
+    trapframe->esp = trapframe->pop();
+    trapframe->ebx = trapframe->pop();
+    trapframe->edx = trapframe->pop();
+    trapframe->ecx = trapframe->pop();
+    trapframe->eax = trapframe->pop();
+    trapframe->eip = trapframe->pop();
+    trapframe->eflags = trapframe->pop();
+    trapframe->useresp = trapframe->pop();
+    Scheduler::the().reschedule();
+    return 0; // never returns
+}
+
+static int sys_kill(int pid, int sig)
+{
+    Scheduler::the().get_process(pid).cur_thread->signal_add_pending(sig);
+    return 0;
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -188,6 +238,9 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Lseek, (uint32_t)sys_lseek);
     register_syscall(Syscall::ClockGettime, (uint32_t)sys_clock_gettime);
     register_syscall(Syscall::GetDents, (uint32_t)sys_getdents);
+    register_syscall(Syscall::Sigaction, (uint32_t)sys_sigaction);
+    register_syscall(Syscall::Sigreturn, (uint32_t)sys_sigreturn);
+    register_syscall(Syscall::Kill, (uint32_t)sys_kill);
 }
 
 void SyscallsManager::initialize()

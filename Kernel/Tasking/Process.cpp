@@ -6,6 +6,9 @@
 
 namespace Kernel::Tasking {
 
+extern "C" void signal_caller();
+extern "C" void signal_caller_end();
+
 ProcessStorage::ProcessStorage()
 {
     for (int i = MAX_PROCESSES_ALLOWED - 1; i >= 0; i--) {
@@ -40,6 +43,15 @@ Process::Process(uint32_t id)
 {
     m_task_manager = &Scheduler::the();
     m_pdir_phys = VMM::the().create_page_directory();
+
+    // Setup signal caller
+    uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
+    auto space = allocate_space(signal_caller_len, Flags::User | Flags::Write | Flags::Present);
+    if (space) {
+        m_signal_handler_ip = space.result();
+        VMM::the().set_page_directory(m_pdir_phys);
+        memcpy((void*)m_signal_handler_ip, (void*)signal_caller, signal_caller_len);
+    }
 }
 
 Process::~Process()

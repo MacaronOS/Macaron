@@ -2,6 +2,7 @@
 
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Hardware/Trapframe.hpp>
+#include <Macaronlib/ABI/Signals.hpp>
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
 
@@ -92,6 +93,46 @@ public:
         trapframe()->eflags = 0x202;
     }
 
+    // Block signals
+    inline void signal_mask_block(uint32_t value)
+    {
+        m_signal_mask &= ~value;
+    }
+
+    inline void signal_mask_unblock(uint32_t value)
+    {
+        m_signal_mask |= value;
+    }
+
+    inline void signal_mask_set(uint32_t value)
+    {
+        m_signal_mask = value;
+    }
+
+    inline uint32_t signal_mask() const { return m_signal_mask; }
+
+    // Dispatch signals
+    inline void signal_add_pending(int signo)
+    {
+        m_pending_signals_mask |= (1 << signo);
+    }
+
+    inline void signal_remove_pending(int signo)
+    {
+        m_pending_signals_mask &= ~((uint32_t)(1 << signo));
+    }
+
+    inline bool signal_is_pending(int signo)
+    {
+        return m_pending_signals_mask & m_signal_mask & (1 << signo);
+    }
+
+    inline uint32_t pending_singal_mask() const { return m_pending_signals_mask; }
+
+    // Signal handlers
+    void set_signal_handler(int signo, void* handler) { m_signal_handlers[signo] = handler; }
+    void* signal_handler(int signo) { return m_signal_handlers[signo]; }
+
 private:
     Process* m_process;
     ThreadState m_state { ThreadState::Ready };
@@ -101,6 +142,10 @@ private:
     uint32_t m_kernel_stack {};
 
     KernelContext* m_kernel_context {};
+
+    uint32_t m_signal_mask { 0xffffffff }; // all signals are alloved
+    uint32_t m_pending_signals_mask {};
+    void* m_signal_handlers[NSIG] {};
 };
 
 }
