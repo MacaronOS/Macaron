@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDevice.hpp>
+#include <Drivers/Base/CharacterDeviceDriver.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/PCI/PCIDevice.hpp>
@@ -9,7 +9,7 @@
 
 namespace Kernel::Drivers {
 
-class BochVBE : public CharacterDevice {
+class BochVBE : public CharacterDeviceDriver {
 public:
     explicit BochVBE(PCIDevice* pci_device);
     bool install() override;
