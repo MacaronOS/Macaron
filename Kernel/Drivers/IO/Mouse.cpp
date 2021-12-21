@@ -33,7 +33,7 @@ namespace ps2 {
 }
 
 Mouse::Mouse()
-    : CharacterDevice(DriverEntity::Mouse, "mouse")
+    : CharacterDeviceDriver(DriverEntity::Mouse, "mouse")
     , InterruptHandler(0x2c)
 {
     m_packets_buffer = new MousePacket[m_packets_size];

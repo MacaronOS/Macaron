@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDevice.hpp>
+#include <Drivers/Base/CharacterDeviceDriver.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Hardware/Port.hpp>
@@ -9,7 +9,7 @@
 
 namespace Kernel::Drivers {
 
-class Mouse : public CharacterDevice, InterruptHandler {
+class Mouse : public CharacterDeviceDriver, InterruptHandler {
     static constexpr uint8_t data_port = 0x60;
     static constexpr uint8_t command_port = 0x64;
 

@@ -2,6 +2,7 @@
 #include "DevFSNode.hpp"
 
 #include <Drivers/Base/CharacterDevice.hpp>
+#include <Drivers/Base/CharacterDeviceDriver.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Filesystem/Base/FS.hpp>
 #include <Filesystem/Base/VNode.hpp>
@@ -21,9 +22,12 @@ DevFS::DevFS(VNodeStorage& vnode_storage)
 
 bool DevFS::init()
 {
-    auto devices = DriverManager::the().get_by_type(Driver::DriverType::CharacterDevice);
-    for (size_t device = 0; device < devices.size(); device++) {
-        auto node = new DevFSNode(this, devnodes++, static_cast<CharacterDevice*>(devices[device]));
+    auto drivers = DriverManager::the().get_by_type(Driver::DriverType::CharacterDevice);
+    for (auto driver : drivers) {
+        auto character_device_driver = static_cast<CharacterDeviceDriver*>(driver);
+        auto character_device = static_cast<CharacterDevice*>(character_device_driver);
+
+        auto node = new DevFSNode(this, devnodes++, character_device);
         m_vnode_storage.push(node);
         m_root.m_childs.push_back(node);
     }
@@ -60,8 +64,7 @@ uint32_t DevFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 
 bool DevFS::mmap(VNode& file, uint32_t addr, uint32_t size)
 {
-    auto dev = ToDevFSNode(file);
-    return dev.m_device->mmap(addr, size);
+    return ToDevFSNode(file).m_device->mmap(addr, size);
 }
 
 bool DevFS::ioctl(VNode& file, uint32_t request)

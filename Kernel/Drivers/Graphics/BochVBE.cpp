@@ -1,6 +1,5 @@
 #include "BochVBE.hpp"
 
-#include <Drivers/Base/CharacterDevice.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Hardware/Port.hpp>
 #include <Libkernel/Assert.hpp>
@@ -21,7 +20,7 @@ constexpr uint32_t BochVBEIoPortIndex = 0x01CE;
 constexpr uint32_t BochVBEIoPortData = 0x01CF;
 
 BochVBE::BochVBE(PCIDevice* pci_device)
-    : CharacterDevice(DriverEntity::BGA, "bga")
+    : CharacterDeviceDriver(DriverEntity::BGA, "bga")
     , m_pci_device(pci_device)
 {
 }
