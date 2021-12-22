@@ -1,6 +1,6 @@
 #pragma once
+#include "FileDescriptor.hpp"
 #include "VNode.hpp"
-
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/String.hpp>
@@ -20,8 +20,8 @@ public:
 
     virtual uint32_t truncate(VNode& file, uint32_t size) { return 0; }
 
-    virtual void open(VNode& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
-    virtual void close(VNode& file, uint32_t offset, uint32_t size, uint8_t* buffer) { }
+    virtual void open(VNode& file, FileDescriptor& fd) { fd.set_file(file); }
+    virtual void close(VNode& file) { }
 
     // returns file by filename, if it exists
     virtual VNode* finddir(VNode& directory, const String& filename) { return nullptr; }
@@ -41,5 +41,7 @@ public:
     virtual bool ioctl(VNode& file, uint32_t request) { return false; };
 
     virtual bool can_read(VNode& vnode, uint32_t offset) { return false; };
+
+    virtual VNode* mkdir(VNode& directory, const String& name) { return nullptr; };
 };
 }

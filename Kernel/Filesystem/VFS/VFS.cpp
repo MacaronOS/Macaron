@@ -34,21 +34,22 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
     }
 
     auto file = relation.result().file;
+    auto direcotry = relation.result().directory;
 
     if (!file) {
         if ((mode & O_CREAT)) {
-            file = create(*relation.result().directory, path.split("/").back(), FileType::File, flags);
+            file = create(*direcotry, path.split("/").back(), FileType::File, flags);
         } else {
             return KError(ENOENT);
         }
     }
 
     fd_t free_fd = m_free_fds.top_and_pop();
-    file->inc_ref_count();
 
-    m_file_descriptors[free_fd].set_flags(flags);
-    m_file_descriptors[free_fd].set_offset(0);
-    m_file_descriptors[free_fd].set_file(file);
+    auto& file_descr = m_file_descriptors[free_fd];
+    file_descr.set_flags(flags);
+    file_descr.set_offset(0);
+    file->fs()->open(*file, file_descr);
 
     return free_fd;
 }
@@ -371,7 +372,7 @@ KError VFS::connect(fd_t sockfd, const String& path)
     }
 
     file_descr->set_file(file);
-    file_descr->set_offset(file->socket()->write_offset());
+    file_descr->set_offset(0);
 
     return KError(0);
 }
@@ -408,7 +409,7 @@ KErrorOr<VNode*> VFS::resolve_path(const String& path)
     return node;
 }
 
-VFS::FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
+FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
 {
     for (fd_t i : m_free_fds) {
         if (i == fd) {

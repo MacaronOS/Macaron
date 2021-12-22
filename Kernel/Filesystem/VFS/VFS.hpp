@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Filesystem/Base/FS.hpp>
+#include <Filesystem/Base/FileDescriptor.hpp>
 #include <Filesystem/Base/VNode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
@@ -23,28 +24,6 @@ struct Relation {
 };
 
 class VFS {
-    class FileDescriptor {
-    public:
-        FileDescriptor() = default;
-
-        int flags() const { return m_flags; }
-        size_t offset() const { return m_offset; }
-        VNode* vnode() { return m_vnode; }
-
-        void set_flags(int flags) { m_flags |= flags; }
-
-        void inc_offset(size_t offset) { m_offset += offset; }
-        void dec_offset(size_t offset) { m_offset -= offset; }
-        void set_offset(size_t offset) { m_offset = offset; }
-
-        void set_file(VNode* vnode) { m_vnode = vnode; }
-
-    private:
-        VNode* m_vnode { nullptr };
-        size_t m_offset { 0 };
-        int m_flags { 0 };
-    };
-
 public:
     static VFS& the()
     {
@@ -68,6 +47,7 @@ public:
     KError ioctl(fd_t fd, uint32_t request);
     KError select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
     KErrorOr<size_t> getdents(fd_t fd, linux_dirent* dirp, size_t size);
+    KError mkdir(const String& path);
 
     // sockets
     KErrorOr<fd_t> socket(int domain, int type, int protocol);
@@ -91,7 +71,7 @@ public:
 
 private:
     VFS();
-    
+
     KErrorOr<VNode*> resolve_path(const String& path);
     FileDescriptor* get_file_descriptor(const fd_t fd);
     KErrorOr<Relation> resolve_relation(const String& path);
