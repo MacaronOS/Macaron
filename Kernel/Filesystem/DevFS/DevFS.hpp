@@ -2,8 +2,8 @@
 
 #include "DevFSNode.hpp"
 
-#include <Filesystem/Base/VNode.hpp>
 #include <Filesystem/Base/FS.hpp>
+#include <Filesystem/Base/VNode.hpp>
 
 namespace Kernel::FS {
 
@@ -19,6 +19,10 @@ public:
     bool mmap(VNode& file, uint32_t addr, uint32_t size) override;
     bool ioctl(VNode& file, uint32_t request) override;
     bool can_read(VNode& vnode, uint32_t offset) override;
+    VNode* mkdir(VNode& directory, const String& name) override;
+
+    VNode* create_device_node_inside_directory(VNode& directory, CharacterDevice* device);
+    VNode* create_anonim_device_node(CharacterDevice* device);
 
 private:
     static DevFSNode& ToDevFSNode(VNode& device) { return reinterpret_cast<DevFSNode&>(device); }

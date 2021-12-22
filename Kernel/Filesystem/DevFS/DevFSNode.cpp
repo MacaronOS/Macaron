@@ -11,9 +11,10 @@ namespace Kernel::FS {
 
 using namespace Drivers;
 
-DevFSNode::DevFSNode(FS* fs, uint32_t devnode, CharacterDevice* device)
+DevFSNode::DevFSNode(FS* fs, uint32_t devnode, CharacterDevice* device, const String& virtual_name)
     : VNode(fs, devnode)
     , m_device(device)
+    , m_virtual_name(virtual_name)
 {
 }
 

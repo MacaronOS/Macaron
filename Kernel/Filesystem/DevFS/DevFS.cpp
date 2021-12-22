@@ -8,6 +8,7 @@
 #include <Filesystem/Base/VNode.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/vmm.hpp>
+#include <PTY/PTMX.hpp>
 
 namespace Kernel::FS {
 
@@ -31,6 +32,9 @@ bool DevFS::init()
         m_vnode_storage.push(node);
         m_root.m_childs.push_back(node);
     }
+
+    auto pts_directory = static_cast<DevFSNode*>(mkdir(root(), "pty"));
+    create_device_node_inside_directory(root(), new PTMX(*pts_directory));
     return true;
 }
 
@@ -75,6 +79,29 @@ bool DevFS::ioctl(VNode& file, uint32_t request)
 bool DevFS::can_read(VNode& vnode, uint32_t offset)
 {
     return ToDevFSNode(vnode).m_device->can_read(offset);
+}
+
+VNode* DevFS::mkdir(VNode& directory, const String& name)
+{
+    auto node = new DevFSNode(this, devnodes++, nullptr, name);
+    m_vnode_storage.push(node);
+    ToDevFSNode(directory).m_childs.push_back(node);
+    return node;
+}
+
+VNode* DevFS::create_device_node_inside_directory(VNode& directory, CharacterDevice* deivce)
+{
+    auto node = new DevFSNode(this, devnodes++, deivce);
+    m_vnode_storage.push(node);
+    ToDevFSNode(directory).m_childs.push_back(node);
+    return node;
+}
+
+VNode* DevFS::create_anonim_device_node(CharacterDevice* device)
+{
+    auto node = new DevFSNode(this, devnodes++, device);
+    m_vnode_storage.push(node);
+    return node;
 }
 
 }
