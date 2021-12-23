@@ -70,9 +70,15 @@ public:
         x += state().cursor_x;
         y += state().cursor_y;
 
+        int begin_x = x;
+
         char last_symbol = 0;
-        for (size_t i = 0; i < text.size(); i++) {
-            char symbol = text[i];
+        for (char symbol : text) {
+            if (symbol == '\n') {
+                y += 15;
+                x = begin_x;
+                continue;
+            }
             auto& descr = font.chars[symbol];
 
             // dont know why it's shifted by 1
@@ -83,6 +89,8 @@ public:
                 }
                 for (size_t w = 0; w < descr.width; w++) {
                     if (x + descr.xoffset + font.kerning[last_symbol][symbol] + w > state().clip_rect.right) {
+                        y += 15;
+                        x = begin_x;
                         break;
                     }
                     m_bitmap[y + descr.yoffset + h][x + descr.xoffset + font.kerning[last_symbol][symbol] + w].mix_with(font.texture[descr.y + h][descr.x + w]);

@@ -12,8 +12,12 @@ void TextView::on_measure(int width_measure_spec, int height_measure_spec)
 
     // TODO: multiple lines
     char last_symbol = 0;
-    for (int at = 0; at < m_text.size(); at++) {
-        char symbol = m_text[at];
+    for (char symbol : m_text) {
+        if (symbol == '\n') {
+            last_symbol = 0;
+            text_height += 15;
+            continue;
+        }
         auto& descr = m_font->chars[symbol];
         text_width += descr.xadvantage + m_font->kerning[last_symbol][symbol];
         last_symbol = symbol;
