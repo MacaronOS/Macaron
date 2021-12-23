@@ -20,6 +20,6 @@ Commands:
 
 Build:
     Depends:
-        System, Kernel, Applications/Clicker, Applications/Emu
+        System, Kernel, Applications/Clicker, Applications/Emu, Applications/Terminal
 
 Default: Build, MakeDrive, InstallUserspace, Run

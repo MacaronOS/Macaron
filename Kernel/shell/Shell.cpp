@@ -144,9 +144,9 @@ static void handle_cmd_cd(const String& path)
     }
 }
 
-KeyboardEvent get_keyboard_event()
+KeyboardPacket get_keyboard_event()
 {
-    KeyboardEvent event = {};
+    KeyboardPacket event = {};
 
     while ((event = s_keyboard->last_keybord_event()).key == Key::Undefined) { }
     s_keyboard->discard_last_keyboard_event();
@@ -160,7 +160,7 @@ String enter_command()
     VgaTUI::Print(": ");
 
     String command = "";
-    KeyboardEvent event = {};
+    KeyboardPacket event = {};
 
     while (true) {
         event = get_keyboard_event();
