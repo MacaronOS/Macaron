@@ -43,6 +43,18 @@ void Keyboard::handle_interrupt(Trapframe* tf)
     for (size_t i = 0; i < m_callbacks.size(); i++) {
         m_callbacks[i](m_last_keybord_event);
     }
+
+    m_buffer.write_force((uint8_t*)(&m_last_keybord_event), sizeof(m_last_keybord_event));
+}
+
+uint32_t Keyboard::read(uint32_t offset, uint32_t size, void* buffer)
+{
+    return m_buffer.read_from((uint8_t*)buffer, offset, size);
+}
+
+bool Keyboard::can_read(uint32_t offset)
+{
+    return m_buffer.space_to_read_from(offset);
 }
 
 }
