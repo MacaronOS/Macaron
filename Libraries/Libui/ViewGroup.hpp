@@ -19,6 +19,7 @@ public:
 
     bool on_mouse_move_event(const MouseMoveEvent& event) override;
     bool on_mouse_click_event(const MouseClickEvent& event) override;
+    bool on_keyboard_event(const KeyboardEvent& event) override;
 
 protected:
     // Validates layout params of its children
@@ -29,6 +30,7 @@ protected:
     virtual LayoutParams* generate_default_layout_params() { return nullptr; }
 
 protected:
+    View* m_active_view {};
     Vector<View*> m_children {};
     LayoutParams* layout_params {};
 };

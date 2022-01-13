@@ -60,6 +60,13 @@ bool WindowServer::initialize()
     m_mouse = Mouse(mouse_fd, 1024 / 2, 768 / 2);
     m_mouse.set_clipping(1024, 768);
 
+    int keyoard_fd = open("/dev/kbd", 1, 1);
+    if (keyoard_fd < 0) {
+        return false;
+    }
+
+    m_keyboard = Keyboard(keyoard_fd);
+
     m_event_loop.register_timer([this]() {
         redraw();
     },
@@ -91,10 +98,11 @@ bool WindowServer::initialize()
                     if (window->visibility() == 0) {
                         continue;
                     }
-                    if (window->frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
+                    if (window->all_bounds().contains(m_mouse.x(), m_mouse.y())) {
                         m_windows.remove(m_windows.find(window));
                         m_windows.push_back(window);
                         m_selected_window = window;
+                        m_active_window = window;
                         m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
                         break;
                     }
@@ -147,6 +155,18 @@ bool WindowServer::initialize()
         }
     },
         mouse_fd);
+
+    m_event_loop.register_fd_for_select([this]() {
+        m_keyboard.pump();
+        if (m_active_window) {
+            auto packets = m_keyboard.take_over_packets();
+            for (auto& packet : packets) {
+                m_connection.send_KeyRequest(
+                    UI::Protocols::KeyRequest((int)packet.key, packet.pressed), m_active_window->pid());
+            }
+        }
+    },
+        keyoard_fd);
 
     return true;
 }

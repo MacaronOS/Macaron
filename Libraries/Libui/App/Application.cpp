@@ -103,4 +103,16 @@ void Application::register_new_activity(Activity* activity)
     m_activity_stack.push_back(activity);
 }
 
+void Application::on_KeyRequest(KeyRequest& request)
+{
+    Event event;
+    event.type = EventType::Keyboard;
+    event.keyboard_event = { static_cast<Key>(request.key()), (bool)request.pressed() };
+
+    EventLoop::the().enqueue_callback_for_event([&](const Event& event) {
+        m_activity_stack.back()->content_view()->dispatch_keyboard_event(event.keyboard_event);
+    },
+        event);
+}
+
 }

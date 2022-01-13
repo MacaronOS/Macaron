@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Common.hpp"
+
 enum class Key {
     Undefined = 0,
     Escape,
@@ -88,6 +90,36 @@ enum class Key {
     F11 = 0x57,
     F12,
 };
+
+static char KeyToAsci(Key key)
+{
+    const static char asc[] = {
+        '\0', // undefined symbol
+        '\0', // esc
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+        '-', '=',
+        '\0', '\0', // backspace, tab
+        'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
+        '\0', '\0', // enter, leftctrl
+        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
+        ';', '\'', '`',
+        '\0', // left shift
+        '\\',
+        'z', 'x', 'c', 'v', 'b', 'n', 'm',
+        ',', '.', '/',
+        '\0', // right shift
+        '*',
+        '\0', // right alt
+        ' ',
+        '\0', // caps lock
+        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', // f1-f10
+        '\0', '\0', // num lock, scroll lock
+        '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '4', '.',
+        '\0', '\0', '\0', // undefined
+        '\0', '\0', // f11, f12
+    };
+    return asc[static_cast<uint8_t>(key)];
+}
 
 struct KeyboardPacket {
     Key key;

@@ -2,6 +2,7 @@
 
 #include "Connection.hpp"
 #include "Events.hpp"
+#include "Keyboard.hpp"
 #include "Mouse.hpp"
 #include "Screen.hpp"
 #include "Window.hpp"
@@ -45,10 +46,12 @@ private:
     Screen m_screen {};
     Graphics::Bitmap& m_wallpaper { Resources::the().wallapaper() };
     Mouse m_mouse {};
+    Keyboard m_keyboard {};
     Connection m_connection { Connection("/ext2/ws.socket", *this) };
     List<Window*> m_windows {};
     Vector<Graphics::Rect> m_invalid_areas {};
     EventLoop& m_event_loop;
     bool m_mouse_needs_draw_since_moved { true };
     Window* m_selected_window {};
+    Window* m_active_window {};
 };

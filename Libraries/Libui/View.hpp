@@ -34,6 +34,7 @@ public:
 
     using OnMouseClickListener = Function<void(View& view)>;
     using OnMouseMoveListener = Function<void(View& view, const MouseMoveEvent&)>;
+    using OnKeyboardListener = Function<void(View& view, const KeyboardEvent&)>;
 
 public:
     void set_padding(int left, int top, int right, int bottom);
@@ -62,6 +63,15 @@ public:
         return handled;
     }
 
+    inline bool dispatch_keyboard_event(const KeyboardEvent& event)
+    {
+        bool handled = call_on_keyboard(event);
+        if (!handled) {
+            handled = on_keyboard_event(event);
+        }
+        return handled;
+    }
+
     inline bool call_on_mouse_move(const MouseMoveEvent& event)
     {
         if (m_on_mouse_move_listener) {
@@ -80,9 +90,19 @@ public:
         return false;
     }
 
+    inline bool call_on_keyboard(const KeyboardEvent& event)
+    {
+        if (m_on_keyboard_listener) {
+            m_on_keyboard_listener(*this, event);
+            return true;
+        }
+        return false;
+    }
+
     // Default event processors
     virtual bool on_mouse_move_event(const MouseMoveEvent& event) { return false; }
     virtual bool on_mouse_click_event(const MouseClickEvent& event) { return false; };
+    virtual bool on_keyboard_event(const KeyboardEvent& event) { return false; }
 
     void invalidate(int l, int t, int r, int b);
     inline void invalidate() { invalidate(left(), top(), right(), bottom()); }
@@ -156,5 +176,6 @@ protected:
 
     OnMouseClickListener m_on_mouse_click_listener {};
     OnMouseMoveListener m_on_mouse_move_listener {};
+    OnKeyboardListener m_on_keyboard_listener {};
 };
 }

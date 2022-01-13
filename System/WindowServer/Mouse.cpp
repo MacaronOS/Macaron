@@ -1,6 +1,6 @@
 #include "Mouse.hpp"
 
-#include <Macaronlib/ABI/Syscalls.hpp>
+#include <Libc/Syscalls.hpp>
 
 void Mouse::pump()
 {

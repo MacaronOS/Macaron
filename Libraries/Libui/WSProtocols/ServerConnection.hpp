@@ -73,6 +73,12 @@ public:
 		}
 	}
 
+	void send_KeyRequest(const KeyRequest& request, int pid_to)
+	{
+		auto serialized = request.serialize();
+		send_data(serialized.data(), serialized.size(), pid_to);
+	}
+
 	void send_MouseClickRequest(const MouseClickRequest& request, int pid_to)
 	{
 		auto serialized = request.serialize();

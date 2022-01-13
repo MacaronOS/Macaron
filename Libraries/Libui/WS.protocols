@@ -9,6 +9,7 @@ Client -> Server:
     Invalidate(int window_id, int x, int y, int width, int height) -> void
 
 Server -> Client:
+    Key(int key, int pressed) -> void
     MouseClick(int window_id, int x, int y) -> void
     MouseMove(int widnow_id, int x, int y) -> void
     CloseWindow(int window_id, int widht, int height, String titile) -> (int window_id, int decision)

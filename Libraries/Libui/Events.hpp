@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Libsystem/EventLoop.hpp>
+#include <Macaronlib/ABI/Keyboard.hpp>
 
 namespace UI {
 
@@ -9,6 +10,7 @@ enum class EventType {
     MouseClick,
     WindowResize,
     ViewRedraw,
+    Keyboard,
 };
 
 struct MouseMoveEvent {
@@ -27,6 +29,8 @@ struct ViewRedrawEvent {
     int left, top, right, bottom;
 };
 
+using KeyboardEvent = KeyboardPacket;
+
 struct Event {
     EventType type;
     union {
@@ -34,6 +38,7 @@ struct Event {
         WindowResizeEvent window_resize_event;
         MouseClickEvent mouse_click_event;
         ViewRedrawEvent view_redraw_event;
+        KeyboardEvent keyboard_event;
     };
 };
 

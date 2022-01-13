@@ -16,6 +16,7 @@ enum class MessageType : int {
 	ScreenSizeResponse,
 	SetPositionRequest,
 	InvalidateRequest,
+	KeyRequest,
 	MouseClickRequest,
 	MouseMoveRequest,
 	CloseWindowRequest,
@@ -322,6 +323,41 @@ private:
 	int m_y;
 	int m_width;
 	int m_height;
+};
+
+class KeyRequest {
+	static constexpr MessageType m_type = MessageType::KeyRequest;
+
+public:
+	KeyRequest(int key, int pressed)
+		: m_key(key)
+		, m_pressed(pressed)
+	{
+	}
+
+	KeyRequest(const Vector<unsigned char>& buffer)
+	{
+		Decoder decoder(buffer);
+		decoder.skip(sizeof(MessageType));
+		m_key = decoder.get_int();
+		m_pressed = decoder.get_int();
+	}
+
+	int key() const { return m_key; }
+	int pressed() const { return m_pressed; }
+
+	Vector<unsigned char> serialize() const
+	{
+		Encoder encoder {};
+		encoder.push((int)m_type);
+		encoder.push(m_key);
+		encoder.push(m_pressed);
+		return encoder.done();
+	}
+
+private:
+	int m_key;
+	int m_pressed;
 };
 
 class MouseClickRequest {

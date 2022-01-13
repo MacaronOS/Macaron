@@ -5,6 +5,7 @@
 #include <Libui/Button.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
+#include <Libui/EditText.hpp>
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
@@ -37,17 +38,18 @@ protected:
         counter_view_paprams->width = 460;
         counter_view_paprams->height = 320;
 
-        auto increase_button = new UI::Button();
-        increase_button->set_text("Click!");
-        increase_button->set_typeface(font);
-        increase_button->set_gravity(UI::Gravity::Center);
+        auto edit_text = new UI::EditText();
+
+        edit_text->set_text("> ");
+        edit_text->set_typeface(font);
+        edit_text->set_background_color(Graphics::Color(240, 240, 240));
         
-        auto increase_button_paprams = new UI::LayoutParams();
-        increase_button_paprams->width = 460;
-        increase_button_paprams->height = 20;
+        auto edit_text_paprams = new UI::LayoutParams();
+        edit_text_paprams->width = 460;
+        edit_text_paprams->height = 20;
 
         layout->add_view(counter_view, counter_view_paprams);
-        layout->add_view(increase_button, increase_button_paprams);
+        layout->add_view(edit_text, edit_text_paprams);
 
         set_content_view(layout);
     }
