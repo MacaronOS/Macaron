@@ -3,7 +3,6 @@ std::function with small size optimization
 My implementation of the idea taken from here - https://www.youtube.com/watch?v=VY83afAJUIg
 */
 
-
 #pragma once
 
 #include "Common.hpp"
@@ -69,18 +68,15 @@ public:
         }
 
         if (other.m_storage != nullptr) {
-            auto storage_copy = m_storage;
-            m_storage = nullptr;
-
             if (other.m_storage_size < stack_size) {
-                m_storage = &m_stack;
+                m_storage = m_stack;
             } else {
                 if (m_storage_amount < other.m_storage_size) {
-                    free(m_storage);
+                    if (m_storage != m_stack) {
+                        free(m_storage);
+                    }
                     m_storage = malloc(other.m_storage_size);
                     m_storage_amount = other.m_storage_size;
-                } else {
-                    m_storage = storage_copy;
                 }
             }
 

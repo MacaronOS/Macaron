@@ -3,9 +3,9 @@
 
 #include <Libui/App/Activity.hpp>
 #include <Libui/Button.hpp>
+#include <Libui/EditText.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
-#include <Libui/EditText.hpp>
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
@@ -43,7 +43,15 @@ protected:
         edit_text->set_text("> ");
         edit_text->set_typeface(font);
         edit_text->set_background_color(Graphics::Color(240, 240, 240));
-        
+
+        Function<void(const String& s, int start, int before, int count)> a = nullptr;
+
+        a = [&](const String& s, int start, int before, int count) {
+            Log << s[start] << endl;
+        };
+
+        edit_text->set_on_text_changed(a);
+
         auto edit_text_paprams = new UI::LayoutParams();
         edit_text_paprams->width = 460;
         edit_text_paprams->height = 20;
