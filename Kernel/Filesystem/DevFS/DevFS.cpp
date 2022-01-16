@@ -33,7 +33,7 @@ bool DevFS::init()
         m_root.m_childs.push_back(node);
     }
 
-    auto pts_directory = static_cast<DevFSNode*>(mkdir(root(), "pty"));
+    auto pts_directory = static_cast<DevFSNode*>(mkdir(root(), "pts"));
     create_device_node_inside_directory(root(), new PTMX(*pts_directory));
     return true;
 }
@@ -41,11 +41,19 @@ bool DevFS::init()
 VNode* DevFS::finddir(VNode& parent, const String& devname)
 {
     auto d_parent = ToDevFSNode(parent);
-    for (size_t device = 0; device < d_parent.m_childs.size(); device++) {
-        if (d_parent.m_childs[device]->m_device->name() == devname) {
-            return d_parent.m_childs[device];
+
+    for (auto child : d_parent.m_childs) {
+        if (child->m_virtual_name.size()) {
+            if (child->m_virtual_name == devname) {
+                return child;
+            }
+        } else {
+            if (child->m_device && child->m_device->name() == devname) {
+                return child;
+            }
         }
     }
+
     return nullptr;
 }
 
@@ -64,6 +72,11 @@ Vector<String> DevFS::listdir(VNode& directory)
 uint32_t DevFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
 {
     return ToDevFSNode(file).m_device->read(offset, size, buffer);
+}
+
+uint32_t DevFS::write(VNode& file, uint32_t offset, uint32_t size, void* buffer)
+{
+    return ToDevFSNode(file).m_device->write(offset, size, buffer);
 }
 
 bool DevFS::mmap(VNode& file, uint32_t addr, uint32_t size)

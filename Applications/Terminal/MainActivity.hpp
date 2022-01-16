@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include <Libc/stdlib.h>
+
 #include <Libui/App/Activity.hpp>
 #include <Libui/Button.hpp>
 #include <Libui/EditText.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
-#include <Libc/stdlib.h>
+#include <Libui/Events.hpp>
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
@@ -45,12 +47,31 @@ protected:
             exit(1);
         }
 
+        UI::EventLoop::the().register_fd_for_select([&]() {
+            char buff[255];
+            int sz = read(pty_master, buff, sizeof(buff) - 1);
+            buff[sz] = '\0';
+            Log << "received from pty: " << String(buff) << endl;
+        },
+            pty_master);
+
         if (!fork()) {
             char* pty_slave_name = ptsname(pty_master);
             Log << "ptys name : " << pty_slave_name << endl;
+
+            close(0);
+            close(1);
+            close(3);
+
+            open(pty_slave_name, 1, 1);
+            open(pty_slave_name, 1, 1);
+            open(pty_slave_name, 1, 1);
+
+            char* hello = "hello from pty!";
+            write(0, hello, 16);
+
             exit(0);
         }
-
 
         auto edit_text = new UI::EditText();
 

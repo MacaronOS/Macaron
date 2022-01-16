@@ -237,6 +237,11 @@ static int sys_ptsname(int fd, char* buffer, size_t size)
     return 0;
 }
 
+static int sys_close(int fd)
+{
+    return int(VFS::the().close(fd));
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -265,6 +270,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Sigreturn, (uint32_t)sys_sigreturn);
     register_syscall(Syscall::Kill, (uint32_t)sys_kill);
     register_syscall(Syscall::PTSName, (uint32_t)sys_ptsname);
+    register_syscall(Syscall::Close, (uint32_t)sys_close);
 }
 
 void SyscallsManager::initialize()

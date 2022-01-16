@@ -19,7 +19,7 @@ VFS::VFS()
     m_file_storage.push(m_root);
 
     // setting all fds as free
-    for (int i = FD_ALLOWED - 1; i >= 0; i--) {
+    for (int i = FD_ALLOWED - 1; i > 3; i--) {
         m_free_fds.push(i);
     }
 }
@@ -59,7 +59,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 
 KError VFS::close(const fd_t fd)
 {
-    if (!get_file_descriptor(fd)) {
+    if (fd > 3 && !get_file_descriptor(fd)) {
         return KError(EBADF);
     }
     m_free_fds.push(fd);

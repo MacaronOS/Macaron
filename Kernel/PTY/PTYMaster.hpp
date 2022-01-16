@@ -13,6 +13,7 @@ public:
 
     uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(uint32_t offset, uint32_t size, void* buffer) override;
+    bool can_read(uint32_t offset) override { return m_buffer.space_to_read_from(offset); }
 
     inline void set_slave(PTYSlave* slave) { m_slave = slave; }
     PTYSlave* slave() { return m_slave; }

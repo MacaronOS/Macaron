@@ -123,3 +123,8 @@ int ptsname_r(int fd, char* buffer, size_t size)
 {
     return do_syscall(Syscall::PTSName, ToSysArg(fd), ToSysArg(buffer), ToSysArg(size));
 }
+
+int close(int fd)
+{
+    return do_syscall(Syscall::Close, ToSysArg(fd));
+}
