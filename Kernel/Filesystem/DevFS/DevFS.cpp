@@ -89,6 +89,11 @@ VNode* DevFS::mkdir(VNode& directory, const String& name)
     return node;
 }
 
+void DevFS::open(VNode& file, FileDescriptor& fd)
+{
+    ToDevFSNode(file).m_device->open(fd, file);
+}
+
 VNode* DevFS::create_device_node_inside_directory(VNode& directory, CharacterDevice* deivce)
 {
     auto node = new DevFSNode(this, devnodes++, deivce);

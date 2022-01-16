@@ -15,6 +15,7 @@ public:
     uint32_t write(uint32_t offset, uint32_t size, void* buffer) override;
 
     inline void set_slave(PTYSlave* slave) { m_slave = slave; }
+    PTYSlave* slave() { return m_slave; }
 
     Ringbuffer<1024>& buffer() { return m_buffer; }
 

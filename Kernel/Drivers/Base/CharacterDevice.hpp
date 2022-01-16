@@ -17,7 +17,7 @@ public:
 
     const String& name() const { return m_name; }
 
-    virtual void open(FS::FileDescriptor& fd) { }
+    virtual void open(FS::FileDescriptor& fd, FS::VNode& vnode) { fd.set_file(vnode); }
     virtual uint32_t write(uint32_t offset, uint32_t size, void* buffer) { return 0; }
     virtual uint32_t read(uint32_t offset, uint32_t size, void* buffer) { return 0; }
     virtual bool can_read(uint32_t offset) { return false; }

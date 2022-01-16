@@ -214,6 +214,29 @@ static int sys_kill(int pid, int sig)
     return 0;
 }
 
+static int sys_ptsname(int fd, char* buffer, size_t size)
+{
+    if (size == 0) {
+        return 0;
+    }
+
+    auto ptsname = VFS::the().ptsname(fd);
+    if (!ptsname) {
+        return ptsname.error().posix_error();
+    }
+
+    if (ptsname.result().size() == 0) {
+        return 0;
+    }
+
+    auto path = String("/dev/pts/") + ptsname.result();
+    size_t sz = min(path.size(), size - 1);
+    memcpy(buffer, path.cstr(), sz);
+    buffer[sz] = '\0';
+
+    return 0;
+}
+
 SyscallsManager::SyscallsManager()
     : InterruptHandler(0x80)
 {
@@ -241,6 +264,7 @@ SyscallsManager::SyscallsManager()
     register_syscall(Syscall::Sigaction, (uint32_t)sys_sigaction);
     register_syscall(Syscall::Sigreturn, (uint32_t)sys_sigreturn);
     register_syscall(Syscall::Kill, (uint32_t)sys_kill);
+    register_syscall(Syscall::PTSName, (uint32_t)sys_ptsname);
 }
 
 void SyscallsManager::initialize()

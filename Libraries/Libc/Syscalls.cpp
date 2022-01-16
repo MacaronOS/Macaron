@@ -1,4 +1,5 @@
 #include "Syscalls.hpp"
+#include "stdlib.h"
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
@@ -116,4 +117,9 @@ int sigprocmask(int how, const sigset_t* set, sigset_t* old_set)
 int kill(int pid, int sig)
 {
     return do_syscall(Syscall::Kill, ToSysArg(pid), ToSysArg(sig));
+}
+
+int ptsname_r(int fd, char* buffer, size_t size)
+{
+    return do_syscall(Syscall::PTSName, ToSysArg(fd), ToSysArg(buffer), ToSysArg(size));
 }

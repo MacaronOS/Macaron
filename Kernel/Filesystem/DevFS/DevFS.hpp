@@ -20,6 +20,7 @@ public:
     bool ioctl(VNode& file, uint32_t request) override;
     bool can_read(VNode& vnode, uint32_t offset) override;
     VNode* mkdir(VNode& directory, const String& name) override;
+    void open(VNode& file, FileDescriptor& fd) override;
 
     VNode* create_device_node_inside_directory(VNode& directory, CharacterDevice* device);
     VNode* create_anonim_device_node(CharacterDevice* device);

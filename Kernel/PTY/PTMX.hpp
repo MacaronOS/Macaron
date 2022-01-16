@@ -14,7 +14,7 @@ public:
     {
     }
 
-    void open(FS::FileDescriptor& fd) override;
+    void open(FS::FileDescriptor& fd, FS::VNode& vnode) override;
 
 private:
     FS::DevFSNode& m_pts_directory;

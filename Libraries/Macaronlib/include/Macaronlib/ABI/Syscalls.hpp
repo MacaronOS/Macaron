@@ -82,6 +82,8 @@ enum class Syscall {
 
     CanRead,
 
+    PTSName,
+
     END,
 };
 

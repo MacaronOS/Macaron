@@ -6,6 +6,7 @@
 #include <Libui/EditText.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
+#include <Libc/stdlib.h>
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>
@@ -37,6 +38,19 @@ protected:
         auto counter_view_paprams = new UI::LayoutParams();
         counter_view_paprams->width = 460;
         counter_view_paprams->height = 320;
+
+        int pty_master = open("/dev/ptmx", 1, 1);
+        if (!pty_master) {
+            Log << "could not open a ptmx device" << endl;
+            exit(1);
+        }
+
+        if (!fork()) {
+            char* pty_slave_name = ptsname(pty_master);
+            Log << "ptys name : " << pty_slave_name << endl;
+            exit(0);
+        }
+
 
         auto edit_text = new UI::EditText();
 

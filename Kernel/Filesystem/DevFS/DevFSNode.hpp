@@ -15,6 +15,7 @@ class DevFSNode : public VNode {
 
 public:
     DevFSNode(FS* fs, uint32_t devnode, CharacterDevice* device = nullptr, const String& virtual_name = "");
+    CharacterDevice* device() { return m_device; }
 
 private:
     CharacterDevice* m_device {};

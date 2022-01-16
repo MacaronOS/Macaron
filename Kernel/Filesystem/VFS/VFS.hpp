@@ -48,6 +48,7 @@ public:
     KError select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
     KErrorOr<size_t> getdents(fd_t fd, linux_dirent* dirp, size_t size);
     KError mkdir(const String& path);
+    KErrorOr<String> ptsname(fd_t fd);
 
     // sockets
     KErrorOr<fd_t> socket(int domain, int type, int protocol);

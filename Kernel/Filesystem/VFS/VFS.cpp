@@ -1,8 +1,11 @@
 #include "VFS.hpp"
 
+#include <Filesystem/DevFS/DevFSNode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
+#include <PTY/PTYMaster.hpp>
+#include <PTY/PTYSlave.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -523,6 +526,20 @@ KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
     }
 
     return KError(ENOENT);
+}
+
+KErrorOr<String> VFS::ptsname(fd_t fd)
+{
+    FileDescriptor* file_descr = get_file_descriptor(fd);
+    if (!file_descr) {
+        return KError(EBADF);
+    }
+
+    auto vnode = file_descr->vnode();
+    auto devfs_node = static_cast<DevFSNode*>(vnode);
+    auto pty_master = static_cast<PTYMaster*>(devfs_node->device());
+
+    return String(pty_master->slave()->name());
 }
 
 }

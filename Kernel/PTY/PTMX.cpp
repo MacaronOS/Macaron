@@ -2,10 +2,11 @@
 #include "PTYMaster.hpp"
 #include "PTYSlave.hpp"
 #include <Filesystem/DevFS/DevFS.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Drivers {
 
-void PTMX::open(FS::FileDescriptor& fd)
+void PTMX::open(FS::FileDescriptor& fd, FS::VNode& vnode)
 {
     pts_count++;
 

@@ -1,6 +1,7 @@
 #include "PTYSlave.hpp"
 #include "PTYMaster.hpp"
 #include <Macaronlib/String.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel {
 
