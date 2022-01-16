@@ -7,7 +7,7 @@ binaryname = 'bin'
 build_folder = 'MacaBuild'
 
 
-def main(apps_path, mountpoint):
+def copy_applicatons(apps_path, mountpoint):
     for application in os.listdir(apps_path):
         real_path = os.path.join(apps_path, application)
         if os.path.isdir(real_path):
@@ -24,5 +24,17 @@ def main(apps_path, mountpoint):
             copyfile(icon_path, icon_path_on_drive)
 
 
+def copy_binaries(bin_path, mountpoint):
+    os.makedirs(mountpoint, exist_ok=True)
+
+    for bin in os.listdir(bin_path):
+        real_path = os.path.join(bin_path, bin)
+        if os.path.isdir(real_path):
+            bin_path = os.path.join(os.path.join(real_path, build_folder), bin)
+            bin_path_on_drive = os.path.join(mountpoint, bin)
+            copyfile(bin_path, bin_path_on_drive)
+
+
 if __name__ == '__main__':
-    main('Applications', 'mountpoint/Applications')
+    copy_applicatons('Applications', 'mountpoint/Applications')
+    copy_binaries('Binaries', 'mountpoint/bin')

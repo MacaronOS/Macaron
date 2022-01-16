@@ -22,6 +22,10 @@ bool EditText::on_keyboard_event(const KeyboardEvent& event)
         }
     }
 
+    if (m_on_keyboard) {
+        m_on_keyboard(event);
+    }
+
     return true;
 }
 

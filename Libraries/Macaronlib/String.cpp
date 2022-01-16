@@ -158,6 +158,11 @@ void String::reserve(size_t capacity)
     }
 }
 
+void String::clear()
+{
+    m_size = 0;
+}
+
 bool String::operator==(const String& str) const
 {
     if (str.size() != m_size) {

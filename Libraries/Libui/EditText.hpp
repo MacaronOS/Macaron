@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TextView.hpp"
+#include "Events.hpp"
 
 namespace UI {
 
@@ -13,6 +14,8 @@ public:
 
     bool on_keyboard_event(const KeyboardEvent& event) override;
 
+    using OnKeyboard = Function<void(const KeyboardEvent&)>;
+
     // Within "s", the count characters beginning at "start" are about to be replaced by new text with length "after".
     using BeforeTextChanged = Function<void(const String& s, int start, int count, int after)>;
 
@@ -22,6 +25,7 @@ public:
     // Somewhere within s, the text has been changed.
     using AfterTextChanged = Function<void(const String& s)>;
 
+    inline void set_on_keyboard(const OnKeyboard& ok) { m_on_keyboard = ok; }
     inline void set_before_text_changed(const BeforeTextChanged& btc) { m_before_text_changed = btc; }
     inline void set_on_text_changed(const OnTextChanged& otc) { m_on_text_changed = otc; }
     inline void set_after_text_changed(const AfterTextChanged& atc) { m_after_text_changed = atc; }
@@ -30,6 +34,7 @@ private:
     BeforeTextChanged m_before_text_changed {};
     OnTextChanged m_on_text_changed {};
     AfterTextChanged m_after_text_changed {};
+    OnKeyboard m_on_keyboard {};
 };
 
 }

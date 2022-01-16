@@ -33,6 +33,7 @@ public:
     String& operator+=(char c);
     void pop_back();
     void reserve(size_t capacity);
+    void clear();
 
     // Comapre operators
     bool operator==(const String& str) const;

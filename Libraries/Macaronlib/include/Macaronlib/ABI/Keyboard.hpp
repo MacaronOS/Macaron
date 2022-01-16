@@ -100,7 +100,7 @@ static char KeyToAsci(Key key)
         '-', '=',
         '\0', '\0', // backspace, tab
         'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']',
-        '\0', '\0', // enter, leftctrl
+        '\n', '\0', // enter, leftctrl
         'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l',
         ';', '\'', '`',
         '\0', // left shift
