@@ -37,19 +37,24 @@ bool Scheduler::run()
 void Scheduler::reschedule()
 {
     auto next_thread = m_cur_thread;
+    next_thread++;
 
-    while (++next_thread != m_cur_thread) {
+    while (next_thread != m_cur_thread) {
         if (next_thread == m_threads.end()) {
-            next_thread = m_threads.rend();
+            next_thread = m_threads.begin();
             continue;
         }
+
         auto thread_ptr = *next_thread;
         if (thread_ptr->state() == ThreadState::Terminated) {
             delete thread_ptr;
             next_thread = m_threads.remove(next_thread);
             continue;
+        } else {
+            break;
         }
-        break;
+
+        ++next_thread;
     }
 
     auto next_thread_ptr = *next_thread;

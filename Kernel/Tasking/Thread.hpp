@@ -4,7 +4,6 @@
 #include <Hardware/Trapframe.hpp>
 #include <Macaronlib/ABI/Signals.hpp>
 #include <Memory/Region.hpp>
-#include <Memory/vmm.hpp>
 
 namespace Kernel::Tasking {
 

@@ -3,33 +3,51 @@
 #include "Common.hpp"
 #include "Runtime.hpp"
 
-template <typename T>
-class ListNode {
-public:
-    ListNode() = default;
-    ~ListNode() = default;
+template <typename ListType, typename ValueType>
+class ListIterator {
+    friend ListType;
 
-    explicit ListNode(const T& val)
-        : m_val(val)
-    {
-    }
-    explicit ListNode(T&& val)
-        : m_val(move(val))
+public:
+    explicit ListIterator(typename ListType::Node* node_ptr = nullptr)
+        : m_node_ptr(node_ptr)
     {
     }
 
-    ListNode<T>* next() const { return m_next; }
-    ListNode<T>* prev() const { return m_prev; }
+    const ValueType& operator*() const { return m_node_ptr->val; }
+    ValueType& operator*() { return m_node_ptr->val; }
 
-    void set_next(ListNode<T>* next) { m_next = next; }
-    void set_prev(ListNode<T>* prev) { m_prev = prev; }
+    ValueType* operator->() { return &m_node_ptr->val; }
+    ValueType const* operator->() const { return &m_node_ptr->val; }
 
-public:
-    T m_val;
+    bool operator==(const ListIterator& it) const { return m_node_ptr == it.m_node_ptr; }
+    bool operator!=(const ListIterator& it) const { return m_node_ptr != it.m_node_ptr; }
+
+    ListIterator operator++()
+    {
+        m_node_ptr = m_node_ptr->next;
+        return *this;
+    }
+    ListIterator operator--()
+    {
+        m_node_ptr = m_node_ptr->prev;
+        return *this;
+    }
+
+    ListIterator operator++(int)
+    {
+        auto cp = *this;
+        m_node_ptr = m_node_ptr->next;
+        return cp;
+    }
+    ListIterator operator--(int)
+    {
+        auto cp = *this;
+        m_node_ptr = m_node_ptr->prev;
+        return cp;
+    }
 
 private:
-    ListNode<T>* m_next {};
-    ListNode<T>* m_prev {};
+    typename ListType::Node* m_node_ptr;
 };
 
 template <typename T>
@@ -37,137 +55,108 @@ class List {
 public:
     using ValueType = T;
 
-    List() { tie_tails(); }
+    struct Node {
+        explicit Node(const T& val)
+            : val(val)
+        {
+        }
+
+        explicit Node(T&& val)
+            : val(move(val))
+        {
+        }
+
+        T val;
+        Node* next {};
+        Node* prev {};
+    };
+
+    List() = default;
     ~List() { clear(); }
     List(const List& list);
     List& operator=(const List& list);
 
-    void push_front(const T& val) { push_front(new ListNode<ValueType>(val)); }
-    void push_front(T&& val) { push_front(new ListNode<ValueType>(move(val))); }
-    void push_back(const T& val) { push_back(new ListNode<ValueType>(val)); }
-    void push_back(T&& val) { push_back(new ListNode<ValueType>(move(val))); }
+    void push_front(const T& val) { push_front(new Node(val)); }
+    void push_front(T&& val) { push_front(new Node(move(val))); }
+    void push_back(const T& val) { push_back(new Node(val)); }
+    void push_back(T&& val) { push_back(new Node(move(val))); }
 
     void clear();
-    uint32_t size() const { return m_size; }
+    size_t size() const { return m_size; }
 
-    template <class NodeType>
-    class Iterator {
-        friend class List<ValueType>;
+    using Iterator = ListIterator<List, ValueType>;
+    friend Iterator;
 
-    public:
-        explicit Iterator(NodeType* node_ptr = nullptr)
-            : m_node_ptr(node_ptr)
-        {
-        }
+    Iterator begin() { return Iterator(m_head); }
+    Iterator rbegin() { return Iterator(m_tail); }
+    Iterator end() { return Iterator(nullptr); }
+    Iterator rend() { return Iterator(nullptr); }
 
-        ValueType& operator*() const { return m_node_ptr->m_val; }
-        ValueType operator*() { return m_node_ptr->m_val; }
+    using ConstIterator = ListIterator<const List, const T>;
+    friend ConstIterator;
 
-        ValueType* operator->() { return &m_node_ptr->m_val; }
-        ValueType const* operator->() const { return &m_node_ptr->m_val; }
+    ConstIterator begin() const { return ConstIterator(m_head); }
+    ConstIterator rbegin() const { return ConstIterator(m_tail); }
+    ConstIterator end() const { return ConstIterator(nullptr); }
+    ConstIterator rend() const { return ConstIterator(nullptr); }
 
-        bool operator==(const Iterator& it) const { return m_node_ptr == it.m_node_ptr; }
-        bool operator!=(const Iterator& it) const { return m_node_ptr != it.m_node_ptr; }
-
-        Iterator operator++()
-        {
-            m_node_ptr = m_node_ptr->next();
-            return *this;
-        }
-        Iterator operator--()
-        {
-            m_node_ptr = m_node_ptr->prev();
-            return *this;
-        }
-
-        Iterator operator++(int)
-        {
-            auto cp = *this;
-            m_node_ptr = m_node_ptr->next();
-            return cp;
-        }
-        Iterator operator--(int)
-        {
-            auto cp = *this;
-            m_node_ptr = m_node_ptr->prev();
-            return cp;
-        }
-
-    protected:
-        NodeType* m_node_ptr {};
-    };
-
-    using DefaultIterator = Iterator<ListNode<ValueType>>;
-    using ConstIterator = Iterator<const ListNode<ValueType>>;
-
-    ConstIterator begin() const { return ConstIterator(m_head.next()); }
-    ConstIterator rbegin() const { return ConstIterator(m_tail.prev()); }
-    ConstIterator end() const { return ConstIterator(&m_tail); }
-    ConstIterator rend() const { return ConstIterator(&m_head); }
-
-    DefaultIterator begin() { return DefaultIterator(m_head.next()); }
-    DefaultIterator rbegin() { return DefaultIterator(m_tail.prev()); }
-    DefaultIterator end() { return DefaultIterator(&m_tail); }
-    DefaultIterator rend() { return DefaultIterator(&m_head); }
-
-    DefaultIterator find(const ValueType& value);
+    Iterator find(const ValueType& value);
     ConstIterator find(const ValueType& value) const;
 
-    DefaultIterator remove(const DefaultIterator& del_it);
+    Iterator remove(const Iterator& del_it);
 
-    void append(const DefaultIterator& it_begin, const DefaultIterator& it_end);
-
-public:
-    void tie_tails();
-    void push_front(ListNode<ValueType>* node);
-    void push_back(ListNode<ValueType>* node);
+    void append(const Iterator& it_begin, const Iterator& it_end);
 
 public:
-    ListNode<ValueType> m_head {};
-    ListNode<ValueType> m_tail {};
+    void push_front(Node* node);
+    void push_back(Node* node);
 
-    uint32_t m_size {};
+public:
+    Node* m_head {};
+    Node* m_tail {};
+
+    size_t m_size {};
 };
 
 template <typename T>
-void List<T>::push_front(ListNode<ValueType>* node)
+void List<T>::push_front(Node* node)
 {
-    node->set_prev(&m_head);
-    m_head.next()->set_prev(node);
-    node->set_next(m_head.next());
-    m_head.set_next(node);
     m_size++;
+
+    if (!m_head) {
+        m_head = node;
+        m_tail = node;
+        return;
+    }
+
+    m_head->prev = node;
+    node->next = m_head;
+    m_head = node;
 }
 
 template <typename T>
-void List<T>::push_back(ListNode<ValueType>* node)
+void List<T>::push_back(Node* node)
 {
-    node->set_next(&m_tail);
-    m_tail.prev()->set_next(node);
-    node->set_prev(m_tail.prev());
-    m_tail.set_prev(node);
     m_size++;
+
+    if (!m_head) {
+        m_head = node;
+        m_tail = node;
+        return;
+    }
+
+    m_tail->next = node;
+    node->prev = m_tail;
+    m_tail = node;
 }
 
 template <typename T>
 void List<T>::clear()
 {
-    auto cur_node = m_head.next();
-
-    while (cur_node != &m_tail) {
-        auto next_node = cur_node->next();
-        delete cur_node;
-        cur_node = next_node;
+    auto it = rbegin();
+    while (it != rend()) {
+        it = remove(it);
     }
-
-    tie_tails();
-}
-
-template <typename T>
-void List<T>::tie_tails()
-{
-    m_head.set_next(&m_tail);
-    m_tail.set_prev(&m_head);
 }
 
 template <typename T>
@@ -183,7 +172,7 @@ typename List<T>::ConstIterator List<T>::find(const ValueType& value) const
 }
 
 template <typename T>
-typename List<T>::DefaultIterator List<T>::find(const ValueType& value)
+typename List<T>::Iterator List<T>::find(const ValueType& value)
 {
     for (auto it = this->begin(); it != this->end(); ++it) {
         if (*it == value) {
@@ -195,25 +184,34 @@ typename List<T>::DefaultIterator List<T>::find(const ValueType& value)
 }
 
 template <typename T>
-typename List<T>::DefaultIterator List<T>::remove(const List::DefaultIterator& del_it)
+typename List<T>::Iterator List<T>::remove(const List::Iterator& del_it)
 {
     auto node_ptr = del_it.m_node_ptr;
-    if (node_ptr->prev()) {
-        node_ptr->prev()->set_next(node_ptr->next());
+
+    if (node_ptr == m_head) {
+        m_head = node_ptr->next;
     }
-    if (node_ptr->next()) {
-        node_ptr->next()->set_prev(node_ptr->prev());
+    if (node_ptr == m_tail) {
+        m_tail = node_ptr->prev;
     }
+
+    if (node_ptr->prev) {
+        node_ptr->prev->next = node_ptr->next;
+    }
+    if (node_ptr->next) {
+        node_ptr->next->prev = node_ptr->prev;
+    }
+
     auto prev = del_it;
     --prev;
     delete node_ptr;
+    m_size--;
     return prev;
 }
 
 template <typename T>
 List<T>::List(const List& list)
 {
-    tie_tails();
     for (const auto& el : list) {
         push_back(el);
     }
@@ -230,7 +228,7 @@ List<T>& List<T>::operator=(const List& list)
 }
 
 template <typename T>
-void List<T>::append(const DefaultIterator& it_begin, const DefaultIterator& it_end)
+void List<T>::append(const Iterator& it_begin, const Iterator& it_end)
 {
     for (auto it = it_begin; it != it_end; it++) {
         push_back(*it);

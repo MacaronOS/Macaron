@@ -2,6 +2,7 @@
 
 #include "Process.hpp"
 #include "Thread.hpp"
+#include "Blocker.hpp"
 
 #include <Drivers/PIT.hpp>
 #include <Filesystem/VFS/VFS.hpp>
@@ -55,7 +56,7 @@ private:
     // TODO: support kernel processes / threads
     ProcessStorage* m_process_storage {};
     List<Thread*> m_threads {};
-    List<Thread*>::Iterator<ListNode<Thread*>> m_cur_thread { m_threads.end() };
+    List<Thread*>::Iterator m_cur_thread { m_threads.end() };
     bool m_running {};
 };
 
