@@ -80,7 +80,8 @@ BitmapFont load(const String& binary_description_path, const String& texture_pat
 
     BitmapFont font;
 
-    for (size_t _ = 0; _ < 5; _++) {
+    // TODO: last one is ignored since current system's fonts don't have kernings which makes the system block.
+    for (size_t _ = 0; _ < 4; _++) {
         InfoBlockDescription info_block_description;
         read(fd, &info_block_description, sizeof(InfoBlockDescription));
         Vector<uint8_t> data(info_block_description.size);

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Blocker.hpp"
 #include "Process.hpp"
 #include "Thread.hpp"
-#include "Blocker.hpp"
 
 #include <Drivers/PIT.hpp>
 #include <Filesystem/VFS/VFS.hpp>
@@ -50,14 +50,28 @@ public:
 
     Process& get_process(int pid);
 
+    void block_current_thread_on_read(FS::FileDescriptor& fd);
+    void block_current_thread();
+
+    void unblock_threads();
+    void unblock_therads_on_read();
+    void unblock_blocker(Blocker&);
+
 private:
     Scheduler();
+
+private:
+    List<Thread*>::Iterator find_next_thread();
+    void prepare_switching_to_the_next_thread(List<Thread*>::Iterator next_thread);
 
     // TODO: support kernel processes / threads
     ProcessStorage* m_process_storage {};
     List<Thread*> m_threads {};
     List<Thread*>::Iterator m_cur_thread { m_threads.end() };
+
     bool m_running {};
+
+    List<ReadBlocker> m_read_blockers {};
 };
 
 }

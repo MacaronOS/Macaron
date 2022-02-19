@@ -6,6 +6,7 @@
 #include <Libkernel/Logger.hpp>
 #include <PTY/PTYMaster.hpp>
 #include <PTY/PTYSlave.hpp>
+#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -107,6 +108,10 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     }
 
     if (fs) {
+        if (!fs->can_read(*vnode, offset)) {
+            Logger::Log() << Tasking::Scheduler::the().cur_process()->id() << " pid blocks on fd " << fd << "!\n";
+            Tasking::Scheduler::the().block_current_thread_on_read(*file_descr);
+        }
         size_t read_bytes = fs->read(*vnode, offset, size, buffer);
         file_descr->inc_offset(read_bytes);
         return read_bytes;

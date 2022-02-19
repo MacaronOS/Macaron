@@ -36,6 +36,7 @@ public:
     uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(VNode& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t truncate(VNode& file, uint32_t size) override;
+    bool can_read(VNode& vnode, uint32_t offset) override;
 
     VNode* finddir(VNode& directory, const String& filename) override;
     Vector<String> listdir(VNode& directory) override;

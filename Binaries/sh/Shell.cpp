@@ -16,7 +16,6 @@ void Shell::input()
         if (sz > 0) {
             process(buffer, sz);
         }
-        sched_yield();
     }
 }
 

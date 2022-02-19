@@ -97,6 +97,11 @@ uint32_t Ext2::truncate(VNode& file, uint32_t size)
     return size;
 }
 
+bool Ext2::can_read(VNode& vnode, uint32_t offset)
+{
+    return offset < ToExt2Inode(vnode).inode_struct()->size;
+}
+
 VNode* Ext2::finddir(VNode& directory, const String& filename)
 {
     auto& i_directory = ToExt2Inode(directory);
