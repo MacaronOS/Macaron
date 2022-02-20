@@ -1,6 +1,6 @@
-[GLOBAL return_from_scheduler]
-return_from_scheduler:
-    mov esp, [esp+4]
+[GLOBAL switch_to_user]
+switch_to_user:
+    mov esp, [esp+4] ; Trapframe* tf
 
     pop eax
     mov ds, ax
@@ -18,14 +18,18 @@ return_from_scheduler:
     add esp, 8
     iretd
 
-[GLOBAL return_to_the_kernel_handler]
-return_to_the_kernel_handler:
-    mov esp, [esp+4]
-    pop edi
-    pop esi
+[GLOBAL switch_to_kernel]
+switch_to_kernel:
+    mov eax, [esp + 4] ; KernelContext** kc
+
+    mov esp, [eax]
+    mov DWORD[eax], 0 ; so the thread no longer thinks it's blocked
+
     pop ebx
     pop ebp
-    pop esp
+    pop esi
+    pop edi
+
     ret
 
 [GLOBAL block_and_switch_to_kernel]

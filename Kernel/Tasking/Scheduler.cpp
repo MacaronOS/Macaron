@@ -9,19 +9,18 @@
 
 namespace Kernel::Tasking {
 
-extern "C" void return_from_scheduler(Trapframe* tf);
-extern "C" void return_to_the_kernel_handler(KernelContext* kc);
 extern "C" void switch_to_user_mode();
 
+// Next 2 functions are used when a scheduler decides to switch to the new thread.
+// The new thread could be preempted either in kernel space or user space.
+//
+// If it was preempted in kernel space, block_and_switch_to_kernel should be
+// called to resume the thread. Othrevise, block_and_switch_to_user.
+extern "C" void switch_to_kernel(KernelContext** kc);
+extern "C" void switch_to_user(Trapframe* tf);
+ 
 // Next 2 functions are used when a thread blocks inside the kernel.
-// Scheduler blocks the current thread and switches to the next thread.
-// The next thread can be preempted either in kernel space or user space.
-//
-// If it was preempted in kernel space, then block_and_switch_to_kernel should be
-// called to resume the thread.
-//
-// If it was preempted in user space, then block_and_switch_to_user should be
-// called to resume the thread.
+// There are also 2 versions in analogy with the previous 2 functions.
 extern "C" void block_and_switch_to_kernel(KernelContext** cur, KernelContext** next);
 extern "C" void block_and_switch_to_user(KernelContext** cur, Trapframe* next);
 
@@ -51,7 +50,13 @@ void Scheduler::reschedule()
     unblock_threads();
     auto next_thread = find_next_thread();
     prepare_switching_to_the_next_thread(next_thread);
-    return_from_scheduler((*next_thread)->trapframe());
+
+    auto next_thread_ptr = *next_thread;
+    if (next_thread_ptr->blocked_in_kernel()) {
+        switch_to_kernel(next_thread_ptr->kernel_context());
+    } else {
+        switch_to_user(next_thread_ptr->trapframe());
+    }
 }
 
 List<Thread*>::Iterator Scheduler::find_next_thread()
