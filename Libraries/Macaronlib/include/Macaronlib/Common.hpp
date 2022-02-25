@@ -67,3 +67,12 @@ inline void* operator new[](unsigned long, void* ptr)
     return ptr;
 }
 
+inline void* operator new(unsigned long size, std::align_val_t alignment)
+{
+    size_t aln = static_cast<size_t>(alignment);
+    void* ptr = malloc(size + sizeof(void*) + aln);
+    size_t max_addr = (size_t)ptr + sizeof(void*) + aln;
+    void* aligned_ptr = (void*)(max_addr - (max_addr % aln));
+    ((void**)aligned_ptr)[-1] = ptr;
+    return aligned_ptr;
+}
