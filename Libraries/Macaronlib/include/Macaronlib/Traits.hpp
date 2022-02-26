@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Common.hpp"
+#include "Runtime.hpp"
+#include "HashFunctions.hpp"
+
 template <typename T>
 struct GenericTraits {
     using ArgType = const T&;
@@ -13,7 +17,14 @@ template <typename T>
 struct Traits : public GenericTraits<T> {
 };
 
-template <>
-struct Traits<char> : public GenericTraits<char> {
-    using ArgType = char;
+template <typename T>
+requires(IsIntegral<T> || IsPointer<T>) struct Traits<T> : public GenericTraits<T> {
+    static constexpr uint32_t hash(T value)
+    {
+        if constexpr (sizeof(T) < 8) {
+            return u32_hash((uint32_t)value);
+        } else {
+            return u64_hash((uint64_t)value);
+        }
+    }
 };
