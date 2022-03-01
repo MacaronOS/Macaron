@@ -1,6 +1,8 @@
 #pragma once
 #include "Common.hpp"
+#include "HashFunctions.hpp"
 #include "SimpleIterator.hpp"
+#include "Traits.hpp"
 #include "Vector.hpp"
 
 class String {
@@ -61,6 +63,9 @@ public:
     static String From(uint32_t num);
     static String From(int num);
 
+    // Hash
+    uint32_t hash() const { return string_hash(m_string, m_size); }
+
 private:
     void realloc(size_t);
     void swap();
@@ -70,4 +75,9 @@ private:
 
     size_t m_size {};
     size_t m_capacity {};
+};
+
+template <>
+struct Traits<String> : public GenericTraits<String> {
+    static uint32_t hash(const String& s) { return s.hash(); }
 };

@@ -82,8 +82,8 @@ String& String::operator=(const char* s)
             realloc(m_capacity * 2 + 1);
         }
         m_string[i] = s[i];
+        m_size++;
     }
-    m_size = i;
     return *this;
 }
 

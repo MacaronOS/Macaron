@@ -82,6 +82,7 @@ public:
     void push_back(T&& val) { push_back(new Node(move(val))); }
 
     void clear();
+    bool empty() const { return !m_size; }
     size_t size() const { return m_size; }
 
     using Iterator = ListIterator<List, ValueType>;
