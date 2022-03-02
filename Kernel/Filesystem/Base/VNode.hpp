@@ -1,13 +1,15 @@
 #pragma once
 
+#include "DentryCache.hpp"
+
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Tasking/Net/LocalSocket.hpp>
 
 #include <Macaronlib/Common.hpp>
+#include <Macaronlib/Runtime.hpp>
 #include <Macaronlib/String.hpp>
 #include <Macaronlib/Vector.hpp>
-#include <Macaronlib/Runtime.hpp>
 
 namespace Kernel::FS {
 
@@ -38,6 +40,8 @@ enum class FilePermission {
 typedef uint16_t file_permissions_t;
 
 class FS;
+class Dentry;
+
 // Represents an object that allows different filesystems communicate which each other.
 class VNode {
 
@@ -75,12 +79,23 @@ public:
     uint32_t vnode() const { return m_vnode; }
     size_t ref_count() const { return m_ref_count; }
     void inc_ref_count() { m_ref_count++; }
+    void lookup(Dentry& dentry);
 
     // Socket funcs
-    net::LocalSocket* socket() { return m_socket; }
-    void bind_socket() { m_socket = new net::LocalSocket(); }
+    net::LocalSocket* socket()
+    {
+        return m_socket;
+    }
 
-private:
+    void bind_socket()
+    {
+        m_socket = new net::LocalSocket();
+    }
+
+protected:
+    virtual void lookup_derived(Dentry& dentry) { }
+
+protected:
     FS* m_fs { nullptr };
     uint32_t m_vnode { 0 };
     Vector<Mountpoint> m_mountpoints {};

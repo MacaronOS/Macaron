@@ -24,6 +24,7 @@ struct inode_cache_t {
 class Ext2Inode;
 
 class Ext2 : public FS {
+    friend class Ext2Inode;
 public:
     Ext2(Drivers::DiskDriver&, VNodeStorage& file_storage);
     ~Ext2();

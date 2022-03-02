@@ -23,4 +23,9 @@ uint32_t Ext2Inode::size() const
     return m_inode_struct->size;
 }
 
+void Ext2Inode::lookup_derived(Dentry& dentry)
+{
+    dentry.set_vnode(static_cast<Ext2*>(fs())->finddir(*this, dentry.name()));
+}
+
 }

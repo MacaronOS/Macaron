@@ -48,6 +48,18 @@ void VNode::mount(Mountpoint&& mountpoint)
     m_mountpoints.push_back(move(mountpoint));
 }
 
+void VNode::lookup(Dentry& dentry)
+{
+    for (auto& dir : mounted_dirs()) {
+        if (dentry.name() == dir.name()) {
+            dentry.set_vnode(&dir.vnode());
+            return;
+        }
+    }
+
+    lookup_derived(dentry);
+}
+
 VNode* VNodeStorage::find(FS* fs, uint32_t vnode)
 {
     for (size_t i = 0; i < vnodes.size(); i++) {

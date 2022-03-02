@@ -17,6 +17,7 @@ public:
 
     // Vnode functions
     uint32_t size() const override;
+    virtual void lookup_derived(Dentry& dentry) override;
 
 private:
     inode_t* inode_struct() { return m_inode_struct; };

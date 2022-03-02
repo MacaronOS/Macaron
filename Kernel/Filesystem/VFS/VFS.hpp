@@ -19,8 +19,8 @@ typedef uint8_t fd_t;
 typedef uint16_t mode_t;
 
 struct Relation {
-    VNode* directory;
-    VNode* file;
+    Dentry* directory;
+    Dentry* file;
 };
 
 class VFS {

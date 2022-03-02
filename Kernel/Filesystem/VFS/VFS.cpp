@@ -23,6 +23,10 @@ VFS::VFS()
     for (int i = FD_ALLOWED - 1; i > 3; i--) {
         m_free_fds.push(i);
     }
+
+    Dentry root_dentry(nullptr, "");
+    root_dentry.set_vnode(m_root);
+    s_dentry_cache.put(move(root_dentry));
 }
 
 KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
@@ -37,12 +41,13 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
         return relation.error();
     }
 
-    auto file = relation.result().file;
-    auto direcotry = relation.result().directory;
+    auto file_dentry = relation.result().file;
+    auto directory_dentry = relation.result().directory;
 
-    if (!file) {
+    if (!file_dentry) {
         if ((mode & O_CREAT)) {
-            file = create(*direcotry, path.split("/").back(), FileType::File, flags);
+            auto new_file = create(*directory_dentry->vnode(), path.split("/").back(), FileType::File, flags);
+            file_dentry->set_vnode(new_file);
         } else {
             return KError(ENOENT);
         }
@@ -53,7 +58,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
     auto& file_descr = m_file_descriptors[free_fd];
     file_descr.set_flags(flags);
     file_descr.set_offset(0);
-    file->fs()->open(*file, file_descr);
+    file_dentry->vnode()->fs()->open(*file_dentry->vnode(), file_descr);
 
     return free_fd;
 }
@@ -99,7 +104,7 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 
     if (socket) {
         if (!socket->can_read(offset)) {
-            //TODO: block here
+            // TODO: block here
             return 0;
         }
         size_t read_bytes = socket->read(offset, size, (uint8_t*)buffer);
@@ -344,15 +349,19 @@ KError VFS::bind(fd_t sockfd, const String& path)
         return relation.error();
     }
 
-    auto file = relation.result().file;
-    if (!file) {
-        file = create(*relation.result().directory, path.split("/").back(), FileType::Socket, 1);
+    auto file_dentry = relation.result().file;
+    auto directory_dentry = relation.result().directory;
+
+    if (!file_dentry) {
+        auto new_file = create(*directory_dentry->vnode(), path.split("/").back(), FileType::Socket, 1);
+        file_dentry->set_vnode(new_file);
     } else {
         // TODO: check if the file has the Socket type
     }
 
-    file->bind_socket();
-    file_descr->set_file(file);
+    file_dentry->vnode()->bind_socket();
+    file_descr->set_file(file_dentry->vnode());
+    file_dentry->update_count(1);
 
     return KError(0);
 }
@@ -369,17 +378,18 @@ KError VFS::connect(fd_t sockfd, const String& path)
         return relation.error();
     }
 
-    auto file = relation.result().file;
+    auto file_dentry = relation.result().file;
 
-    if (!file) {
+    if (!file_dentry) {
         return KError(ENOENT);
     }
 
-    if (!file->socket()) {
+    if (!file_dentry->vnode()->socket()) {
         return KError(ENOTCONN);
     }
 
-    file_descr->set_file(file);
+    file_descr->set_file(file_dentry->vnode());
+    file_dentry->update_count(1);
     file_descr->set_offset(0);
 
     return KError(0);
@@ -433,36 +443,35 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
         return KError(ENOTDIR);
     }
 
-    VNode* node = &root();
-    VNode* parent = nullptr;
-
-    if (path == "/") {
-        return Relation({ parent, node });
-    }
-
     Vector<String> splited_path = path.split("/");
+    Dentry* parent = nullptr;
+    Dentry* cur = s_dentry_cache.lookup(nullptr, "");
 
     for (size_t i = 1; i < splited_path.size(); i++) {
+        Dentry* dentry = cur->lookup(splited_path[i]);
 
-        VNode* file = finddir(*node, splited_path[i]);
+        if (!dentry) {
+            return KError(ENOENT);
+        }
 
-        if (!file) {
+        if (!dentry->vnode()) {
             if (i == splited_path.size() - 1) {
                 // at least, we found a parent
                 Relation rel = {};
-                rel.directory = node;
+                rel.directory = cur;
                 return rel;
             }
             return KError(ENOENT);
         }
-        parent = node;
-        node = file;
+
+        parent = cur;
+        cur = dentry;
     }
 
     // we found a parent and a file
     Relation rel;
     rel.directory = parent;
-    rel.file = node;
+    rel.file = cur;
 
     return rel;
 }
