@@ -15,6 +15,9 @@ public:
 
     virtual VNode& root() = 0;
 
+    virtual size_t block_size() { return 1024; }
+    virtual bool read_block(size_t block, void* buffer) { return false; }
+
     virtual uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
     virtual uint32_t write(VNode& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
 

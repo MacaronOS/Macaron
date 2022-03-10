@@ -1,5 +1,5 @@
 #include "VNode.hpp"
-
+#include "FS.hpp"
 #include <Macaronlib/String.hpp>
 
 namespace Kernel::FS {
@@ -36,6 +36,11 @@ VNode::VNode(FS* fs, uint32_t vnode)
     : m_vnode(vnode)
     , m_fs(fs)
 {
+}
+
+void VNode::read(void* buffer, size_t size, FileDescriptor& fd)
+{
+    fd.inc_offset(m_fs->read(*this, fd.offset(), size, buffer));
 }
 
 void VNode::mount(Mountpoint& mountpoint)

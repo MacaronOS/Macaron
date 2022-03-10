@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DentryCache.hpp"
+#include "FileDescriptor.hpp"
 
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
@@ -68,6 +69,17 @@ public:
     VNode(FS* fs, uint32_t inode);
     virtual ~VNode() = default;
 
+    virtual void read(void* buffer, size_t size, FileDescriptor& fd);
+    virtual void write(void* buffer, size_t size, FileDescriptor&) { }
+    virtual void truncate(size_t size) { }
+    virtual void open(FileDescriptor&) { }
+    virtual void close(FileDescriptor&) { }
+    virtual void create(const String& name, FileType, file_permissions_t) { }
+    virtual void mmap(void* addr, size_t size) { }
+    virtual void ioctl(uint32_t request) { }
+    virtual bool can_read(FileDescriptor&) { return false; }
+    void lookup(Dentry& dentry);
+
     void mount(Mountpoint& mountpoint);
     void mount(Mountpoint&& mountpoint);
 
@@ -79,18 +91,10 @@ public:
     uint32_t vnode() const { return m_vnode; }
     size_t ref_count() const { return m_ref_count; }
     void inc_ref_count() { m_ref_count++; }
-    void lookup(Dentry& dentry);
 
     // Socket funcs
-    net::LocalSocket* socket()
-    {
-        return m_socket;
-    }
-
-    void bind_socket()
-    {
-        m_socket = new net::LocalSocket();
-    }
+    net::LocalSocket* socket() { return m_socket; }
+    void bind_socket() { m_socket = new net::LocalSocket(); }
 
 protected:
     virtual void lookup_derived(Dentry& dentry) { }
