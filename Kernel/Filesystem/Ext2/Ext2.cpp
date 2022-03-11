@@ -296,6 +296,11 @@ bool Ext2::read_blocks(uint32_t block, uint32_t block_size, void* mem)
     return m_disk_driver.read(block * m_block_size / BYTES_PER_SECTOR, block_size * m_block_size / BYTES_PER_SECTOR, mem);
 }
 
+uint32_t Ext2::allocate_block()
+{
+    return occypy_block();
+}
+
 bool Ext2::read_block(uint32_t block, void* mem)
 {
     return read_blocks(block, 1, mem);
@@ -309,6 +314,11 @@ bool Ext2::write_blocks(uint32_t block, uint32_t block_size, void* mem)
 bool Ext2::write_block(uint32_t block, void* mem)
 {
     return write_blocks(block, 1, mem);
+}
+
+void Ext2::write_vnode(VNode& inode)
+{
+    save_inode_structure(ToExt2Inode(inode));
 }
 
 uint32_t Ext2::resolve_inode_local_block(Ext2Inode& i_file, uint32_t block, bool need_create)

@@ -46,7 +46,10 @@ public:
     VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) override;
     bool erase(VNode& directory, const VNode& file) override;
 
+    uint32_t allocate_block() override;
     bool read_block(uint32_t block, void* mem) override;
+    bool write_block(uint32_t block, void* mem) override;
+    void write_vnode(VNode& inode) override;
 
 private:
     Drivers::DiskDriver& m_disk_driver;
@@ -73,7 +76,6 @@ private:
     // driver related
     bool read_blocks(uint32_t block, uint32_t block_size, void* mem);
     bool write_blocks(uint32_t block, uint32_t block_size, void* mem);
-    bool write_block(uint32_t block, void* mem);
 
     // inode helpers
     inode_t get_inode_structure(uint32_t inode);

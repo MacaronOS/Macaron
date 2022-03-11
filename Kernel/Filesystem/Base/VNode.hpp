@@ -70,7 +70,7 @@ public:
     virtual ~VNode() = default;
 
     virtual void read(void* buffer, size_t size, FileDescriptor& fd);
-    virtual void write(void* buffer, size_t size, FileDescriptor&) { }
+    virtual void write(void* buffer, size_t size, FileDescriptor&);
     virtual void truncate(size_t size) { }
     virtual void open(FileDescriptor&) { }
     virtual void close(FileDescriptor&) { }

@@ -117,12 +117,9 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
             Logger::Log() << Tasking::Scheduler::the().cur_process()->id() << " pid blocks on fd " << fd << "!\n";
             Tasking::Scheduler::the().block_current_thread_on_read(*file_descr);
         }
-
-        size_t was_offset = file_descr->offset();
-        vnode->read(buffer, size, *file_descr);
-        size_t now_offset = file_descr->offset();
-
-        return now_offset - was_offset;
+        size_t read_bytes = fs->read(*vnode, offset, size, buffer);
+        file_descr->inc_offset(read_bytes);
+        return read_bytes;
     }
 
     return KError(ENOENT);

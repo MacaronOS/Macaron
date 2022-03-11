@@ -16,6 +16,7 @@ public:
     ~Ext2Inode() override;
 
     virtual void read(void* buffer, size_t size, FileDescriptor&) override;
+    virtual void write(void* buffer, size_t size, FileDescriptor&) override;
     virtual bool can_read(FileDescriptor&) override;
 
     uint32_t size() const override;

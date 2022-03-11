@@ -43,6 +43,11 @@ void VNode::read(void* buffer, size_t size, FileDescriptor& fd)
     fd.inc_offset(m_fs->read(*this, fd.offset(), size, buffer));
 }
 
+void VNode::write(void* buffer, size_t size, FileDescriptor& fd)
+{
+    fd.inc_offset(m_fs->write(*this, fd.offset(), size, buffer));
+}
+
 void VNode::mount(Mountpoint& mountpoint)
 {
     m_mountpoints.push_back(mountpoint);
