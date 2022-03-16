@@ -395,7 +395,7 @@ KError VFS::connect(fd_t sockfd, const String& path)
     return KError(0);
 }
 
-VNode* VFS::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
+VNode* VFS::create(VNode& directory, const String& name, FileType type, FilePermissions perms)
 {
     return directory.fs()->create(directory, name, type, perms);
 }

@@ -43,13 +43,14 @@ public:
     Vector<String> listdir(VNode& directory) override;
     size_t getdents(VNode& directory, linux_dirent* dirp, size_t size) override;
 
-    VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) override;
+    VNode* create(VNode& directory, const String& name, FileType type, FilePermissions perms) override;
     bool erase(VNode& directory, const VNode& file) override;
 
     uint32_t allocate_block() override;
     bool read_block(uint32_t block, void* mem) override;
     bool write_block(uint32_t block, void* mem) override;
     void write_vnode(VNode& inode) override;
+    uint32_t allocate_inode() override;
 
 private:
     Drivers::DiskDriver& m_disk_driver;

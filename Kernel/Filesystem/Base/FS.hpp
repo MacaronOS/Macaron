@@ -20,6 +20,7 @@ public:
     virtual bool read_block(size_t block, void* buffer) { return false; }
     virtual bool write_block(size_t block, void* buffer) { return false; }
     virtual void write_vnode(VNode& inode) { }
+    virtual uint32_t allocate_inode() { return 0; }
 
     virtual uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
     virtual uint32_t write(VNode& file, uint32_t offset, uint32_t size, void* buffer) { return 0; }
@@ -38,7 +39,7 @@ public:
     virtual size_t getdents(VNode& directory, linux_dirent* dirp, size_t size) { return 0; }
 
     // creates a file inside file storage and returns it
-    virtual VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms) { return nullptr; }
+    virtual VNode* create(VNode& directory, const String& name, FileType type, FilePermissions perms) { return nullptr; }
 
     virtual bool erase(VNode& directory, const VNode& file) { return false; }
 

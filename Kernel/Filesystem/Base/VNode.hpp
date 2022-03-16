@@ -38,7 +38,7 @@ enum class FilePermission {
     UserRead = 0x100
 };
 
-typedef uint16_t file_permissions_t;
+typedef uint16_t FilePermissions;
 
 class FS;
 class Dentry;
@@ -74,7 +74,7 @@ public:
     virtual void truncate(size_t size) { }
     virtual void open(FileDescriptor&) { }
     virtual void close(FileDescriptor&) { }
-    virtual void create(const String& name, FileType, file_permissions_t) { }
+    virtual void create(const String& name, FileType, FilePermissions) { }
     virtual void mmap(void* addr, size_t size) { }
     virtual void ioctl(uint32_t request) { }
     virtual bool can_read(FileDescriptor&) { return false; }

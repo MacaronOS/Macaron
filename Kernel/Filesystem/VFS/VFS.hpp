@@ -67,7 +67,7 @@ public:
     VNode* finddir(VNode& directory, const String& filename);
     Vector<String> listdir(VNode& directory);
 
-    VNode* create(VNode& directory, const String& name, FileType type, file_permissions_t perms);
+    VNode* create(VNode& directory, const String& name, FileType type, FilePermissions perms);
     bool erase(VNode& directory, const VNode& file);
 
 private:

@@ -14,7 +14,7 @@ typedef struct {
     uint32_t blocks_count; // Total number of blocks in file system
     uint32_t superblock_blocks_count; // Number of blocks reserved for superuser
     uint32_t unallocated_blocks_count; // Total number of unallocated blocks
-    uint32_t unallocated_inodes_count; //Total number of unallocated inodes
+    uint32_t unallocated_inodes_count; // Total number of unallocated inodes
     uint32_t superblock_block_number; // Block number of the block containing the superblock
     uint32_t block_shift; // log2 (block size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the block size)
     uint32_t fragment_shift; // log2 (fragment size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the fragment size)
@@ -115,5 +115,5 @@ typedef struct
     uint16_t size;
     uint8_t name_len_low;
     uint8_t type_indicator;
-    char name_characters;
+    char name_characters[];
 } __attribute__((packed)) dir_entry_t;

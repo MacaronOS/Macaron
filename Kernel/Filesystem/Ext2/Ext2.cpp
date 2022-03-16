@@ -226,7 +226,7 @@ size_t Ext2::getdents(VNode& directory, linux_dirent* dirp, size_t size)
     return linux_dirent_pointer;
 }
 
-VNode* Ext2::create(VNode& directory, const String& name, FileType type, file_permissions_t perms)
+VNode* Ext2::create(VNode& directory, const String& name, FileType type, FilePermissions perms)
 {
     // TODO: what if file already exists? Probably should be checked at the VFS layer
 
@@ -251,7 +251,7 @@ VNode* Ext2::create(VNode& directory, const String& name, FileType type, file_pe
     file_entry[0].name_len_low = name.size();
 
     for (size_t i = 0; i < name.size(); i++) {
-        *(&file_entry[0].name_characters + i) = name[i];
+        file_entry[0].name_characters[i] = name[i];
     }
 
     write_inode_content(ToExt2Inode(directory), ToExt2Inode(directory).inode_struct()->size, file_entry_size, file_entry);
@@ -319,6 +319,11 @@ bool Ext2::write_block(uint32_t block, void* mem)
 void Ext2::write_vnode(VNode& inode)
 {
     save_inode_structure(ToExt2Inode(inode));
+}
+
+uint32_t Ext2::allocate_inode()
+{
+    return occypy_inode();
 }
 
 uint32_t Ext2::resolve_inode_local_block(Ext2Inode& i_file, uint32_t block, bool need_create)
