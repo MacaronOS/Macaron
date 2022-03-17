@@ -1,12 +1,14 @@
 #include "PCI.hpp"
 #include "PCIDevice.hpp"
 
-#include <Libkernel/Logger.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Hardware/Port.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Drivers {
+
+PCI pci;
 
 constexpr uint32_t PCICommandPort = 0xCF8;
 constexpr uint32_t PCIDataPort = 0xCFC;

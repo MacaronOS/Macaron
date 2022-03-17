@@ -2,6 +2,8 @@
 
 namespace Kernel::Drivers {
 
+PIT pit;
+
 bool PIT::install()
 {
     uint32_t divisor = 1193180 / frequency;

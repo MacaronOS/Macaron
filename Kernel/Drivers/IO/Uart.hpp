@@ -38,4 +38,7 @@ private:
     inline bool can_send();
     inline bool can_receive();
 };
+
+extern Uart uart;
+
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Macaronlib/Common.hpp>
 #include "DiskDriver.hpp"
+#include <Macaronlib/Common.hpp>
 
 #define WORDS_PER_SECTOR 256
 #define BYTES_PER_SECTOR 512
@@ -42,5 +42,7 @@ private:
 
     static inline void handle_error(uint8_t);
 };
+
+extern Ata ata_0x1f0;
 
 }

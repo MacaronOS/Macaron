@@ -3,8 +3,6 @@
 #include <Hardware/Port.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 
-#include <Macaronlib/Common.hpp>
-
 // comand port commands
 #define IDENTIFY_COMMAND 0xEC
 #define WRITE_SECTORS_COMMAND 0x30
@@ -50,13 +48,15 @@
         }                                                                        \
                                                                                  \
         if (unlikely((status >> ERR) & 1)) {                                     \
-            VgaTUI::Print("Recived error from the drive: \n");                      \
+            VgaTUI::Print("Recived error from the drive: \n");                   \
             handle_error(inb(m_error_port));                                     \
             return false;                                                        \
         }                                                                        \
     }
 
 namespace Kernel::Drivers {
+
+Ata ata_0x1f0(0x1F0, true, DriverEntity::Ata0);
 
 Ata::Ata(uint16_t port_base, bool master, DriverEntity driver_entity)
 

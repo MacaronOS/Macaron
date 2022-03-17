@@ -7,6 +7,8 @@
 
 namespace Kernel::Drivers {
 
+Uart uart;
+
 bool Uart::install()
 {
     write(Register::Interrupt, 0x00);

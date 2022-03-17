@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Drivers/Base/Driver.hpp>
+#include <Macaronlib/Common.hpp>
 
 namespace Kernel::Drivers {
 

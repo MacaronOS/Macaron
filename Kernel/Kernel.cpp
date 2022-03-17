@@ -47,17 +47,15 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     SyscallsManager::initialize();
 
     // setting Drivers
-    auto ata = new Ata(0x1F0, true, DriverEntity::Ata0);
-    auto pit = new PIT();
-    DriverManager::the().add_driver(ata);
+    DriverManager::the().add_driver(ata_0x1f0);
     DriverManager::the().add_driver(pit);
-    DriverManager::the().add_driver(new Kernel::Drivers::Keyboard());
-    DriverManager::the().add_driver(new Kernel::Drivers::Uart());
-    DriverManager::the().add_driver(new Kernel::Drivers::PCI());
+    DriverManager::the().add_driver(uart);
+    DriverManager::the().add_driver(pci);
+    DriverManager::the().add_driver(new Keyboard());
     DriverManager::the().add_driver(new Kernel::Drivers::Mouse());
     DriverManager::the().install_all();
 
-    Ext2* ext2 = new Ext2(*ata, VFS::the().file_storage());
+    Ext2* ext2 = new Ext2(ata_0x1f0, VFS::the().file_storage());
     ext2->init();
 
     DevFS* devfs = new DevFS(VFS::the().file_storage());

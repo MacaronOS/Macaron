@@ -32,4 +32,7 @@ public:
 private:
     Vector<TickReciever*> m_tick_recievers {};
 };
+
+extern PIT pit;
+
 }

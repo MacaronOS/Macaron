@@ -25,4 +25,6 @@ private:
     Vector<PCIDevice*> m_devices {};
 };
 
+extern PCI pci;
+
 }
