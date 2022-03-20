@@ -6,12 +6,8 @@ namespace Kernel::Time {
 
 bool TimeManager::initialize()
 {
-    auto pit = reinterpret_cast<PIT*>(Drivers::DriverManager::the().get_driver(DriverEntity::PIT));
-    if (pit) {
-        pit->register_tick_reciever(this);
-        return true;
-    }
-    return false;
+    PIT::the().register_tick_reciever(this);
+    return true;
 }
 
 void TimeManager::on_tick(Trapframe* tf)

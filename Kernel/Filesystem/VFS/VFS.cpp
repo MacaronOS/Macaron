@@ -1,11 +1,11 @@
 #include "VFS.hpp"
 
+#include <Devices/PTY/PTYMaster.hpp>
+#include <Devices/PTY/PTYSlave.hpp>
 #include <Filesystem/DevFS/DevFSNode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
-#include <PTY/PTYMaster.hpp>
-#include <PTY/PTYSlave.hpp>
 #include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>

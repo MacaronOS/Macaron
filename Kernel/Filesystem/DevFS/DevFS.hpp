@@ -14,7 +14,6 @@ public:
 
     VNode& root() override { return m_root; };
     VNode* finddir(VNode& parent, const String& devname) override;
-    Vector<String> listdir(VNode& directory) override;
     uint32_t read(VNode& file, uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(VNode& file, uint32_t offset, uint32_t size, void* buffer) override;
     bool mmap(VNode& file, uint32_t addr, uint32_t size) override;
@@ -23,8 +22,8 @@ public:
     VNode* mkdir(VNode& directory, const String& name) override;
     void open(VNode& file, FileDescriptor& fd) override;
 
-    VNode* create_device_node_inside_directory(VNode& directory, CharacterDevice* device);
-    VNode* create_anonim_device_node(CharacterDevice* device);
+    VNode* create_device_node_inside_directory(VNode& directory, Device* device, const String& name);
+    VNode* create_anonim_device_node(Device* device);
 
 private:
     static DevFSNode& ToDevFSNode(VNode& device) { return reinterpret_cast<DevFSNode&>(device); }

@@ -2,17 +2,13 @@
 
 namespace Kernel::Drivers {
 
-PIT pit;
-
-bool PIT::install()
+void PIT::initialize()
 {
     uint32_t divisor = 1193180 / frequency;
 
     outb(0x43, 0x36);
     outb(0x40, (uint8_t)divisor);
     outb(0x40, (uint8_t)(divisor >> 8));
-
-    return true;
 }
 
 void PIT::register_tick_reciever(TickReciever* tick_reciever)

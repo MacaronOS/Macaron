@@ -11,19 +11,13 @@
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
 using namespace Memory;
 using namespace Tasking;
 
 constexpr uint32_t BochVBEIoPortIndex = 0x01CE;
 constexpr uint32_t BochVBEIoPortData = 0x01CF;
-
-BochVBE::BochVBE(PCIDevice* pci_device)
-    : CharacterDeviceDriver(DriverEntity::BGA, "bga")
-    , m_pci_device(pci_device)
-{
-}
 
 namespace VBE {
     constexpr uint16_t DisplayDisabled = 0;

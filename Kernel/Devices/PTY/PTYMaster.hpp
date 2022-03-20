@@ -1,15 +1,19 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDevice.hpp>
+#include "../Device.hpp"
+#include <Filesystem/DevFS/DevFSNode.hpp>
 #include <Macaronlib/Ringbuffer.hpp>
 
 namespace Kernel {
 
 class PTYSlave;
 
-class PTYMaster : public Drivers::CharacterDevice {
+class PTYMaster : public Device {
 public:
-    PTYMaster() = default;
+    PTYMaster()
+        : Device(0, 0, DeviceType::Character)
+    {
+    }
 
     uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
     uint32_t write(uint32_t offset, uint32_t size, void* buffer) override;

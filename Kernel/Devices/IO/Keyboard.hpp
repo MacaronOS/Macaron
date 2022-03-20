@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDeviceDriver.hpp>
+#include <Devices/Device.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
 
 #include <Macaronlib/ABI/Keyboard.hpp>
@@ -8,21 +8,23 @@
 #include <Macaronlib/Ringbuffer.hpp>
 #include <Macaronlib/Vector.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
-class Keyboard : public CharacterDeviceDriver, InterruptHandler {
+class Keyboard : public Device, InterruptHandler {
 public:
     Keyboard()
-        : CharacterDeviceDriver(DriverEntity::Keyboard, "kbd")
+        : Device(11, 0, DeviceType::Character)
         , InterruptHandler(0x21)
     {
     }
 
-    bool install() override;
-    void handle_interrupt(Trapframe* tf) override;
+    // ^Device
+    virtual bool install() override;
+    virtual uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
+    virtual bool can_read(uint32_t offset) override;
 
-    uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
-    bool can_read(uint32_t offset) override;
+    // ^InterruptHandler
+    void handle_interrupt(Trapframe* tf) override;
 
     inline void register_callback(const Function<void(KeyboardPacket&)>& callback) { m_callbacks.push_back(callback); }
     inline KeyboardPacket last_keybord_event() const { return m_last_keybord_event; }

@@ -13,12 +13,7 @@ PCI pci;
 constexpr uint32_t PCICommandPort = 0xCF8;
 constexpr uint32_t PCIDataPort = 0xCFC;
 
-PCI::PCI()
-    : Driver(DriverEntity::PCI)
-{
-}
-
-bool PCI::install()
+void PCI::initialize()
 {
     for (uint8_t bus = 0; bus < 8; bus++) {
         for (uint8_t device = 0; device < 32; device++) {
@@ -35,7 +30,6 @@ bool PCI::install()
             }
         }
     }
-    return true;
 }
 
 bool PCI::DeviceHasFunctions(uint16_t bus, uint16_t device)

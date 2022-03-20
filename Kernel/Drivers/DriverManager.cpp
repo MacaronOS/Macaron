@@ -1,7 +1,6 @@
 #include "DriverManager.hpp"
 #include "Base/Driver.hpp"
 #include "Base/DriverEntity.hpp"
-#include "Graphics/BochVBE.hpp"
 
 #include <Drivers/PCI/PCI.hpp>
 #include <Drivers/PCI/PCIDevice.hpp>
@@ -47,29 +46,6 @@ void DriverManager::install_all()
     for (auto& driver : m_drivers) {
         if (driver) {
             driver->install();
-        }
-    }
-
-    // install pci devices drivers
-    auto* pci = reinterpret_cast<PCI*>(get_driver(DriverEntity::PCI));
-    if (pci) {
-        for (size_t device_index = 0; device_index < pci->devices().size(); device_index++) {
-            auto device = pci->devices()[device_index];
-            switch (device->vendor_id()) {
-            case 0x1234: {
-                switch (device->device_id()) {
-                case 0x1111: {
-                    auto bga = new BochVBE(device);
-                    add_driver(bga);
-                    bga->install();
-                    break;
-                }
-                }
-                break;
-            }
-            default:
-                break;
-            }
         }
     }
 }

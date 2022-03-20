@@ -17,7 +17,7 @@ void PTMX::open(FS::FileDescriptor& fd, FS::VNode& vnode)
     pty_master->set_slave(pty_slave);
 
     auto devfs = static_cast<FS::DevFS*>(m_pts_directory.fs());
-    auto pty_slave_node = devfs->create_device_node_inside_directory(m_pts_directory, pty_slave);
+    auto pty_slave_node = devfs->create_device_node_inside_directory(m_pts_directory, pty_slave, pty_slave->name());
     auto pty_master_node = devfs->create_anonim_device_node(pty_master);
 
     fd.set_file(pty_master_node);

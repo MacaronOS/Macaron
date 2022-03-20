@@ -5,7 +5,7 @@
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
 namespace ps2 {
     namespace commands {
@@ -33,7 +33,7 @@ namespace ps2 {
 }
 
 Mouse::Mouse()
-    : CharacterDeviceDriver(DriverEntity::Mouse, "mouse")
+    : Device(13, 63, DeviceType::Character)
     , InterruptHandler(0x2c)
 {
     m_packets_buffer = new MousePacket[m_packets_size];

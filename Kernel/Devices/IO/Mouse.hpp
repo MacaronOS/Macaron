@@ -1,15 +1,14 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDeviceDriver.hpp>
-#include <Drivers/Base/Driver.hpp>
+#include <Devices/Device.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Hardware/Port.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
-class Mouse : public CharacterDeviceDriver, InterruptHandler {
+class Mouse : public Device, InterruptHandler {
     static constexpr uint8_t data_port = 0x60;
     static constexpr uint8_t command_port = 0x64;
 

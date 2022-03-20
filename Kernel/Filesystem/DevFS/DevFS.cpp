@@ -1,6 +1,8 @@
 #include "DevFS.hpp"
 #include "DevFSNode.hpp"
 
+#include <Devices/DeviceManager.hpp>
+#include <Devices/PTY/PTMX.hpp>
 #include <Drivers/Base/CharacterDevice.hpp>
 #include <Drivers/Base/CharacterDeviceDriver.hpp>
 #include <Drivers/DriverManager.hpp>
@@ -8,7 +10,6 @@
 #include <Filesystem/Base/VNode.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/vmm.hpp>
-#include <PTY/PTMX.hpp>
 
 namespace Kernel::FS {
 
@@ -23,18 +24,32 @@ DevFS::DevFS(VNodeStorage& vnode_storage)
 
 bool DevFS::init()
 {
-    auto drivers = DriverManager::the().get_by_type(Driver::DriverType::CharacterDevice);
-    for (auto driver : drivers) {
-        auto character_device_driver = static_cast<CharacterDeviceDriver*>(driver);
-        auto character_device = static_cast<CharacterDevice*>(character_device_driver);
+    for (auto& device : DeviceManager::the()) {
+        String name;
 
-        auto node = new DevFSNode(this, devnodes++, character_device);
-        m_vnode_storage.push(node);
-        m_root.m_childs.push_back(node);
+        if (device.major() == 11 && device.minor() == 0 && device.type() == DeviceType::Character) {
+            name = "kbd";
+        }
+
+        if (device.major() == 13 && device.minor() == 63 && device.type() == DeviceType::Character) {
+            name = "mouse";
+        }
+
+        if (device.major() == 1 && device.minor() == 1 && device.type() == DeviceType::Block) {
+            name = "bga";
+        }
+
+        if (name.size()) {
+            auto node = new DevFSNode(this, devnodes++, &device, name);
+            m_vnode_storage.push(node);
+            m_root.m_childs.push_back(node);
+        }
     }
 
     auto pts_directory = static_cast<DevFSNode*>(mkdir(root(), "pts"));
-    create_device_node_inside_directory(root(), new PTMX(*pts_directory));
+    auto ptmx = new PTMX(*pts_directory);
+    DeviceManager::the().register_device(ptmx);
+    create_device_node_inside_directory(root(), ptmx, "ptmx");
     return true;
 }
 
@@ -43,30 +58,12 @@ VNode* DevFS::finddir(VNode& parent, const String& devname)
     auto d_parent = ToDevFSNode(parent);
 
     for (auto child : d_parent.m_childs) {
-        if (child->m_virtual_name.size()) {
-            if (child->m_virtual_name == devname) {
-                return child;
-            }
-        } else {
-            if (child->m_device && child->m_device->name() == devname) {
-                return child;
-            }
+        if (child->m_virtual_name == devname) {
+            return child;
         }
     }
 
     return nullptr;
-}
-
-Vector<String> DevFS::listdir(VNode& directory)
-{
-    auto dev_dir = ToDevFSNode(directory);
-    Vector<String> result;
-    for (size_t device = 0; device < dev_dir.m_childs.size(); device++) {
-        if (dev_dir.m_childs[device] && dev_dir.m_childs[device]->m_device) {
-            result.push_back(dev_dir.m_childs[device]->m_device->name());
-        }
-    }
-    return result;
 }
 
 uint32_t DevFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
@@ -107,15 +104,15 @@ void DevFS::open(VNode& file, FileDescriptor& fd)
     ToDevFSNode(file).m_device->open(fd, file);
 }
 
-VNode* DevFS::create_device_node_inside_directory(VNode& directory, CharacterDevice* deivce)
+VNode* DevFS::create_device_node_inside_directory(VNode& directory, Device* deivce, const String& name)
 {
-    auto node = new DevFSNode(this, devnodes++, deivce);
+    auto node = new DevFSNode(this, devnodes++, deivce, name);
     m_vnode_storage.push(node);
     ToDevFSNode(directory).m_childs.push_back(node);
     return node;
 }
 
-VNode* DevFS::create_anonim_device_node(CharacterDevice* device)
+VNode* DevFS::create_anonim_device_node(Device* device)
 {
     auto node = new DevFSNode(this, devnodes++, device);
     m_vnode_storage.push(node);

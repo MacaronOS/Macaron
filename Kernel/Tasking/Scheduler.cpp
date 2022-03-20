@@ -18,7 +18,7 @@ extern "C" void switch_to_user_mode();
 // called to resume the thread. Othrevise, block_and_switch_to_user.
 extern "C" void switch_to_kernel(KernelContext** kc);
 extern "C" void switch_to_user(Trapframe* tf);
- 
+
 // Next 2 functions are used when a thread blocks inside the kernel.
 // There are also 2 versions in analogy with the previous 2 functions.
 extern "C" void block_and_switch_to_kernel(KernelContext** cur, KernelContext** next);
@@ -34,14 +34,11 @@ Scheduler::Scheduler()
 
 bool Scheduler::run()
 {
-    auto* pit = reinterpret_cast<Drivers::PIT*>(Drivers::DriverManager::the().get_driver(Drivers::DriverEntity::PIT));
-    if (pit) {
-        m_running = true;
-        m_cur_thread = m_threads.begin();
-        pit->register_tick_reciever(this);
-        switch_to_user_mode();
-        reschedule();
-    }
+    m_running = true;
+    m_cur_thread = m_threads.begin();
+    PIT::the().register_tick_reciever(this);
+    switch_to_user_mode();
+    reschedule();
     return false;
 }
 

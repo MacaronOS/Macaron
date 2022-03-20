@@ -2,8 +2,9 @@
 
 #include <Hardware/Port.hpp>
 #include <Libkernel/Assert.hpp>
+#include <Libkernel/Logger.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
 bool Keyboard::install()
 {
@@ -52,7 +53,7 @@ uint32_t Keyboard::read(uint32_t offset, uint32_t size, void* buffer)
     return m_buffer.read_from((uint8_t*)buffer, offset, size);
 }
 
-bool Keyboard::can_read(uint32_t offset)
+bool Keyboard::can_read(size_t offset)
 {
     return m_buffer.space_to_read_from(offset);
 }

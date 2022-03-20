@@ -13,10 +13,6 @@ enum class DriverEntity {
     Mouse,
     Keyboard,
 
-    PIT,
-
-    PCI,
-
     BGA,
 
     END,

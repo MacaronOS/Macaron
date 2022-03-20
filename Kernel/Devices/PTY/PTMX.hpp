@@ -1,15 +1,15 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDevice.hpp>
+#include "../Device.hpp"
 #include <Filesystem/DevFS/DevFSNode.hpp>
 
 namespace Kernel::Drivers {
 
 // PTMX - a PTY multiplexer
-class PTMX : public CharacterDevice {
+class PTMX : public Device {
 public:
     PTMX(FS::DevFSNode& pts_directory)
-        : CharacterDevice("ptmx")
+        : Device(5, 2, DeviceType::Character)
         , m_pts_directory(pts_directory)
     {
     }

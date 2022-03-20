@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Macaronlib/Vector.hpp>
 #include <Macaronlib/Common.hpp>
+#include <Macaronlib/Vector.hpp>
 
 #include "../Hardware/Interrupts/InterruptManager.hpp"
-#include "Base/Driver.hpp"
 #include "../Hardware/Port.hpp"
+#include "Base/Driver.hpp"
 #include "Base/DriverEntity.hpp"
 
 namespace Kernel::Drivers {
@@ -14,25 +14,28 @@ struct TickReciever {
     virtual void on_tick(Trapframe* tf);
 };
 
-class PIT : public Driver, InterruptHandler {
+class PIT : public InterruptHandler {
 public:
     static constexpr uint32_t frequency = 150;
 
-    PIT()
-        : Driver(DriverEntity::PIT)
-        , InterruptHandler(32)
+    static PIT& the()
     {
+        static PIT the;
+        return the;
     }
 
-    bool install() override; // driver
-    void handle_interrupt(Trapframe* tf) override; // handler
-
+    void initialize();
+    void handle_interrupt(Trapframe* tf) override;
     void register_tick_reciever(TickReciever* reciever);
+
+private:
+    PIT()
+        : InterruptHandler(32)
+    {
+    }
 
 private:
     Vector<TickReciever*> m_tick_recievers {};
 };
-
-extern PIT pit;
 
 }

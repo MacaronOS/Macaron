@@ -7,10 +7,15 @@
 namespace Kernel::Drivers {
 
 class PCIDevice;
-class PCI : public Driver {
+class PCI {
 public:
-    PCI();
-    bool install() override;
+    static PCI& the()
+    {
+        static PCI the;
+        return the;
+    }
+
+    void initialize();
 
     static bool DeviceHasFunctions(uint16_t bus, uint16_t device);
 

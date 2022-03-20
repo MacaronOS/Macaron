@@ -1,17 +1,21 @@
 #pragma once
 
-#include <Drivers/Base/CharacterDeviceDriver.hpp>
+#include <Devices/Device.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/PCI/PCIDevice.hpp>
 
 #include <Macaronlib/Common.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
-class BochVBE : public CharacterDeviceDriver {
+class BochVBE : public Device {
 public:
-    explicit BochVBE(PCIDevice* pci_device);
+    BochVBE(Drivers::PCIDevice* pci_device)
+        : Device(1, 1, DeviceType::Block)
+        , m_pci_device(pci_device)
+    {
+    }
     bool install() override;
     bool mmap(uint32_t addr, uint32_t size) override;
     bool ioctl(uint32_t request) override;
@@ -33,7 +37,7 @@ private:
     inline static uint16_t read(IndexRegister reg);
 
 private:
-    PCIDevice* m_pci_device;
+    Drivers::PCIDevice* m_pci_device;
     uint32_t* m_pixels { nullptr };
     uint32_t m_pixels_length { 0 };
     bool cur_buffer { false };

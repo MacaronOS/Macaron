@@ -5,11 +5,6 @@
 
 namespace Kernel {
 
-PTYSlave::PTYSlave(size_t number)
-    : CharacterDevice(String::From(number))
-{
-}
-
 uint32_t PTYSlave::read(uint32_t offset, uint32_t size, void* buffer)
 {
     return m_buffer.read((uint8_t*)buffer, size);

@@ -1,12 +1,13 @@
 #include "Shell.hpp"
 #include "cmd.hpp"
 
+#include <Devices/IO/Keyboard.hpp>
+
+#include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/StaticStack.hpp>
 #include <Macaronlib/String.hpp>
-#include <Macaronlib/ABI/Syscalls.hpp>
 
 #include "../Drivers/DriverManager.hpp"
-#include "../Drivers/IO/Keyboard.hpp"
 #include "../Filesystem/Base/VNode.hpp"
 #include "../Filesystem/VFS/VFS.hpp"
 
@@ -14,6 +15,7 @@ namespace Kernel::shell {
 
 using namespace Drivers;
 using namespace FS;
+using namespace Devices;
 
 static bool s_shift_pressed = false;
 static bool s_caps_lock_pressed = false;
@@ -242,7 +244,7 @@ void run()
     VgaTUI::Initialize();
     VgaTUI::Print("Macaron Shell v0.1\n");
 
-    s_keyboard = static_cast<Keyboard*>(DriverManager::the().get_driver(DriverEntity::Keyboard));
+    s_keyboard = nullptr;
     Kernel::shell::cmd::init();
     cur_path = "/";
 

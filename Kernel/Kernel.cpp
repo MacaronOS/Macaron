@@ -1,7 +1,6 @@
+#include <Devices/DeviceManager.hpp>
 #include <Drivers/Disk/Ata.hpp>
 #include <Drivers/DriverManager.hpp>
-#include <Drivers/IO/Keyboard.hpp>
-#include <Drivers/IO/Mouse.hpp>
 #include <Drivers/IO/Uart.hpp>
 #include <Drivers/PCI/PCI.hpp>
 #include <Drivers/PIT.hpp>
@@ -32,6 +31,7 @@ using namespace Tasking;
 using namespace Memory;
 using namespace Logger;
 using namespace Time;
+using namespace Devices;
 
 extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 {
@@ -46,14 +46,15 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     SyscallsManager::initialize();
 
-    // setting Drivers
-    DriverManager::the().add_driver(ata_0x1f0);
-    DriverManager::the().add_driver(pit);
-    DriverManager::the().add_driver(uart);
-    DriverManager::the().add_driver(pci);
-    DriverManager::the().add_driver(new Keyboard());
-    DriverManager::the().add_driver(new Kernel::Drivers::Mouse());
+    // Setting up drivers
+    PIT::the().initialize();
+    PCI::the().initialize();
+
+    DriverManager::the().add_driver(ata_0x1f0); // TODO: represent as a block device
+    DriverManager::the().add_driver(uart); // TODO: represent as a character device
     DriverManager::the().install_all();
+
+    DeviceManager::the().register_initial_devices();
 
     Ext2* ext2 = new Ext2(ata_0x1f0, VFS::the().file_storage());
     ext2->init();
