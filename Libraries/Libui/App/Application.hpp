@@ -45,7 +45,7 @@ public:
 protected:
     bool m_frameless {};
     Vector<Activity*> m_activity_stack {};
-    Connection m_connection { Connection("/ext2/ws.socket", *this) };
+    Connection m_connection { Connection("/ws.socket", *this) };
     Vector<Function<void(int width, int height)>> m_on_screen_size_callbacks {};
 
     List<Activity*> m_pending_on_window {};

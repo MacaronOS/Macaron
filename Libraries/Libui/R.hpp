@@ -8,8 +8,8 @@ namespace UI::R {
 const Graphics::BitmapFont& default_font()
 {
     Graphics::BitmapFont s_default_font = Graphics::FontLoader::load(
-        "/ext2/Resources/Roboto12Medium.fnt",
-        "/ext2/Resources/Roboto12Medium.bmp");
+        "/Resources/Roboto12Medium.fnt",
+        "/Resources/Roboto12Medium.bmp");
 
     return s_default_font;
 }

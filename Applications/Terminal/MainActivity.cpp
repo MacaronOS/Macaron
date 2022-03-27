@@ -7,7 +7,7 @@ void MainActivity::on_create()
     set_title("Terminal");
     constexpr uint32_t width = 460;
     constexpr uint32_t height = 340;
-    m_font = new Graphics::BitmapFont(Graphics::FontLoader::load("/ext2/Resources/Roboto12Medium.fnt", "/ext2/Resources/Roboto12Medium.bmp"));
+    m_font = new Graphics::BitmapFont(Graphics::FontLoader::load("/Resources/Roboto12Medium.fnt", "/Resources/Roboto12Medium.bmp"));
 
     auto layout = new UI::LinearLayout();
     auto layout_params = new UI::LayoutParams();
@@ -42,7 +42,7 @@ void MainActivity::setup_pty_launch_sh()
         open(pty_slave_name, 1, 1);
         open(pty_slave_name, 1, 1);
 
-        execve("/ext2/bin/sh", nullptr, nullptr);
+        execve("/bin/sh", nullptr, nullptr);
     }
 }
 

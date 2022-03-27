@@ -27,15 +27,15 @@ public:
 private:
     Resources()
     {
-        m_font_medium = Graphics::FontLoader::load("/ext2/Resources/Roboto12Medium.fnt", "/ext2/Resources/Roboto12Medium.bmp");
-        m_font_bold = Graphics::FontLoader::load("/ext2/Resources/Roboto12Bold.fnt", "/ext2/Resources/Roboto12Bold.bmp");
+        m_font_medium = Graphics::FontLoader::load("/Resources/Roboto12Medium.fnt", "/Resources/Roboto12Medium.bmp");
+        m_font_bold = Graphics::FontLoader::load("/Resources/Roboto12Bold.fnt", "/Resources/Roboto12Bold.bmp");
 
-        m_mouse_cursor = Graphics::BMPLoader::load("/ext2/Resources/cursor.bmp");
-        m_wallpaper = Graphics::BMPLoader::load("/ext2/Resources/wallpaper.bmp");
-        m_back_button = Graphics::BMPLoader::load("/ext2/Resources/back.bmp");
-        m_maximize_button = Graphics::BMPLoader::load("/ext2/Resources/maximize.bmp");
-        m_minimize_button = Graphics::BMPLoader::load("/ext2/Resources/minimize.bmp");
-        m_close_button = Graphics::BMPLoader::load("/ext2/Resources/close.bmp");
+        m_mouse_cursor = Graphics::BMPLoader::load("/Resources/cursor.bmp");
+        m_wallpaper = Graphics::BMPLoader::load("/Resources/wallpaper.bmp");
+        m_back_button = Graphics::BMPLoader::load("/Resources/back.bmp");
+        m_maximize_button = Graphics::BMPLoader::load("/Resources/maximize.bmp");
+        m_minimize_button = Graphics::BMPLoader::load("/Resources/minimize.bmp");
+        m_close_button = Graphics::BMPLoader::load("/Resources/close.bmp");
     }
 
 private:

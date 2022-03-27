@@ -47,7 +47,7 @@ private:
     Graphics::Bitmap& m_wallpaper { Resources::the().wallapaper() };
     Mouse m_mouse {};
     Keyboard m_keyboard {};
-    Connection m_connection { Connection("/ext2/ws.socket", *this) };
+    Connection m_connection { Connection("/ws.socket", *this) };
     List<Window*> m_windows {};
     Vector<Graphics::Rect> m_invalid_areas {};
     EventLoop& m_event_loop;

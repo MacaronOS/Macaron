@@ -9,7 +9,7 @@
 ### Kernel
 - **Higher Half Kernel**
 - **Keyboard**, **mouse**, **ATA**, **PCI** and **BGA** drivers
-- **VFS** with **DevFS** and **EXT2** filesystem support
+- **VFS** with **Dev** and **Ext2** FileSystem support
 - **Paging**, **physical** and **virtual** **memory managers**
 - **Userspace processes** and **threads**
 

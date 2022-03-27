@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Libkernel/KError.hpp>
 #include <Memory/Region.hpp>
 

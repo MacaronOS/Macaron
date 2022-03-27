@@ -19,7 +19,7 @@ protected:
         constexpr uint32_t width = 170;
         constexpr uint32_t height = 200;
 
-        auto font = new Graphics::BitmapFont(Graphics::FontLoader::load("/ext2/Resources/Roboto12Medium.fnt", "/ext2/Resources/Roboto12Medium.bmp"));
+        auto font = new Graphics::BitmapFont(Graphics::FontLoader::load("/Resources/Roboto12Medium.fnt", "/Resources/Roboto12Medium.bmp"));
 
         auto layout = new UI::LinearLayout();
         auto layout_params = new UI::LayoutParams();

@@ -9,12 +9,12 @@ void run(const char* path)
 
 int main()
 {
-    run("/ext2/System/WindowServer");
-    run("/ext2/System/Dock");
-    // run("/ext2/Applications/Clicker/bin");
-    // run("/ext2/Applications/Clicker/bin");
-    // run("/ext2/Applications/Emu/bin");
-    run("/ext2/Applications/Terminal/bin");
+    run("/System/WindowServer");
+    run("/System/Dock");
+    // run("Applications/Clicker/bin");
+    // run("Applications/Clicker/bin");
+    // run("Applications/Emu/bin");
+    run("/Applications/Terminal/bin");
     while (true) {
         asm volatile("hlt");
     }

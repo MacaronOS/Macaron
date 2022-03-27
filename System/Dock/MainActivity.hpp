@@ -27,7 +27,7 @@ class MainActivity : public UI::Activity {
 protected:
     void add(UI::LinearLayout* layout, const String& application_folder)
     {
-        static auto default_image_bitmap = Graphics::BMPLoader::load("/ext2/Resources/default_icon.bmp");
+        static auto default_image_bitmap = Graphics::BMPLoader::load("/Resources/default_icon.bmp");
 
         auto image_view = new UI::ImageView();
         auto bitmap = Graphics::BMPLoader::load(application_folder + "/icon.bmp");
@@ -68,7 +68,7 @@ protected:
         layout->set_background_color(Graphics::Color(215, 215, 215));
 
         // ----- Fill Dock with currently installed applications -----
-        int apps_dir_fd = open("/ext2/Applications", 0, 0);
+        int apps_dir_fd = open("/Applications", 0, 0);
         char dirents[dirents_buffer_size];
 
         static int width = 0;
@@ -78,7 +78,7 @@ protected:
             size_t dirent_offset = 0;
             while (true) {
                 linux_dirent& cur_dirent = *(linux_dirent*)((size_t)dirents + dirent_offset);
-                add(layout, String("/ext2/Applications/") + cur_dirent.d_name);
+                add(layout, String("/Applications/") + cur_dirent.d_name);
                 width += (32 + 2 * 5);
 
                 if (cur_dirent.d_off == 0) {
@@ -91,11 +91,11 @@ protected:
         // -----------------------------------------------------------
 
         // ------------ Anounce some new application here ------------
-        add(layout, "ext2/Applications/Caclculator");
-        add(layout, "ext2/Applications/SystemMonitor");
-        add(layout, "ext2/Applications/Paint");
-        add(layout, "ext2/Applications/FileManager");
-        add(layout, "ext2/Applications/GameEmulator");
+        add(layout, "/Applications/Caclculator");
+        add(layout, "/Applications/SystemMonitor");
+        add(layout, "/Applications/Paint");
+        add(layout, "/Applications/FileManager");
+        add(layout, "/Applications/GameEmulator");
 
         width += (5 * (32 + 2 * 5));
         // -----------------------------------------------------------

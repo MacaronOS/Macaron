@@ -3,7 +3,7 @@
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/PIT.hpp>
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Libkernel/Logger.hpp>
 
@@ -177,9 +177,15 @@ Process& Scheduler::get_process(int pid)
     return (*m_process_storage)[pid];
 }
 
-void Scheduler::block_current_thread_on_read(FS::FileDescriptor& fd)
+void Scheduler::block_current_thread_on_read(FileSystem::FileDescription& fd)
 {
     m_read_blockers.push_back(ReadBlocker(fd, cur_thread()));
+    block_current_thread();
+}
+
+void Scheduler::block_current_thread_on_write(FileSystem::FileDescription& fd)
+{
+    m_write_blockers.push_back(WriteBlocker(fd, cur_thread()));
     block_current_thread();
 }
 
@@ -202,6 +208,7 @@ void Scheduler::block_current_thread()
 void Scheduler::unblock_threads()
 {
     unblock_therads_on_read();
+    unblock_therads_on_write();
 }
 
 void Scheduler::unblock_therads_on_read()
@@ -214,6 +221,19 @@ void Scheduler::unblock_therads_on_read()
             continue;
         }
         --read_blocker;
+    }
+}
+
+void Scheduler::unblock_therads_on_write()
+{
+    auto write_blocker = m_write_blockers.rbegin();
+    while (write_blocker != m_write_blockers.rend()) {
+        if ((*write_blocker).can_unblock()) {
+            unblock_blocker(*write_blocker);
+            write_blocker = m_write_blockers.remove(write_blocker);
+            continue;
+        }
+        --write_blocker;
     }
 }
 

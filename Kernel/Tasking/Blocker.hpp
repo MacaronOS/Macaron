@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Thread.hpp"
-#include <Filesystem/Base/FileDescriptor.hpp>
+#include <FileSystem/Base/File.hpp>
 
 namespace Kernel {
 
@@ -20,7 +20,7 @@ private:
 
 class ReadBlocker final : public Blocker {
 public:
-    ReadBlocker(FS::FileDescriptor& fd, Tasking::Thread* thread)
+    ReadBlocker(FileSystem::FileDescription& fd, Tasking::Thread* thread)
         : Blocker(thread)
         , m_fd(fd)
     {
@@ -29,7 +29,21 @@ public:
     bool can_unblock() const;
 
 private:
-    FS::FileDescriptor& m_fd;
+    FileSystem::FileDescription& m_fd;
+};
+
+class WriteBlocker final : public Blocker {
+public:
+    WriteBlocker(FileSystem::FileDescription& fd, Tasking::Thread* thread)
+        : Blocker(thread)
+        , m_fd(fd)
+    {
+    }
+
+    bool can_unblock() const;
+
+private:
+    FileSystem::FileDescription& m_fd;
 };
 
 }

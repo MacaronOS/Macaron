@@ -2,31 +2,49 @@
 
 #include <Devices/PTY/PTYMaster.hpp>
 #include <Devices/PTY/PTYSlave.hpp>
-#include <Filesystem/DevFS/DevFSNode.hpp>
+#include <FileSystem/Base/DentryCache.hpp>
+#include <FileSystem/Base/Inode.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Tasking/Net/LocalSocket.hpp>
 #include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Memory.hpp>
 #include <Macaronlib/Runtime.hpp>
 
-namespace Kernel::FS {
+namespace Kernel::FileSystem {
 
-VFS::VFS()
+using namespace Net;
+using namespace Devices;
+
+void VFS::init()
 {
-    m_root = new VNode(nullptr, 2);
-    m_file_storage.push(m_root);
-
     // setting all fds as free
     for (int i = FD_ALLOWED - 1; i > 3; i--) {
         m_free_fds.push(i);
     }
 
+    s_dentry_cache.init();
+
     Dentry root_dentry(nullptr, "");
-    root_dentry.set_vnode(m_root);
-    s_dentry_cache.put(move(root_dentry));
+    m_root_dentry = s_dentry_cache.put(move(root_dentry));
+}
+
+Inode* VFS::resolve_path(const String& path)
+{
+    auto relation = resolve_relation(path);
+    if (!relation) {
+        return nullptr;
+    }
+
+    auto file = relation.result().file;
+    if (!file) {
+        return nullptr;
+    }
+
+    return file->inode();
 }
 
 KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
@@ -46,8 +64,8 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 
     if (!file_dentry) {
         if ((mode & O_CREAT)) {
-            auto new_file = create(*directory_dentry->vnode(), path.split("/").back(), FileType::File, flags);
-            file_dentry->set_vnode(new_file);
+            auto inode = directory_dentry->inode()->create(path.split("/").back(), FileType::File, flags);
+            file_dentry->set_inode(inode);
         } else {
             return KError(ENOENT);
         }
@@ -56,9 +74,12 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
     fd_t free_fd = m_free_fds.top_and_pop();
 
     auto& file_descr = m_file_descriptors[free_fd];
-    file_descr.set_flags(flags);
-    file_descr.set_offset(0);
-    file_dentry->vnode()->fs()->open(*file_dentry->vnode(), file_descr);
+    file_descr.flags = flags;
+    file_descr.offset = 0;
+    file_dentry->inode()->inode_open(file_descr);
+    if (file_descr.file) {
+        file_descr.file->open(file_descr);
+    }
 
     return free_fd;
 }
@@ -72,255 +93,121 @@ KError VFS::close(const fd_t fd)
     return KError(0);
 }
 
-void VFS::mount(VNode& dir, VNode& appended_dir, const String& appended_dir_name)
+KError VFS::mount(const String& path, FileSystem& FileSystem)
 {
-    dir.mount(VNode::Mountpoint(appended_dir_name, &appended_dir));
-}
-
-uint32_t VFS::read(VNode& file, uint32_t offset, uint32_t size, void* buffer)
-{
-    if (file.fs()) {
-        return file.fs()->read(file, offset, size, buffer);
+    auto relation = resolve_relation(path);
+    if (!relation) {
+        return relation.error();
     }
 
-    return 0;
+    auto file = relation.result().file;
+    if (!file) {
+        return KError(ENOENT);
+    }
+
+    if (file->inode()) {
+        return KError(EEXIST);
+    }
+
+    file->set_inode(FileSystem.root());
+    file->update_count(1);
+
+    return KError(0);
 }
 
 KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    auto vnode = file_descr->vnode();
-    if (!vnode) {
+    auto file = file_descr->file;
+    if (!file) {
         return KError(ENOENT);
     }
 
-    auto socket = vnode->socket();
-    auto fs = vnode->fs();
-    auto offset = file_descr->offset();
-
-    if (socket) {
-        if (!socket->can_read(offset)) {
-            // TODO: block here
-            return 0;
-        }
-        size_t read_bytes = socket->read(offset, size, (uint8_t*)buffer);
-        file_descr->inc_offset(read_bytes);
-        return read_bytes;
+    if (!file->can_read(*file_descr)) {
+        Tasking::Scheduler::the().block_current_thread_on_read(*file_descr);
     }
 
-    if (fs) {
-        if (!fs->can_read(*vnode, offset)) {
-            Logger::Log() << Tasking::Scheduler::the().cur_process()->id() << " pid blocks on fd " << fd << "!\n";
-            Tasking::Scheduler::the().block_current_thread_on_read(*file_descr);
-        }
-        size_t read_bytes = fs->read(*vnode, offset, size, buffer);
-        file_descr->inc_offset(read_bytes);
-        return read_bytes;
-    }
-
-    return KError(ENOENT);
+    size_t offset = file_descr->offset;
+    file->read(buffer, size, *file_descr);
+    return file_descr->offset - offset;
 }
 
 KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    auto vnode = file_descr->vnode();
-    if (!vnode) {
+    auto file = file_descr->file;
+    if (!file) {
         return KError(ENOENT);
     }
 
-    auto socket = vnode->socket();
-    auto fs = vnode->fs();
-    auto offset = file_descr->offset();
-
-    if (socket) {
-        socket->write(size, (uint8_t*)buffer);
-        return size;
+    if (!file->can_write(*file_descr)) {
+        Tasking::Scheduler::the().block_current_thread_on_write(*file_descr);
     }
 
-    if (fs) {
-        size_t write_bytes = fs->write(*vnode, offset, size, buffer);
-        file_descr->inc_offset(write_bytes);
-        return write_bytes;
-    }
-
-    return KError(ENOENT);
+    size_t offset = file_descr->offset;
+    file->write(buffer, size, *file_descr);
+    return file_descr->offset - offset;
 }
 
 KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    auto socket = file_descr->vnode()->socket();
-    if (socket) {
-        if (whence == SEEK_SET) {
-            file_descr->set_offset(offset);
-            return file_descr->offset();
-        }
-
-        if (whence == SEEK_CUR) {
-            file_descr->inc_offset(offset);
-            return file_descr->offset();
-        }
-
-        return KError(EINVAL);
-    }
-
-    const size_t file_size = file_descr->vnode()->size();
-
     switch (whence) {
     case SEEK_SET: {
-        if (offset >= file_size) {
-            return KError(EOVERFLOW);
-        }
-        file_descr->set_offset(offset);
+        file_descr->offset = offset;
         break;
     }
     case SEEK_CUR: {
-        if (file_descr->offset() + offset >= file_size) {
-            return KError(EOVERFLOW);
-        }
-        file_descr->inc_offset(offset);
+        file_descr->offset += offset;
         break;
     }
-    case SEEK_END: {
-        if (file_size - offset < 0) {
-            return KError(EOVERFLOW);
-        }
-        file_descr->set_offset(file_size - offset);
-        break;
-    }
-
     default:
         return KError(EINVAL);
     }
 
-    return file_descr->offset();
+    return file_descr->offset;
 }
 
-KErrorOr<size_t> VFS::truncate(fd_t fd, size_t size)
+KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        size_t new_size = file_descr->vnode()->fs()->truncate(*file_descr->vnode(), size);
-        return new_size;
+    if (!file_descr->file) {
+        KError(ENOENT);
     }
 
-    return KError(ENOENT);
-}
-
-KErrorOr<size_t> VFS::file_size(fd_t fd)
-{
-    FileDescriptor* file_descr = get_file_descriptor(fd);
-    if (!file_descr) {
-        return KError(EBADF);
-    }
-    if (!file_descr->vnode()) {
-        return KError(ENOENT);
-    }
-
-    return file_size(*file_descr->vnode());
-}
-
-uint32_t VFS::write(VNode& file, uint32_t offset, uint32_t size, void* buffer)
-{
-    if (file.fs()) {
-        return file.fs()->write(file, offset, size, buffer);
-    }
-
-    return 0;
-}
-
-uint32_t VFS::file_size(VNode& file)
-{
-    if (file.fs()) {
-        return file.size();
-    }
-
-    return 0;
-}
-
-VNode* VFS::finddir(VNode& directory, const String& filename)
-{
-    for (size_t i = 0; i < directory.mounted_dirs().size(); i++) {
-        if (filename == directory.mounted_dirs()[i].name()) {
-            return &(directory.mounted_dirs()[i].vnode());
-        }
-    }
-    if (directory.fs()) {
-        return directory.fs()->finddir(directory, filename);
-    }
-
-    return nullptr;
-}
-
-static int cnt = 0;
-
-Vector<String> VFS::listdir(const String& path)
-{
-    auto r = resolve_path(path);
-
-    if (r) {
-        return listdir(*r.result());
-    }
-    return {};
-}
-
-Vector<String> VFS::listdir(VNode& directory)
-{
-    Vector<String> result {};
-
-    if (directory.fs()) {
-        result = directory.fs()->listdir(directory);
-    }
-
-    for (size_t i = 0; i < directory.mounted_dirs().size(); i++) {
-        auto mounted = directory.mounted_dirs()[i].name();
-        result.push_back(move(mounted));
-    }
-
-    return result;
-}
-
-KError VFS::mmap(fd_t fd, uint32_t addr, uint32_t size)
-{
-    FileDescriptor* file_descr = get_file_descriptor(fd);
-    if (!file_descr) {
-        return KError(EBADF);
-    }
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        file_descr->vnode()->fs()->mmap(*file_descr->vnode(), addr, size);
-        return KError(0);
-    }
-    return KError(ENOENT);
+    file_descr->file->mmap(addr, size);
+    return KError(0);
 }
 
 KError VFS::ioctl(fd_t fd, uint32_t request)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        file_descr->vnode()->fs()->ioctl(*file_descr->vnode(), request);
-        return KError(0);
+
+    if (!file_descr->file) {
+        KError(ENOENT);
     }
-    return KError(ENOENT);
+
+    file_descr->file->ioctl(request);
+    return KError(0);
 }
 
 KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
@@ -333,13 +220,13 @@ KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
     }
 
     auto free_fd = m_free_fds.top_and_pop();
-    m_file_descriptors[free_fd].set_offset(0);
+    m_file_descriptors[free_fd].offset = 0;
     return free_fd;
 }
 
 KError VFS::bind(fd_t sockfd, const String& path)
 {
-    auto* file_descr = get_file_descriptor(sockfd);
+    auto file_descr = get_file_descriptor(sockfd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -350,18 +237,21 @@ KError VFS::bind(fd_t sockfd, const String& path)
     }
 
     auto file_dentry = relation.result().file;
-    auto directory_dentry = relation.result().directory;
-
     if (!file_dentry) {
-        auto new_file = create(*directory_dentry->vnode(), path.split("/").back(), FileType::Socket, 1);
-        file_dentry->set_vnode(new_file);
-    } else {
-        // TODO: check if the file has the Socket type
+        return KError(ENOENT);
     }
 
-    file_dentry->vnode()->bind_socket();
-    file_descr->set_file(file_dentry->vnode());
-    file_dentry->update_count(1);
+    auto directory_dentry = relation.result().directory;
+    LocalSocket* socket = nullptr;
+    const auto& endpoint = file_dentry->name();
+
+    if (!file_dentry->inode()) {
+        auto inode = directory_dentry->inode()->create(endpoint, FileType::Socket, 1);
+        file_dentry->set_inode(inode);
+    }
+
+    socket = LocalSocket::bind_socket(endpoint);
+    file_descr->file = socket;
 
     return KError(0);
 }
@@ -379,55 +269,21 @@ KError VFS::connect(fd_t sockfd, const String& path)
     }
 
     auto file_dentry = relation.result().file;
-
     if (!file_dentry) {
         return KError(ENOENT);
     }
 
-    if (!file_dentry->vnode()->socket()) {
+    // TODO: check if the file has the Socket type
+
+    const auto& endpoint = file_dentry->name();
+    file_descr->file = LocalSocket::get_socket(endpoint);
+    if (!file_descr->file) {
         return KError(ENOTCONN);
     }
-
-    file_descr->set_file(file_dentry->vnode());
-    file_dentry->update_count(1);
-    file_descr->set_offset(0);
-
     return KError(0);
 }
 
-VNode* VFS::create(VNode& directory, const String& name, FileType type, FilePermissions perms)
-{
-    return directory.fs()->create(directory, name, type, perms);
-}
-
-bool VFS::erase(VNode& directory, const VNode& file)
-{
-    return directory.fs()->erase(directory, file);
-}
-
-KErrorOr<VNode*> VFS::resolve_path(const String& path)
-{
-    if (!path.size() || path[0] != '/') {
-        return KError(ENOTDIR);
-    }
-    if (path == "/") {
-        return m_root;
-    }
-
-    Vector<String> splited_path = path.split("/");
-    VNode* node = &root();
-
-    for (size_t i = 1; i < splited_path.size(); i++) {
-        VNode* file = finddir(*node, splited_path[i]);
-        if (!file) {
-            return KError(ENOENT);
-        }
-        node = file;
-    }
-    return node;
-}
-
-FileDescriptor* VFS::get_file_descriptor(const fd_t fd)
+FileDescription* VFS::get_file_descriptor(const fd_t fd)
 {
     for (fd_t i : m_free_fds) {
         if (i == fd) {
@@ -443,9 +299,16 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
         return KError(ENOTDIR);
     }
 
+    if (path.size() == 1) {
+        Relation rel;
+        rel.directory = nullptr;
+        rel.file = m_root_dentry;
+        return rel;
+    }
+
     Vector<String> splited_path = path.split("/");
     Dentry* parent = nullptr;
-    Dentry* cur = s_dentry_cache.lookup(nullptr, "");
+    Dentry* cur = m_root_dentry;
 
     for (size_t i = 1; i < splited_path.size(); i++) {
         Dentry* dentry = cur->lookup(splited_path[i]);
@@ -454,11 +317,12 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
             return KError(ENOENT);
         }
 
-        if (!dentry->vnode()) {
+        if (!dentry->inode()) {
             if (i == splited_path.size() - 1) {
                 // at least, we found a parent
                 Relation rel = {};
                 rel.directory = cur;
+                rel.file = dentry;
                 return rel;
             }
             return KError(ENOENT);
@@ -483,24 +347,11 @@ bool VFS::can_read(fd_t fd)
         return false;
     }
 
-    auto vnode = file_descr->vnode();
-    if (!vnode) {
+    if (!file_descr->file) {
         return false;
     }
 
-    auto socket = vnode->socket();
-    auto fs = vnode->fs();
-    auto offset = file_descr->offset();
-
-    if (socket) {
-        return socket->can_read(offset);
-    }
-
-    if (fs) {
-        return fs->can_read(*vnode, offset);
-    }
-
-    return false;
+    return file_descr->file->can_read(*file_descr);
 }
 
 KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout)
@@ -529,30 +380,31 @@ KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds,
 
 KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    if (file_descr->vnode() && file_descr->vnode()->fs()) {
-        memset(dirp, 0, size);
-        return file_descr->vnode()->fs()->getdents(*file_descr->vnode(), dirp, size);
+    if (!file_descr->file) {
+        return KError(ENOENT);
     }
 
-    return KError(ENOENT);
+    memset(dirp, 0, size);
+    return file_descr->file->getdents(dirp, size);
 }
 
 KErrorOr<String> VFS::ptsname(fd_t fd)
 {
-    FileDescriptor* file_descr = get_file_descriptor(fd);
+    auto file_descr = get_file_descriptor(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
 
-    auto vnode = file_descr->vnode();
-    auto devfs_node = static_cast<DevFSNode*>(vnode);
-    auto pty_master = static_cast<PTYMaster*>(devfs_node->device());
+    if (!file_descr->file) {
+        return KError(ENOENT);
+    }
 
+    auto pty_master = static_cast<PTYMaster*>(file_descr->file);
     return String(pty_master->slave()->name());
 }
 

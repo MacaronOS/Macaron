@@ -22,4 +22,7 @@ namespace Logger {
         friend const Log& operator<<(const Log& log, uint32_t value);
     };
 }
+
+using namespace Logger;
+
 }

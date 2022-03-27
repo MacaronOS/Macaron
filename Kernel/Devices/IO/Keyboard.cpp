@@ -48,14 +48,14 @@ void Keyboard::handle_interrupt(Trapframe* tf)
     m_buffer.write_force((uint8_t*)(&m_last_keybord_event), sizeof(m_last_keybord_event));
 }
 
-uint32_t Keyboard::read(uint32_t offset, uint32_t size, void* buffer)
+bool Keyboard::can_read(FileDescription& fd)
 {
-    return m_buffer.read_from((uint8_t*)buffer, offset, size);
+    return m_buffer.space_to_read_from(fd.offset);
 }
 
-bool Keyboard::can_read(size_t offset)
+void Keyboard::read(void* buffer, size_t size, FileDescription& fd)
 {
-    return m_buffer.space_to_read_from(offset);
+    fd.offset += m_buffer.read_from((uint8_t*)buffer, fd.offset, size);
 }
 
 }

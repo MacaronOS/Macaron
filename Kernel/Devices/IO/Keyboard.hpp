@@ -13,15 +13,15 @@ namespace Kernel::Devices {
 class Keyboard : public Device, InterruptHandler {
 public:
     Keyboard()
-        : Device(11, 0, DeviceType::Character)
+        : Device(11, 0, DeviceType::Char)
         , InterruptHandler(0x21)
     {
     }
 
     // ^Device
     virtual bool install() override;
-    virtual uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
-    virtual bool can_read(uint32_t offset) override;
+    virtual bool can_read(FileDescription&) override;
+    virtual void read(void* buffer, size_t size, FileDescription& fd) override;
 
     // ^InterruptHandler
     void handle_interrupt(Trapframe* tf) override;

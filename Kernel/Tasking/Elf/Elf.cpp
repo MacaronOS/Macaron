@@ -1,7 +1,7 @@
 #include "Elf.hpp"
 #include "Elfstructs.hpp"
 
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Libkernel/KError.hpp>
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
@@ -16,7 +16,7 @@ using namespace Memory;
 
 KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_directory)
 {
-    auto& vfs = FS::VFS::the();
+    auto& vfs = FileSystem::VFS::the();
     auto& vmm = VMM::the();
 
     auto prog_fd_or_error = vfs.open(exec_path, 1);

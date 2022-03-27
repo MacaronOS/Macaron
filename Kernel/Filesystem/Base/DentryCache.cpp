@@ -1,6 +1,7 @@
 #include "DentryCache.hpp"
+#include "Inode.hpp"
 
-namespace Kernel::FS {
+namespace Kernel::FileSystem {
 
 DentryCache s_dentry_cache;
 
@@ -79,8 +80,8 @@ Dentry* Dentry::lookup(const String& name)
     auto dentry = s_dentry_cache.lookup(this, name);
     if (!dentry) {
         Dentry new_denry(this, name);
-        if (m_vnode) {
-            m_vnode->lookup(new_denry);
+        if (m_inode) {
+            m_inode->lookup(new_denry);
         }
         dentry = s_dentry_cache.put(move(new_denry));
     }

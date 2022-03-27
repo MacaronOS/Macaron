@@ -1,6 +1,6 @@
 #include "Syscalls.hpp"
 
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/Trapframe.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
@@ -18,7 +18,7 @@ namespace Kernel::Syscalls {
 using namespace Logger;
 using namespace Memory;
 using namespace Tasking;
-using namespace FS;
+using namespace FileSystem;
 using namespace Time;
 
 static int sys_putc(char a)
@@ -56,7 +56,7 @@ static int sys_lseek(fd_t fd, size_t offset, int whence)
 
 static int sys_open(const char* filename, int flags, unsigned short mode)
 {
-    Log() << "handling open\n";
+    Log() << "handling open " << filename << "\n";
     return int(VFS::the().open(filename, flags, mode));
 }
 
@@ -89,7 +89,7 @@ static int sys_mmap(MmapParams* params)
             }
             mem = free_space.result();
         }
-        auto error_happened = VFS::the().mmap(params->fd, mem, params->size);
+        auto error_happened = VFS::the().mmap(params->fd, (void*)mem, params->size);
         if (error_happened) {
             return -1;
         }

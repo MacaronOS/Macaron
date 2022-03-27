@@ -1,17 +1,15 @@
 #pragma once
 
-#include "VNode.hpp"
-
 #include <Macaronlib/HashTable.hpp>
 #include <Macaronlib/List.hpp>
 #include <Macaronlib/String.hpp>
 #include <Macaronlib/Traits.hpp>
 
-namespace Kernel::FS {
+namespace Kernel::FileSystem {
 
 class Dentry;
-class VNode;
 class VFS;
+class Inode;
 
 struct DentryLookuper {
     DentryLookuper(Dentry* parent, const String& name)
@@ -61,13 +59,14 @@ extern DentryCache s_dentry_cache;
 
 class Dentry {
     friend class DentryCache;
-    friend class VNode;
+    friend class Inode;
     friend class VFS;
 
 public:
-    Dentry(Dentry* parent, const String& name)
+    Dentry(Dentry* parent, const String& name, Inode* inode = nullptr)
         : m_parent(parent)
         , m_name(name)
+        , m_inode(inode)
     {
     }
 
@@ -76,16 +75,17 @@ public:
 
     Dentry* parent() const { return m_parent; }
     const String& name() const { return m_name; }
-    VNode* vnode() { return m_vnode; }
-    void set_vnode(VNode* vnode) { m_vnode = vnode; }
+    Inode* inode() { return m_inode; }
+    void set_inode(Inode* inode) { m_inode = inode; }
+    void set_inode(Inode& inode) { m_inode = &inode; }
 
     Dentry* lookup(const String& name);
 
 private:
     Dentry* m_parent;
     String m_name;
+    Inode* m_inode;
     int m_count {};
-    VNode* m_vnode {};
 
     // DentryCache fields
     List<HashTable<Dentry>::Iterator>::Iterator m_lru_pos {};
@@ -94,7 +94,7 @@ private:
 
 }
 
-using namespace Kernel::FS;
+using namespace Kernel::FileSystem;
 
 struct DentryLookuperTraits : public Traits<DentryLookuperTraits> {
     static uint32_t hash(const DentryLookuper& dl)

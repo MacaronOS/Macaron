@@ -259,6 +259,9 @@ void WindowServer::on_SetPositionRequest(SetPositionRequest& request, int pid_fr
 
 void WindowServer::redraw()
 {
+    if (!m_invalid_areas.size()) {
+        return;
+    }
     draw_background();
     draw_windows();
     draw_mouse();

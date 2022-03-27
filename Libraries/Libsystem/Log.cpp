@@ -32,7 +32,7 @@ BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
     switch (op) {
     case BufferedLogOp::Endl:
         write_string(log.m_buffer);
-        log.m_buffer = "";
+        log.m_buffer.clear();
         return log;
     }
 

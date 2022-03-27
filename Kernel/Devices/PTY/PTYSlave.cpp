@@ -1,18 +1,28 @@
 #include "PTYSlave.hpp"
 #include "PTYMaster.hpp"
-#include <Macaronlib/String.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Macaronlib/String.hpp>
 
-namespace Kernel {
+namespace Kernel::Devices {
 
-uint32_t PTYSlave::read(uint32_t offset, uint32_t size, void* buffer)
+bool PTYSlave::can_read(FileDescription& fd)
 {
-    return m_buffer.read((uint8_t*)buffer, size);
+    return m_buffer.space_to_read_from(fd.offset);
 }
 
-uint32_t PTYSlave::write(uint32_t offset, uint32_t size, void* buffer)
+void PTYSlave::read(void* buffer, size_t size, FileDescription& fd)
 {
-    return m_master->buffer().write((uint8_t*)buffer, size);
+    fd.offset += m_buffer.read_from((uint8_t*)buffer, fd.offset, size);
+}
+
+bool PTYSlave::can_write(FileDescription&)
+{
+    return m_master->buffer().space_to_write();
+}
+
+void PTYSlave::write(void* buffer, size_t size, FileDescription& fd)
+{
+    fd.offset += m_master->buffer().write((uint8_t*)buffer, size);
 }
 
 }

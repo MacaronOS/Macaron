@@ -1,157 +1,256 @@
 #include "Ext2Inode.hpp"
 
-#include <Filesystem/Base/VNode.hpp>
-#include <Macaronlib/Common.hpp>
+#include <FileSystem/Base/DentryCache.hpp>
+#include <Libkernel/Logger.hpp>
+#include <Macaronlib/Memory.hpp>
 
-namespace Kernel::FS::EXT2 {
+namespace Kernel::FileSystem::Ext2 {
 
-Ext2Inode::Ext2Inode(FS* fs, uint32_t inode, inode_t* inode_struct)
-    : VNode(fs, inode)
-    , m_inode_struct(inode_struct)
+bool Ext2Inode::can_read(FileDescription& fd)
 {
-    if (!m_inode_struct) {
-        m_inode_struct = new inode_t {};
-    }
+    return fd.offset < m_raw_inode.size;
 }
 
-Ext2Inode::~Ext2Inode()
+void Ext2Inode::read(void* buffer, size_t size, FileDescription& fd)
 {
-    delete m_inode_struct;
+    fd.offset += read_bytes(buffer, size, fd.offset);
 }
 
-void Ext2Inode::read(void* buffer, size_t size, FileDescriptor& fd)
+bool Ext2Inode::can_write(FileDescription& fd)
 {
-    if (!can_read(fd)) {
-        return;
+    size_t max_blocks_for_inode = 0;
+    max_blocks_for_inode += 12;
+    max_blocks_for_inode += m_table_size;
+    max_blocks_for_inode += m_table_size * m_table_size;
+    max_blocks_for_inode += m_table_size * m_table_size * m_table_size;
+
+    return fd.offset < max_blocks_for_inode * m_block_size;
+}
+
+void Ext2Inode::write(void* buffer, size_t size, FileDescription& fd)
+{
+    fd.offset += write_bytes(buffer, size, fd.offset);
+}
+
+size_t Ext2Inode::getdents(linux_dirent* dirp, size_t size)
+{
+    auto directory = (uint8_t*)malloc(m_raw_inode.size);
+    size_t bytes = read_bytes(directory, m_raw_inode.size, 0);
+
+    size_t ext2_dir_entry_offset = 0;
+    size_t linux_dir_entry_offset = 0;
+    linux_dirent* last_linux_dir_entry = nullptr;
+
+    while (ext2_dir_entry_offset < bytes && linux_dir_entry_offset < size) {
+        auto ext2_dir_entry = (dir_entry_t*)(directory + ext2_dir_entry_offset);
+        auto linux_dir_entry = (linux_dirent*)((size_t)dirp + linux_dir_entry_offset);
+
+        ext2_dir_entry_offset += ext2_dir_entry->size;
+
+        auto linux_dir_entry_size = 2 * sizeof(uint32_t) + sizeof(uint16_t) + ext2_dir_entry->name_len_low + 1;
+        if (linux_dir_entry_offset + linux_dir_entry_size > size) {
+            break;
+        }
+
+        static char name[256];
+        memcpy(name, ext2_dir_entry->name_characters, ext2_dir_entry->name_len_low);
+        name[ext2_dir_entry->name_len_low] = '\0';
+
+        // Skip Ext2 irrelevant entries
+        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
+            continue;
+        }
+
+        memcpy(linux_dir_entry->d_name, name, ext2_dir_entry->name_len_low + 1);
+
+        linux_dir_entry->d_ino = ext2_dir_entry->inode;
+        linux_dir_entry->d_reclen = linux_dir_entry_size;
+
+        linux_dir_entry_offset += linux_dir_entry_size;
+
+        if (last_linux_dir_entry) {
+            last_linux_dir_entry->d_off = (size_t)linux_dir_entry - (size_t)last_linux_dir_entry;
+        }
+
+        last_linux_dir_entry = linux_dir_entry;
     }
 
-    size_t read_bytes = 0;
-    static uint8_t block_buffer[1024];
+    free(directory);
 
-    size_t block_size = fs()->block_size();
-    size_t block_start = fd.offset() / block_size;
-    size_t block_end = min(inode_struct()->size, fd.offset() + size) / block_size;
+    return linux_dir_entry_offset;
+}
+
+void Ext2Inode::lookup(Dentry& dentry)
+{
+    auto directory = (uint8_t*)malloc(m_raw_inode.size);
+    size_t bytes = read_bytes(directory, m_raw_inode.size, 0);
+
+    size_t dir_entry_offset = 0;
+
+    while (dir_entry_offset < bytes) {
+        auto dir_entry = (dir_entry_t*)(directory + dir_entry_offset);
+
+        char name[255];
+        memcpy(name, dir_entry->name_characters, dir_entry->name_len_low);
+        name[dir_entry->name_len_low] = '\0';
+
+        if (dentry.name() == name) {
+            dentry.set_inode(fs().get_inode(dir_entry->inode));
+            break;
+        }
+
+        dir_entry_offset += dir_entry->size;
+    }
+
+    free(directory);
+}
+
+Inode* Ext2Inode::create(const String& name, FileType type, FilePermissions permissions)
+{
+    auto ext2_inode = static_cast<Ext2Inode*>(fs().allocate_inode());
+
+    ext2_inode->m_raw_inode.type_and_permissions = static_cast<uint16_t>(type) | permissions;
+    ext2_inode->m_raw_inode.user_id = 1;
+    ext2_inode->m_raw_inode.size = 0;
+    ext2_inode->m_raw_inode.c_time = 116;
+
+    fs().write_inode(*ext2_inode);
+
+    static uint8_t dir_entry_buffer[sizeof(dir_entry_t) + 255];
+    auto dir_entry = (dir_entry_t*)dir_entry_buffer;
+
+    dir_entry->inode = ext2_inode->inode();
+    dir_entry->size = sizeof(dir_entry_t) + name.size();
+    dir_entry->name_len_low = name.size();
+
+    memcpy(dir_entry->name_characters, name.cstr(), name.size());
+
+    write_bytes(dir_entry, dir_entry->size, m_raw_inode.size);
+
+    return ext2_inode;
+}
+
+size_t Ext2Inode::read_bytes(void* buffer, size_t size, size_t offset)
+{
+    size_t has_bytes = 0;
+
+    size_t block_size = fs().block_size();
+    size_t block_start = offset / block_size;
+    size_t block_end = min(m_raw_inode.size, offset + size) / block_size;
 
     // Reading the first block of the block range.
     auto ext2_block = resolve_local_block(block_start);
-    fs()->read_block(ext2_block, block_buffer);
-    size_t offset_in_start_block = fd.offset() % block_size;
+    fs().read_block(ext2_block, fs().block_buffer());
+
+    size_t offset_in_start_block = offset % block_size;
     size_t need_read_from_start_block = min(size, block_size - offset_in_start_block);
-    memcpy(buffer, block_buffer + offset_in_start_block, need_read_from_start_block);
-    read_bytes += need_read_from_start_block;
+
+    memcpy(buffer, fs().block_buffer() + offset_in_start_block, need_read_from_start_block);
+    has_bytes += need_read_from_start_block;
 
     // Reading the middle part of the block range: [start_block + 1 ; enb_block - 1]
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
-        fs()->read_block(ext2_block, buffer + read_bytes);
-        read_bytes += block_size;
+        fs().read_block(ext2_block, buffer + has_bytes);
+        has_bytes += block_size;
     }
 
     // Reading the last block of the block range
     if (block_start != block_end) {
         ext2_block = resolve_local_block(block_end);
-        fs()->read_block(ext2_block, block_buffer);
-        size_t need_read_from_end_block = (fd.offset() + size - need_read_from_start_block) % block_size;
-        memcpy(buffer + read_bytes, block_buffer, need_read_from_end_block);
-        read_bytes += need_read_from_end_block;
+        fs().read_block(ext2_block, fs().block_buffer());
+
+        // size_t need_read_from_end_block = (offset + size - need_read_from_start_block) % block_size;
+        size_t need_read_from_end_block = (offset + size) % m_block_size;
+        memcpy(buffer + has_bytes, fs().block_buffer(), need_read_from_end_block);
+
+        has_bytes += need_read_from_end_block;
     }
 
-    fd.inc_offset(read_bytes);
+    return has_bytes;
 }
 
-void Ext2Inode::write(void* buffer, size_t size, FileDescriptor& fd)
+size_t Ext2Inode::write_bytes(void* buffer, size_t size, size_t offset)
 {
-    size_t written_bytes = 0;
-    static uint8_t block_buffer[1024];
+    size_t has_bytes = 0;
 
-    size_t block_size = fs()->block_size();
-    size_t block_start = fd.offset() / block_size;
-    size_t block_end = min(inode_struct()->size, fd.offset() + size) / block_size;
+    size_t block_size = fs().block_size();
+    size_t block_start = offset / block_size;
+    size_t block_end = min(m_raw_inode.size, offset + size) / block_size;
 
     // Writing to the first block of the block range.
     auto ext2_block = resolve_local_block(block_start);
-    fs()->read_block(ext2_block, block_buffer);
-    size_t offset_in_start_block = fd.offset() % block_size;
+    fs().read_block(ext2_block, fs().block_buffer());
+
+    size_t offset_in_start_block = offset % block_size;
     size_t need_write_to_start_block = min(size, block_size - offset_in_start_block);
-    memcpy(block_buffer + offset_in_start_block, buffer, need_write_to_start_block);
-    written_bytes += need_write_to_start_block;
+
+    memcpy(fs().block_buffer() + offset_in_start_block, buffer, need_write_to_start_block);
+    has_bytes += need_write_to_start_block;
 
     // Writing to the middle part of the block range: [start_block + 1 ; enb_block - 1]
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
-        fs()->write_block(ext2_block, buffer + written_bytes);
-        written_bytes += block_size;
+        fs().write_block(ext2_block, buffer + has_bytes);
+        has_bytes += block_size;
     }
 
-    // Reading the last block of the block range
+    // Writing to the last block of the block range
     if (block_start != block_end) {
         ext2_block = resolve_local_block(block_end);
-        fs()->read_block(ext2_block, block_buffer);
-        size_t need_write_to_end_block = (fd.offset() + size - need_write_to_start_block) % block_size;
-        memcpy(block_buffer, buffer + written_bytes, need_write_to_end_block);
-        fs()->write_block(ext2_block, block_buffer);
-        written_bytes += need_write_to_end_block;
+        fs().read_block(ext2_block, fs().block_buffer());
+
+        size_t need_write_to_end_block = (offset + size - need_write_to_start_block) % block_size;
+        memcpy(fs().block_buffer(), buffer + has_bytes, need_write_to_end_block);
+
+        fs().write_block(ext2_block, fs().block_buffer());
+        has_bytes += need_write_to_end_block;
     }
-    
-    fd.inc_offset(written_bytes);
-    if (fd.offset() > inode_struct()->size) {
-        inode_struct()->size = fd.offset();
-        fs()->write_vnode(*this);
+
+    if (offset + has_bytes > m_raw_inode.size) {
+        m_raw_inode.size = offset + has_bytes;
+        fs().write_inode(*this);
     }
-}
 
-bool Ext2Inode::can_read(FileDescriptor& fd)
-{
-    return fd.offset() < m_inode_struct->size;
-}
-
-uint32_t Ext2Inode::size() const
-{
-    return m_inode_struct->size;
-}
-
-void Ext2Inode::lookup_derived(Dentry& dentry)
-{
-    dentry.set_vnode(static_cast<Ext2*>(fs())->finddir(*this, dentry.name()));
+    return has_bytes;
 }
 
 size_t Ext2Inode::resolve_local_block(size_t block)
 {
-    size_t block_size = fs()->block_size();
+    size_t block_size = fs().block_size();
     size_t table_size = block_size / sizeof(uint32_t);
 
     if (block < 12) {
-        if (!m_inode_struct->direct_block_pointers[block]) {
-            m_inode_struct->direct_block_pointers[block] = fs()->allocate_block();
-            fs()->write_vnode(*this);
+        if (!m_raw_inode.direct_block_pointers[block]) {
+            m_raw_inode.direct_block_pointers[block] = fs().allocate_block();
+            fs().write_inode(*this);
         }
-        return m_inode_struct->direct_block_pointers[block];
+        return m_raw_inode.direct_block_pointers[block];
     }
     block -= 12;
 
     if (block < table_size) {
-        return resolve_local_block_1(m_inode_struct->singly_inderect_block_pointer, block);
+        return resolve_local_block_1(m_raw_inode.singly_inderect_block_pointer, block);
     }
     block -= table_size;
 
     if (block < table_size * table_size) {
-        return resolve_local_block_2(m_inode_struct->doubly_inderect_block_pointer, block);
+        return resolve_local_block_2(m_raw_inode.doubly_inderect_block_pointer, block);
     }
     block -= table_size * table_size;
 
-    return resolve_local_block_3(m_inode_struct->triply_inderect_block_pointer, block);
+    return resolve_local_block_3(m_raw_inode.triply_inderect_block_pointer, block);
 }
 
 size_t Ext2Inode::resolve_local_block_1(size_t indirection_block, size_t block)
 {
-    static uint8_t block_buffer[1024];
-    fs()->read_block(indirection_block, block_buffer);
+    fs().read_block(indirection_block, fs().block_buffer());
 
-    auto table = (uint32_t*)block_buffer;
+    auto table = (uint32_t*)fs().block_buffer();
 
     if (!table[block]) {
-        table[block] = fs()->allocate_block();
-        fs()->write_block(indirection_block, block_buffer);
+        table[block] = fs().allocate_block();
+        fs().write_block(indirection_block, fs().block_buffer());
     }
 
     return table[block];
@@ -159,18 +258,17 @@ size_t Ext2Inode::resolve_local_block_1(size_t indirection_block, size_t block)
 
 size_t Ext2Inode::resolve_local_block_2(size_t indirection_block, size_t block)
 {
-    size_t block_size = fs()->block_size();
+    size_t block_size = fs().block_size();
     size_t table_size = block_size / sizeof(uint32_t);
 
-    static uint8_t block_buffer[1024];
-    fs()->read_block(indirection_block, block_buffer);
+    fs().read_block(indirection_block, fs().block_buffer());
 
-    auto table = (uint32_t*)block_buffer;
+    auto table = (uint32_t*)fs().block_buffer();
     size_t offset_in_table = block / table_size;
 
     if (!table[offset_in_table]) {
-        table[offset_in_table] = fs()->allocate_block();
-        fs()->write_block(indirection_block, block_buffer);
+        table[offset_in_table] = fs().allocate_block();
+        fs().write_block(indirection_block, fs().block_buffer());
     }
 
     return resolve_local_block_1(table[offset_in_table], block % table_size);
@@ -178,18 +276,17 @@ size_t Ext2Inode::resolve_local_block_2(size_t indirection_block, size_t block)
 
 size_t Ext2Inode::resolve_local_block_3(size_t indirection_block, size_t block)
 {
-    size_t block_size = fs()->block_size();
+    size_t block_size = fs().block_size();
     size_t table_size = block_size / sizeof(uint32_t);
 
-    static uint8_t block_buffer[1024];
-    fs()->read_block(indirection_block, block_buffer);
+    fs().read_block(indirection_block, fs().block_buffer());
 
-    auto table = (uint32_t*)block_buffer;
+    auto table = (uint32_t*)fs().block_buffer();
     size_t offset_in_table = block / (table_size * table_size);
 
     if (!table[offset_in_table]) {
-        table[offset_in_table] = fs()->allocate_block();
-        fs()->write_block(indirection_block, block_buffer);
+        table[offset_in_table] = fs().allocate_block();
+        fs().write_block(indirection_block, fs().block_buffer());
     }
 
     return resolve_local_block_2(table[offset_in_table], block % (table_size * table_size));

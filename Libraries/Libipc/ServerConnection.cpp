@@ -28,7 +28,7 @@ void ServerConnection::pump()
     }
 
     IPCHeader ipch;
-    while (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
+    if (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
         // client attempts to initialize a coonection
         if (ipch.pid_to == -1) {
             IPCHeader ipchr;
@@ -44,7 +44,7 @@ void ServerConnection::pump()
             if (ipch.size != 0) {
                 lseek(m_socket_fd, ipch.size, SEEK_CUR);
             }
-            continue;
+            return;
         }
 
         if (!read_by_header(ipch)) {

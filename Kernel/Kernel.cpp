@@ -4,10 +4,9 @@
 #include <Drivers/IO/Uart.hpp>
 #include <Drivers/PCI/PCI.hpp>
 #include <Drivers/PIT.hpp>
-#include <Filesystem/Base/VNode.hpp>
-#include <Filesystem/DevFS/DevFS.hpp>
-#include <Filesystem/Ext2/Ext2.hpp>
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/Dev/DevFileSystem.hpp>
+#include <FileSystem/Ext2/Ext2FileSystem.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Hardware/DescriptorTables/IDT.hpp>
 #include <Libkernel/Assert.hpp>
@@ -24,8 +23,8 @@
 
 using namespace Kernel;
 using namespace Drivers;
-using namespace FS;
-using namespace EXT2;
+using namespace FileSystem;
+using namespace Ext2;
 using namespace Syscalls;
 using namespace Tasking;
 using namespace Memory;
@@ -39,7 +38,7 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     DescriptorTables::IDT::Setup();
 
     VgaTUI::Initialize();
-    VgaTUI::Print("hello\n");
+    VgaTUI::Print("Starting up Macaron OS kernel...\n");
 
     Memory::SetupMalloc();
     PMM::the().initialize(multiboot_structure);
@@ -56,19 +55,21 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     DeviceManager::the().register_initial_devices();
 
-    Ext2* ext2 = new Ext2(ata_0x1f0, VFS::the().file_storage());
+    VFS::the().init();
+
+    auto ext2 = new Ext2FileSystem(ata_0x1f0);
     ext2->init();
 
-    DevFS* devfs = new DevFS(VFS::the().file_storage());
-    devfs->init();
+    auto Dev = new DevFileSystem();
+    Dev->init();
 
-    VFS::the().mount(VFS::the().root(), ext2->root(), "ext2");
-    VFS::the().mount(VFS::the().root(), devfs->root(), "dev");
+    VFS::the().mount("/", *ext2);
+    VFS::the().mount("/dev", *Dev);
 
     if (!TimeManager::the().initialize()) {
         ASSERT_PANIC("Could not initialize TimeManager");
     }
 
-    Scheduler::the().create_process("/ext2/System/System");
+    Scheduler::the().create_process("/System/System");
     Scheduler::the().run();
 }

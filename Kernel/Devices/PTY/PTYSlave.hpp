@@ -1,26 +1,27 @@
 #pragma once
 
 #include "../Device.hpp"
-#include <Filesystem/DevFS/DevFSNode.hpp>
 #include <Macaronlib/Ringbuffer.hpp>
+#include <Macaronlib/String.hpp>
 
-namespace Kernel {
+namespace Kernel::Devices {
 
 class PTYMaster;
 
 class PTYSlave : public Device {
 public:
     PTYSlave(size_t number)
-        : Device(0, 0, DeviceType::Character)
+        : Device(0, 0, DeviceType::Char)
     {
         m_name = String::From(number);
     }
 
     const String& name() const { return m_name; }
 
-    uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
-    uint32_t write(uint32_t offset, uint32_t size, void* buffer) override;
-    bool can_read(uint32_t offset) override { return m_buffer.space_to_read_from(offset); }
+    virtual bool can_read(FileDescription&) override;
+    virtual void read(void* buffer, size_t size, FileDescription& fd) override;
+    virtual bool can_write(FileDescription&) override;
+    virtual void write(void* buffer, size_t size, FileDescription&) override;
 
     inline void set_master(PTYMaster* master) { m_master = master; }
 

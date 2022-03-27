@@ -1,30 +1,41 @@
 #pragma once
 
+#include "Ext2FileSystem.hpp"
 #include "Ext2Structs.hpp"
+#include <FileSystem/Base/File.hpp>
+#include <FileSystem/Base/Inode.hpp>
+#include <Macaronlib/String.hpp>
 
-#include <Filesystem/Base/FS.hpp>
-#include <Filesystem/Base/VNode.hpp>
-#include <Filesystem/Ext2/Ext2.hpp>
+namespace Kernel::FileSystem::Ext2 {
 
-namespace Kernel::FS::EXT2 {
-
-class Ext2Inode : public VNode {
-    friend class Ext2;
+class Ext2Inode : public File, public Inode {
+    friend class Ext2FileSystem;
 
 public:
-    Ext2Inode(FS* fs, uint32_t inode, inode_t* inode_struct = nullptr);
-    ~Ext2Inode() override;
+    Ext2Inode(size_t inode, FileSystem& FileSystem)
+        : Inode(inode, FileSystem)
+        , m_block_size(fs().block_size())
+        , m_table_size(m_block_size / sizeof(uint32_t))
+    {
+    }
 
-    virtual void read(void* buffer, size_t size, FileDescriptor&) override;
-    virtual void write(void* buffer, size_t size, FileDescriptor&) override;
-    virtual bool can_read(FileDescriptor&) override;
+    // ^File
+    virtual bool can_read(FileDescription&) override;
+    virtual void read(void* buffer, size_t size, FileDescription&) override;
+    virtual bool can_write(FileDescription&) override;
+    virtual void write(void* buffer, size_t size, FileDescription&) override;
+    virtual size_t getdents(linux_dirent* dirp, size_t size) override;
 
-    uint32_t size() const override;
+    // ^Inode
+    virtual void lookup(Dentry& dentry) override;
+    virtual void inode_open(FileDescription& fd) override { fd.file = static_cast<File*>(this); }
+    virtual Inode* create(const String& name, FileType, FilePermissions) override;
 
 private:
-    inode_t* inode_struct() { return m_inode_struct; };
+    Ext2FileSystem& fs() { return static_cast<Ext2FileSystem&>(m_fs); }
 
-    virtual void lookup_derived(Dentry& dentry) override;
+    size_t read_bytes(void* buffer, size_t size, size_t offset);
+    size_t write_bytes(void* buffer, size_t size, size_t offset);
 
     size_t resolve_local_block(size_t block);
     size_t resolve_local_block_1(size_t indirection_block, size_t block);
@@ -32,7 +43,9 @@ private:
     size_t resolve_local_block_3(size_t indirection_block, size_t block);
 
 private:
-    inode_t* m_inode_struct;
+    size_t m_block_size;
+    size_t m_table_size; // block indirection table size
+    inode_t m_raw_inode {};
 };
 
 }

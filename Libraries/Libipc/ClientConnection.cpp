@@ -43,13 +43,13 @@ void ClientConnection::pump()
     }
 
     IPCHeader ipch;
-    while (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
+    if (read(m_socket_fd, &ipch, sizeof(IPCHeader)) > 0) {
         // skip messages that are not directed to us
         if (ipch.pid_to != m_pid || ipch.pid_from == m_pid) {
             if (ipch.size != 0) {
                 lseek(m_socket_fd, ipch.size, SEEK_CUR);
             }
-            continue;
+            return;
         }
 
         if (!read_by_header(ipch)) {
@@ -84,10 +84,6 @@ void ClientConnection::initialize_connection()
 
     while (true) {
         int result = read(m_socket_fd, &ipch, sizeof(IPCHeader));
-        if (result == 0) {
-            sched_yield();
-            continue;
-        }
         if (result == sizeof(IPCHeader)) {
             if (ipch.pid_to == m_pid) {
                 m_server_pid = ipch.pid_from;

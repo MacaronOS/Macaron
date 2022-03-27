@@ -17,8 +17,8 @@ public:
     {
     }
     bool install() override;
-    bool mmap(uint32_t addr, uint32_t size) override;
-    bool ioctl(uint32_t request) override;
+    void mmap(void* addr, uint32_t size) override;
+    void ioctl(uint32_t request) override;
 
 private:
     enum class IndexRegister : uint16_t {

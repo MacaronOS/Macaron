@@ -6,8 +6,8 @@ namespace Kernel::Devices {
 
 class DeviceManager {
 public:
-    static constexpr auto majors = 32;
-    static constexpr auto minors = 32;
+    static constexpr auto majors = 64;
+    static constexpr auto minors = 64;
     static constexpr auto types = 2;
 
     class Iterator {

@@ -33,7 +33,7 @@ namespace ps2 {
 }
 
 Mouse::Mouse()
-    : Device(13, 63, DeviceType::Character)
+    : Device(13, 63, DeviceType::Char)
     , InterruptHandler(0x2c)
 {
     m_packets_buffer = new MousePacket[m_packets_size];
@@ -101,10 +101,16 @@ void Mouse::handle_interrupt(Trapframe* tf)
     }
 }
 
-uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
+bool Mouse::can_read(FileDescription& fd)
+{
+    size_t packets_index = fd.offset / sizeof(MousePacket) % m_packets_size;
+    return packets_index != m_packets_buffer_ptr;
+}
+
+void Mouse::read(void* buffer, size_t size, FileDescription& fd)
 {
     size_t buffer_index = 0;
-    size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
+    size_t packets_index = fd.offset / sizeof(MousePacket) % m_packets_size;
 
     if (packets_index > m_packets_buffer_ptr) {
         for (; packets_index < m_packets_size && buffer_index < size / sizeof(MousePacket); packets_index++, buffer_index++) {
@@ -120,13 +126,7 @@ uint32_t Mouse::read(uint32_t offset, uint32_t size, void* buffer)
         reinterpret_cast<MousePacket*>(buffer)[buffer_index] = m_packets_buffer[packets_index];
     }
 
-    return buffer_index * sizeof(MousePacket);
-}
-
-bool Mouse::can_read(uint32_t offset)
-{
-    size_t packets_index = offset / sizeof(MousePacket) % m_packets_size;
-    return packets_index != m_packets_buffer_ptr;
+    fd.offset += buffer_index * sizeof(MousePacket);
 }
 
 }

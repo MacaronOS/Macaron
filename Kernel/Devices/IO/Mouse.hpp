@@ -18,8 +18,8 @@ public:
     bool install() override;
     void handle_interrupt(Trapframe* tf) override;
 
-    uint32_t read(uint32_t offset, uint32_t size, void* buffer) override;
-    bool can_read(uint32_t offset) override;
+    virtual bool can_read(FileDescription&) override;
+    virtual void read(void* buffer, size_t size, FileDescription& fd) override;
 
 private:
     inline void send_data_to_second_ps2_port(uint8_t data)

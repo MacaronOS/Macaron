@@ -1,23 +1,22 @@
 #pragma once
 
 #include "../Device.hpp"
-#include <Filesystem/DevFS/DevFSNode.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
+
+using namespace FileSystem;
 
 // PTMX - a PTY multiplexer
 class PTMX : public Device {
 public:
-    PTMX(FS::DevFSNode& pts_directory)
-        : Device(5, 2, DeviceType::Character)
-        , m_pts_directory(pts_directory)
+    PTMX()
+        : Device(5, 0, DeviceType::Char)
     {
     }
-
-    void open(FS::FileDescriptor& fd, FS::VNode& vnode) override;
+    
+    virtual void open(FileSystem::FileDescription& fd) override;
 
 private:
-    FS::DevFSNode& m_pts_directory;
     size_t pts_count {};
 };
 

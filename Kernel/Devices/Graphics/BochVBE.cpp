@@ -48,10 +48,9 @@ bool BochVBE::install()
     return true;
 }
 
-bool BochVBE::mmap(uint32_t addr, uint32_t size)
+void BochVBE::mmap(void* addr, uint32_t size)
 {
-    Scheduler::the().cur_process()->map(addr, (uint32_t)m_pixels, min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
-    return true;
+    Scheduler::the().cur_process()->map((uint32_t)addr, (uint32_t)m_pixels, min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
 }
 
 inline void BochVBE::write(IndexRegister reg, uint16_t data)
@@ -66,14 +65,13 @@ inline uint16_t BochVBE::read(IndexRegister reg)
     return inw(BochVBEIoPortData);
 }
 
-bool BochVBE::ioctl(uint32_t request)
+void BochVBE::ioctl(uint32_t request)
 {
     if (request == BGA_SWAP_BUFFERS) {
         cur_buffer = !cur_buffer;
         write(IndexRegister::YOffset, cur_buffer * 768);
-        return true;
+        return;
     }
-    return false;
 }
 
 }

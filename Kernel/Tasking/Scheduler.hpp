@@ -5,7 +5,7 @@
 #include "Thread.hpp"
 
 #include <Drivers/PIT.hpp>
-#include <Filesystem/VFS/VFS.hpp>
+#include <FileSystem/VFS/VFS.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Memory/vmm.hpp>
 
@@ -50,11 +50,13 @@ public:
 
     Process& get_process(int pid);
 
-    void block_current_thread_on_read(FS::FileDescriptor& fd);
+    void block_current_thread_on_read(FileSystem::FileDescription& fd);
+    void block_current_thread_on_write(FileSystem::FileDescription& fd);
     void block_current_thread();
 
     void unblock_threads();
     void unblock_therads_on_read();
+    void unblock_therads_on_write();
     void unblock_blocker(Blocker&);
 
 private:
@@ -72,6 +74,7 @@ private:
     bool m_running {};
 
     List<ReadBlocker> m_read_blockers {};
+    List<WriteBlocker> m_write_blockers {};
 };
 
 }
