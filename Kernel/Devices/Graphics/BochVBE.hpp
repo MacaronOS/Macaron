@@ -11,11 +11,13 @@ namespace Kernel::Devices {
 
 class BochVBE : public Device {
 public:
-    BochVBE(Drivers::PCIDevice* pci_device)
+    BochVBE()
         : Device(1, 1, DeviceType::Block)
-        , m_pci_device(pci_device)
     {
     }
+
+    inline void set_pci_device(Drivers::PCIDevice* pci_device) { m_pci_device = pci_device; }
+
     bool install() override;
     void mmap(void* addr, uint32_t size) override;
     void ioctl(uint32_t request) override;
@@ -37,9 +39,12 @@ private:
     inline static uint16_t read(IndexRegister reg);
 
 private:
-    Drivers::PCIDevice* m_pci_device;
+    Drivers::PCIDevice* m_pci_device {};
     uint32_t* m_pixels { nullptr };
     uint32_t m_pixels_length { 0 };
     bool cur_buffer { false };
 };
+
+extern BochVBE bga;
+
 }

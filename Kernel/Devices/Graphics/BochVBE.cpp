@@ -13,6 +13,8 @@
 
 namespace Kernel::Devices {
 
+BochVBE bga;
+
 using namespace Memory;
 using namespace Tasking;
 

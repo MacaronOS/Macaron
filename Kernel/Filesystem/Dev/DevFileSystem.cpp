@@ -3,6 +3,8 @@
 
 namespace Kernel::FileSystem {
 
+DevFileSystem devfs;
+
 using namespace Devices;
 
 void DevFileSystem::init()

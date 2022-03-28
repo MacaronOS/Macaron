@@ -38,4 +38,6 @@ private:
     Ringbuffer<1024> m_buffer {};
 };
 
+extern Keyboard keyboard;
+
 }

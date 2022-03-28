@@ -11,6 +11,7 @@
 #include <Hardware/DescriptorTables/IDT.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
+#include <Libkernel/Init.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/Layout.hpp>
 #include <Memory/Malloc.hpp>
@@ -41,6 +42,9 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     VgaTUI::Print("Starting up Macaron OS kernel...\n");
 
     Memory::SetupMalloc();
+
+    Libkernel::CallConstructors();
+
     PMM::the().initialize(multiboot_structure);
 
     SyscallsManager::initialize();
@@ -60,11 +64,10 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     auto ext2 = new Ext2FileSystem(ata_0x1f0);
     ext2->init();
 
-    auto Dev = new DevFileSystem();
-    Dev->init();
+    devfs.init();
 
     VFS::the().mount("/", *ext2);
-    VFS::the().mount("/dev", *Dev);
+    VFS::the().mount("/dev", devfs);
 
     if (!TimeManager::the().initialize()) {
         ASSERT_PANIC("Could not initialize TimeManager");

@@ -6,6 +6,8 @@
 
 namespace Kernel::Devices {
 
+Keyboard keyboard;
+
 bool Keyboard::install()
 {
     // wait for a keyboard

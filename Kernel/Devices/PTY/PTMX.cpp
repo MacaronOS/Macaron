@@ -7,6 +7,8 @@
 
 namespace Kernel::Devices {
 
+PTMX ptmx;
+
 void PTMX::open(FileSystem::FileDescription& fd)
 {
     pts_count++;

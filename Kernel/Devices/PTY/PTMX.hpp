@@ -20,4 +20,6 @@ private:
     size_t pts_count {};
 };
 
+extern PTMX ptmx;
+
 }

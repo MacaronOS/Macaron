@@ -14,4 +14,6 @@ private:
     size_t m_nodes_cnt {};
 };
 
+extern DevFileSystem devfs;
+
 }

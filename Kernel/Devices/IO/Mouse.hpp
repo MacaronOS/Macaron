@@ -82,4 +82,6 @@ private:
     size_t m_packets_size = { 256 };
 };
 
+extern Mouse mouse;
+
 }

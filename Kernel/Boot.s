@@ -87,15 +87,12 @@ L3:
 SECTION .text
 
 [EXTERN kernel_entry_point]
-[EXTERN call_constructors]
 
 L4:
   mov     DWORD[boot_page_directory], 0
   mov     ecx, cr3
   mov     cr3, ecx
   mov     esp, stack_top
-
-  call    call_constructors
 
   add ebx, 0xC0000000
   push ebx ; saving multiboot structure

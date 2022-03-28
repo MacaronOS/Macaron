@@ -7,6 +7,8 @@
 
 namespace Kernel::Devices {
 
+Mouse mouse;
+
 namespace ps2 {
     namespace commands {
         constexpr uint8_t enable_auxillary_device = 0xa8;

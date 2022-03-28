@@ -11,9 +11,10 @@ namespace Kernel::Devices {
 void DeviceManager::register_initial_devices()
 {
     // Register PS/2 devices
-    register_device(new Mouse);
-    register_device(new Keyboard);
-    register_device(new PTMX);
+    register_device(mouse);
+    register_device(keyboard);
+    register_device(ptmx);
+    
 
     // Register PCI devices
     auto& pci = Drivers::PCI::the();
@@ -23,7 +24,8 @@ void DeviceManager::register_initial_devices()
         case 0x1234: {
             switch (device->device_id()) {
             case 0x1111: {
-                register_device(new BochVBE(device));
+                bga.set_pci_device(device);
+                register_device(bga);
                 break;
             }
             }
