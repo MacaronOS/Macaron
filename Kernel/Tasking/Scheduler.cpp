@@ -1,5 +1,6 @@
 #include "Scheduler.hpp"
 #include "Signal.hpp"
+#include "Process.hpp"
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/PIT.hpp>

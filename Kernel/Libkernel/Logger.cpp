@@ -1,7 +1,9 @@
-#include "Libkernel/Logger.hpp"
+#include "Logger.hpp"
+
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/IO/Uart.hpp>
 #include <Macaronlib/String.hpp>
+
 namespace Kernel {
 
 using namespace Drivers;

@@ -8,6 +8,7 @@
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/Scheduler.hpp>
+#include <Tasking/Process.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>

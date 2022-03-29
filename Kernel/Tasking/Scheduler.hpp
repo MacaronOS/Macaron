@@ -1,13 +1,10 @@
 #pragma once
 
 #include "Blocker.hpp"
-#include "Process.hpp"
-#include "Thread.hpp"
 
 #include <Drivers/PIT.hpp>
 #include <FileSystem/VFS/VFS.hpp>
 #include <Libkernel/Assert.hpp>
-#include <Memory/vmm.hpp>
 
 #include <Macaronlib/List.hpp>
 

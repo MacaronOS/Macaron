@@ -7,6 +7,7 @@
 #include <Memory/pmm.hpp>
 #include <Memory/vmm.hpp>
 #include <Tasking/Scheduler.hpp>
+#include <Tasking/Process.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>

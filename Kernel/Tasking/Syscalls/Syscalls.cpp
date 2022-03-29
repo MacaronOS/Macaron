@@ -5,6 +5,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Tasking/Process.hpp>
 #include <Tasking/Scheduler.hpp>
 #include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
 #include <Time/TimeManager.hpp>

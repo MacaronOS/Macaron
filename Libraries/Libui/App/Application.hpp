@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Connection.hpp"
-#include "../Content/Intent.hpp"
 #include "../Events.hpp"
 
 #include <Macaronlib/Vector.hpp>

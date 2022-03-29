@@ -1,5 +1,6 @@
 #include "Thread.hpp"
 #include <Memory/vmm.hpp>
+#include <Tasking/Process.hpp>
 
 namespace Kernel::Tasking {
 
