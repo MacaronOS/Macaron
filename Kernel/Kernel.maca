@@ -7,6 +7,10 @@ Build:
     Depends:
         ../Libraries/Macaronlib
 
+    HeaderFolders:
+        ../Libraries/Macaronlib/include
+        .
+
     Extensions:
         cpp:
             Compiler: i686-elf-g++

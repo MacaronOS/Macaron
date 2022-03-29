@@ -3,6 +3,9 @@ Build:
 
     Src: *.cpp
 
+    HeaderFolders:
+        include/Macaronlib
+
     Extensions:
         cpp:
             Compiler: i686-elf-g++
