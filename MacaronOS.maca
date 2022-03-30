@@ -18,6 +18,9 @@ Commands:
     Run:
         qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel
 
+    debug:
+        qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel -s -S
+
 Build:
     Depends:
         System, Kernel, Applications/Clicker, Applications/Emu, Applications/Terminal, Binaries/sh
