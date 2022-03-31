@@ -29,6 +29,7 @@ public:
 
 private:
     uint32_t occypy_inode(uint32_t preferd_block_group = 0);
+    char* own_block_buffer() { return m_own_block_buffer.data(); }
 
 private:
     Drivers::DiskDriver& m_disk_driver;
@@ -37,6 +38,7 @@ private:
     uint32_t m_bgd_table_size;
     block_group_descriptor_t* m_bgd_table {};
     Vector<char> m_block_buffer {};
+    Vector<char> m_own_block_buffer {};
 };
 
 }

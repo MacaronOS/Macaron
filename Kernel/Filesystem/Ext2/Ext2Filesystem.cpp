@@ -20,6 +20,7 @@ void Ext2FileSystem::init()
     m_bgd_table_size = (m_superblock.blocks_count + m_superblock.blocks_per_block_group - 1) / m_superblock.blocks_per_block_group;
 
     m_block_buffer = Vector<char>(m_block_size);
+    m_own_block_buffer = Vector<char>(m_block_size);
 
     auto bgd_table_buffer = malloc(m_block_size);
     read_block(2, bgd_table_buffer);
@@ -48,8 +49,8 @@ void Ext2FileSystem::write_inode(Inode& inode)
     uint32_t inode_block_index = inode_table_index % (m_block_size / sizeof(inode_t));
 
     // copying block, where inode structure is stored
-    read_block(inode_block, block_buffer());
-    auto inodes = (inode_t*)block_buffer();
+    read_block(inode_block, own_block_buffer());
+    auto inodes = (inode_t*)own_block_buffer();
 
     // saving new inode structure
     inodes[inode_block_index] = ext2_inode.m_raw_inode;
@@ -66,16 +67,16 @@ uint32_t Ext2FileSystem::allocate_block()
     for (size_t i = 0; i < m_bgd_table_size; i++) {
         if (m_bgd_table[i].unallocated_block_count) {
             // read bitmap
-            read_block(m_bgd_table[i].block_bitmap_addr, block_buffer());
+            read_block(m_bgd_table[i].block_bitmap_addr, own_block_buffer());
 
             // find first free block in bitmap
-            Bitmap bit = Bitmap::wrap((uint32_t)block_buffer(), m_superblock.blocks_per_block_group);
+            Bitmap bit = Bitmap::wrap((uint32_t)own_block_buffer(), m_superblock.blocks_per_block_group);
             const uint32_t free_block_in_bitmap = bit.find_first_zero();
 
             // occupy block
             const uint32_t free_block_in_ext2 = i * m_superblock.blocks_per_block_group + free_block_in_bitmap + 1;
             bit.set_true(free_block_in_bitmap);
-            write_block(m_bgd_table[i].block_bitmap_addr, block_buffer());
+            write_block(m_bgd_table[i].block_bitmap_addr, own_block_buffer());
 
             return free_block_in_ext2;
         }
@@ -114,8 +115,8 @@ Ext2Inode* Ext2FileSystem::get_inode(size_t inode)
     // (index) position of inode structure inside inode block
     uint32_t inode_block_index = inode_table_index % (m_block_size / sizeof(inode_t));
 
-    read_block(inode_block, block_buffer());
-    auto inodes = (inode_t*)block_buffer();
+    read_block(inode_block, own_block_buffer());
+    auto inodes = (inode_t*)own_block_buffer();
 
     inode_object->m_raw_inode = inodes[inode_block_index];
 
@@ -127,15 +128,15 @@ uint32_t Ext2FileSystem::occypy_inode(uint32_t preferd_block_group)
     for (size_t i = preferd_block_group; i < m_bgd_table_size; i++) {
         if (m_bgd_table[i].unallocated_inodes_count) {
             // read bitmap
-            read_block(m_bgd_table[i].inode_bitmap_addr, block_buffer());
+            read_block(m_bgd_table[i].inode_bitmap_addr, own_block_buffer());
 
             // find first free inode in bitmap
-            Bitmap bit = Bitmap::wrap((uint32_t)block_buffer(), m_superblock.inodes_per_block_group);
+            Bitmap bit = Bitmap::wrap((uint32_t)own_block_buffer(), m_superblock.inodes_per_block_group);
             const uint32_t free_inode = bit.find_first_zero();
 
             // occupy inode
             bit.set_true(free_inode);
-            write_block(m_bgd_table[i].inode_bitmap_addr, block_buffer());
+            write_block(m_bgd_table[i].inode_bitmap_addr, own_block_buffer());
 
             return i * m_superblock.inodes_per_block_group + free_inode + 1; // inodes starts from 1
         }

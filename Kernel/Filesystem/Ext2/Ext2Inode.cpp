@@ -123,7 +123,9 @@ Inode* Ext2Inode::create(const String& name, FileType type, FilePermissions perm
     dir_entry->size = sizeof(dir_entry_t) + name.size();
     dir_entry->name_len_low = name.size();
 
-    memcpy(dir_entry->name_characters, name.cstr(), name.size());
+    for (int i = 0; i < name.size(); i++) {
+        dir_entry->name_characters[i] = name[i];
+    }
 
     write_bytes(dir_entry, dir_entry->size, m_raw_inode.size);
 
@@ -133,17 +135,16 @@ Inode* Ext2Inode::create(const String& name, FileType type, FilePermissions perm
 size_t Ext2Inode::read_bytes(void* buffer, size_t size, size_t offset)
 {
     size_t has_bytes = 0;
-
-    size_t block_size = fs().block_size();
-    size_t block_start = offset / block_size;
-    size_t block_end = min(m_raw_inode.size, offset + size) / block_size;
+    size_t read_up_to = min(m_raw_inode.size, offset + size);
+    size_t block_start = offset / m_block_size;
+    size_t block_end = read_up_to / m_block_size;
 
     // Reading the first block of the block range.
     auto ext2_block = resolve_local_block(block_start);
     fs().read_block(ext2_block, fs().block_buffer());
 
-    size_t offset_in_start_block = offset % block_size;
-    size_t need_read_from_start_block = min(size, block_size - offset_in_start_block);
+    size_t offset_in_start_block = offset % m_block_size;
+    size_t need_read_from_start_block = min(size, m_block_size - offset_in_start_block);
 
     memcpy(buffer, fs().block_buffer() + offset_in_start_block, need_read_from_start_block);
     has_bytes += need_read_from_start_block;
@@ -152,19 +153,19 @@ size_t Ext2Inode::read_bytes(void* buffer, size_t size, size_t offset)
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
         fs().read_block(ext2_block, buffer + has_bytes);
-        has_bytes += block_size;
+        has_bytes += m_block_size;
     }
 
+    size_t left_read_from_end_block = read_up_to - offset - has_bytes;
+
     // Reading the last block of the block range
-    if (block_start != block_end) {
+    if (left_read_from_end_block) {
         ext2_block = resolve_local_block(block_end);
         fs().read_block(ext2_block, fs().block_buffer());
 
-        // size_t need_read_from_end_block = (offset + size - need_read_from_start_block) % block_size;
-        size_t need_read_from_end_block = (offset + size) % m_block_size;
-        memcpy(buffer + has_bytes, fs().block_buffer(), need_read_from_end_block);
+        memcpy(buffer + has_bytes, fs().block_buffer(), left_read_from_end_block);
 
-        has_bytes += need_read_from_end_block;
+        has_bytes += left_read_from_end_block;
     }
 
     return has_bytes;
@@ -174,37 +175,38 @@ size_t Ext2Inode::write_bytes(void* buffer, size_t size, size_t offset)
 {
     size_t has_bytes = 0;
 
-    size_t block_size = fs().block_size();
-    size_t block_start = offset / block_size;
-    size_t block_end = min(m_raw_inode.size, offset + size) / block_size;
+    size_t block_start = offset / m_block_size;
+    size_t block_end = (offset + size) / m_block_size;
 
     // Writing to the first block of the block range.
     auto ext2_block = resolve_local_block(block_start);
     fs().read_block(ext2_block, fs().block_buffer());
 
-    size_t offset_in_start_block = offset % block_size;
-    size_t need_write_to_start_block = min(size, block_size - offset_in_start_block);
+    size_t offset_in_start_block = offset % m_block_size;
+    size_t need_write_to_start_block = min(size, m_block_size - offset_in_start_block);
 
     memcpy(fs().block_buffer() + offset_in_start_block, buffer, need_write_to_start_block);
+    fs().write_block(ext2_block, fs().block_buffer());
     has_bytes += need_write_to_start_block;
 
     // Writing to the middle part of the block range: [start_block + 1 ; enb_block - 1]
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
         fs().write_block(ext2_block, buffer + has_bytes);
-        has_bytes += block_size;
+        has_bytes += m_block_size;
     }
 
+    size_t left_write_to_end_block = size - has_bytes;
+
     // Writing to the last block of the block range
-    if (block_start != block_end) {
+    if (left_write_to_end_block) {
         ext2_block = resolve_local_block(block_end);
         fs().read_block(ext2_block, fs().block_buffer());
 
-        size_t need_write_to_end_block = (offset + size - need_write_to_start_block) % block_size;
-        memcpy(fs().block_buffer(), buffer + has_bytes, need_write_to_end_block);
+        memcpy(fs().block_buffer(), buffer + has_bytes, left_write_to_end_block);
 
         fs().write_block(ext2_block, fs().block_buffer());
-        has_bytes += need_write_to_end_block;
+        has_bytes += left_write_to_end_block;
     }
 
     if (offset + has_bytes > m_raw_inode.size) {
@@ -217,8 +219,7 @@ size_t Ext2Inode::write_bytes(void* buffer, size_t size, size_t offset)
 
 size_t Ext2Inode::resolve_local_block(size_t block)
 {
-    size_t block_size = fs().block_size();
-    size_t table_size = block_size / sizeof(uint32_t);
+    size_t table_size = m_block_size / sizeof(uint32_t);
 
     if (block < 12) {
         if (!m_raw_inode.direct_block_pointers[block]) {
@@ -258,8 +259,7 @@ size_t Ext2Inode::resolve_local_block_1(size_t indirection_block, size_t block)
 
 size_t Ext2Inode::resolve_local_block_2(size_t indirection_block, size_t block)
 {
-    size_t block_size = fs().block_size();
-    size_t table_size = block_size / sizeof(uint32_t);
+    size_t table_size = m_block_size / sizeof(uint32_t);
 
     fs().read_block(indirection_block, fs().block_buffer());
 
@@ -276,8 +276,7 @@ size_t Ext2Inode::resolve_local_block_2(size_t indirection_block, size_t block)
 
 size_t Ext2Inode::resolve_local_block_3(size_t indirection_block, size_t block)
 {
-    size_t block_size = fs().block_size();
-    size_t table_size = block_size / sizeof(uint32_t);
+    size_t table_size = m_block_size / sizeof(uint32_t);
 
     fs().read_block(indirection_block, fs().block_buffer());
 
