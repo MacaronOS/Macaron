@@ -27,6 +27,7 @@ public:
     virtual size_t getdents(linux_dirent* dirp, size_t size) override;
 
     // ^Inode
+    virtual size_t size() const override { return m_raw_inode.size; }
     virtual void lookup(Dentry& dentry) override;
     virtual void inode_open(FileDescription& fd) override { fd.file = static_cast<File*>(this); }
     virtual Inode* create(const String& name, FileType, FilePermissions) override;

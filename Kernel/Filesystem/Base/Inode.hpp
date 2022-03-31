@@ -18,6 +18,7 @@ public:
 
     size_t inode() const { return m_inode; }
 
+    virtual size_t size() const { return 0; }
     virtual void lookup(Dentry&) { }
     virtual void inode_open(FileDescription&) { }
     virtual Inode* create(const String& name, FileType, FilePermissions) { return nullptr; }

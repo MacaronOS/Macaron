@@ -3,11 +3,12 @@
 #include "Scheduler.hpp"
 #include "Thread.hpp"
 
+#include <Filesystem/Base/File.hpp>
 #include <Memory/Region.hpp>
 #include <Memory/vmm.hpp>
 
-#include <Macaronlib/StaticStack.hpp>
 #include <Macaronlib/Memory.hpp>
+#include <Macaronlib/StaticStack.hpp>
 
 #define PAGE_SIZE 4096
 #define FRAME_SIZE 4096
@@ -16,6 +17,7 @@ typedef uint8_t pid_t;
 
 namespace Kernel::Tasking {
 
+using namespace FileSystem;
 using namespace Memory;
 
 // TODO: by increasing this value, GCC compilation slows down
@@ -66,6 +68,10 @@ public:
 
     KErrorOr<uint32_t> find_free_space(uint32_t sz) const;
 
+    FileDescription* file_description(fd_t fd);
+    KError free_file_descriptor(fd_t fd);
+    KErrorOr<fd_t> allocate_file_descriptor();
+
 private:
     Process() = default;
     explicit Process(uint32_t id);
@@ -85,6 +91,8 @@ private:
     ProcessStorage* PS() const;
     List<Thread*>& TS() const;
 
+    bool is_file_descriptor_in_use(fd_t fd);
+
 public:
     Scheduler* m_task_manager {};
 
@@ -96,6 +104,9 @@ public:
     List<Region> m_regions {};
 
     uint32_t m_signal_handler_ip {};
+
+    Array<FileDescription, 32> m_file_descriptions {};
+    StaticStack<fd_t, 32> m_free_file_descriptors {};
 };
 
 // TODO: implement object pool

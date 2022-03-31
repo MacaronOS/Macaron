@@ -1,6 +1,7 @@
 #include "Scheduler.hpp"
-#include "Signal.hpp"
 #include "Process.hpp"
+#include "Signal.hpp"
+#include <Devices/DeviceManager.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Drivers/DriverManager.hpp>
 #include <Drivers/PIT.hpp>
@@ -27,6 +28,7 @@ extern "C" void block_and_switch_to_user(KernelContext** cur, Trapframe* next);
 
 using namespace Memory;
 using namespace Logger;
+using namespace Devices;
 
 Scheduler::Scheduler()
 {
@@ -37,6 +39,24 @@ bool Scheduler::run()
 {
     m_running = true;
     m_cur_thread = m_threads.begin();
+
+    auto process = cur_process();
+
+    for (int i = process->m_file_descriptions.size() - 1; i >= 0; i--) {
+        process->m_free_file_descriptors.push(i);
+    }
+
+    // Set standart file descriptors of the initial process to point to the debug console.
+    auto console = DeviceManager::the().get_device(5, 1, DeviceType::Char);
+
+    auto& stdin = *process->file_description(process->allocate_file_descriptor().result());
+    auto& stdout = *process->file_description(process->allocate_file_descriptor().result());
+    auto& stderr = *process->file_description(process->allocate_file_descriptor().result());
+
+    stdin.file = console;
+    stdout.file = console;
+    stderr.file = console;
+
     PIT::the().register_tick_reciever(this);
     switch_to_user_mode();
     reschedule();

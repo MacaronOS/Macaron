@@ -19,30 +19,26 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
     auto& vfs = FileSystem::VFS::the();
     auto& vmm = VMM::the();
 
-    auto prog_fd_or_error = vfs.open(exec_path, 1);
-    if (!prog_fd_or_error) {
-        return prog_fd_or_error.error();
+    auto buffer = vfs.read_entire_file(exec_path);
+    if (!buffer) {
+        return KError(ENOENT);
     }
 
-    auto prog_fd = prog_fd_or_error.result();
-
-    ElfHeader header {};
-    vfs.read(prog_fd, &header, sizeof(header));
+    auto header = (ElfHeader*)buffer;
 
     if (
-        header.ident[0] != 0x7f || header.ident[1] != 'E' || header.ident[2] != 'L' || header.ident[3] != 'F') {
+        header->ident[0] != 0x7f || header->ident[1] != 'E' || header->ident[2] != 'L' || header->ident[3] != 'F') {
+        free(buffer);
         return KError(ENOEXEC);
     }
 
-    auto* ph_table = new ElfProgramHeader[header.phnum];
-    vfs.lseek(prog_fd, header.phoff, SEEK_SET);
-    vfs.read(prog_fd, ph_table, sizeof(ElfProgramHeader) * header.phnum);
+    auto ph_table = (ElfProgramHeader*)(buffer + header->phoff);
 
     vmm.set_page_directory(page_directory);
 
     ExecData exec_data;
 
-    for (size_t i = 0; i < header.phnum; i++) {
+    for (size_t i = 0; i < header->phnum; i++) {
         if (ph_table[i].type == static_cast<uint32_t>(ElfProgramHeaderType::LOAD)) {
 
             size_t pages_count = (ph_table[i].memsz + ph_table[i].vaddr % PAGE_SIZE + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -60,14 +56,13 @@ KErrorOr<Elf::ExecData> Elf::load_exec(const String& exec_path, uint32_t page_di
                 .flags = Flags::User | Flags::Write | Flags::Present,
             });
 
-            vfs.lseek(prog_fd, ph_table[i].offset, SEEK_SET);
-            vfs.read(prog_fd, (void*)ph_table[i].vaddr, ph_table[i].filesz);
-
+            memcpy((void*)ph_table[i].vaddr, (void*)(buffer + ph_table[i].offset), ph_table[i].filesz);
             memset((void*)(ph_table[i].vaddr + ph_table[i].filesz), 0, ph_table[i].memsz - ph_table[i].filesz);
         }
     }
 
-    exec_data.entry_point = (uint32_t)header.entry;
+    exec_data.entry_point = (uint32_t)header->entry;
+    free(buffer);
     return exec_data;
 }
 

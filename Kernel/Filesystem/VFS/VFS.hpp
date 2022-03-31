@@ -12,7 +12,6 @@
 
 namespace Kernel::FileSystem {
 
-constexpr size_t FD_ALLOWED = 255;
 typedef uint8_t fd_t;
 typedef uint16_t mode_t;
 
@@ -36,6 +35,8 @@ public:
     Inode* resolve_path(const String& path);
     KError mount(const String& path, FileSystem& FileSystem);
 
+    char* read_entire_file(const String& path);
+
     // posix like api functions
     KErrorOr<fd_t> open(const String& path, int flags, mode_t mode = 0);
     KError close(fd_t fd);
@@ -58,14 +59,10 @@ public:
     bool can_read(fd_t fd);
 
 private:
-    FileDescription* get_file_descriptor(const fd_t fd);
     KErrorOr<Relation> resolve_relation(const String& path);
 
 private:
     Dentry* m_root_dentry { nullptr };
-
-    FileDescription m_file_descriptors[FD_ALLOWED] {};
-    StaticStack<fd_t, FD_ALLOWED> m_free_fds {};
 };
 
 }

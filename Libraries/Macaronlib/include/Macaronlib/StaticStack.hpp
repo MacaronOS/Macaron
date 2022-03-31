@@ -78,7 +78,7 @@ public:
 public:
     constexpr size_t max_size() const { return S; }
     size_t size() const { return m_data_pointer; }
-    bool empty() const { return m_data_pointer; }
+    bool empty() const { return m_data_pointer == 0; }
 
     void push(const T& val)
     {

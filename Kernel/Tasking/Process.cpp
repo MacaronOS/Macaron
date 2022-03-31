@@ -74,6 +74,9 @@ Process* Process::Fork()
         return nullptr;
     }
 
+    new_proc->m_file_descriptions = m_file_descriptions;
+    new_proc->m_free_file_descriptors = m_free_file_descriptors;
+
     for (auto region : m_regions) {
         if (region.type == Region::Type::Mapping) {
             new_proc->map_by_region(region);
@@ -222,6 +225,51 @@ void Process::free_threads_except_one()
     auto thread = *m_threads.begin();
     thread->reset_stack();
     thread->reset_flags();
+}
+
+FileDescription* Process::file_description(fd_t fd)
+{
+    if (!is_file_descriptor_in_use(fd)) {
+        return nullptr;
+    }
+
+    return &m_file_descriptions[fd];
+}
+
+KError Process::free_file_descriptor(fd_t fd)
+{
+    if (!is_file_descriptor_in_use(fd)) {
+        return KError(EBADF);
+    }
+
+    m_free_file_descriptors.push(fd);
+
+    return KError(0);
+}
+
+KErrorOr<fd_t> Process::allocate_file_descriptor()
+{
+    if (m_free_file_descriptors.empty()) {
+        return KError(EBADFD);
+    }
+
+    auto free_fd = m_free_file_descriptors.top_and_pop();
+    m_file_descriptions[free_fd].file = nullptr;
+    m_file_descriptions[free_fd].flags = 0;
+    m_file_descriptions[free_fd].offset = 0;
+
+    return free_fd;
+}
+
+bool Process::is_file_descriptor_in_use(fd_t fd)
+{
+    for (auto fdi : m_free_file_descriptors) {
+        if (fdi == fd) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 }

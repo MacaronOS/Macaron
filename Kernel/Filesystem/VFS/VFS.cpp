@@ -8,6 +8,7 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/Net/LocalSocket.hpp>
+#include <Tasking/Process.hpp>
 #include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
@@ -18,14 +19,10 @@ namespace Kernel::FileSystem {
 
 using namespace Net;
 using namespace Devices;
+using namespace Tasking;
 
 void VFS::init()
 {
-    // setting all fds as free
-    for (int i = FD_ALLOWED - 1; i > 3; i--) {
-        m_free_fds.push(i);
-    }
-
     s_dentry_cache.init();
 
     Dentry root_dentry(nullptr, "");
@@ -49,8 +46,9 @@ Inode* VFS::resolve_path(const String& path)
 
 KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 {
-    if (!m_free_fds.size()) {
-        return KError(ENFILE);
+    auto free_fd = Scheduler::the().cur_process()->allocate_file_descriptor();
+    if (!free_fd) {
+        return free_fd;
     }
 
     auto relation = resolve_relation(path);
@@ -71,9 +69,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
         }
     }
 
-    fd_t free_fd = m_free_fds.top_and_pop();
-
-    auto& file_descr = m_file_descriptors[free_fd];
+    auto& file_descr = *Scheduler::the().cur_process()->file_description(free_fd.result());
     file_descr.flags = flags;
     file_descr.offset = 0;
     file_dentry->inode()->inode_open(file_descr);
@@ -86,11 +82,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 
 KError VFS::close(const fd_t fd)
 {
-    if (fd > 3 && !get_file_descriptor(fd)) {
-        return KError(EBADF);
-    }
-    m_free_fds.push(fd);
-    return KError(0);
+    return Scheduler::the().cur_process()->free_file_descriptor(fd);
 }
 
 KError VFS::mount(const String& path, FileSystem& FileSystem)
@@ -115,9 +107,26 @@ KError VFS::mount(const String& path, FileSystem& FileSystem)
     return KError(0);
 }
 
+char* VFS::read_entire_file(const String& path)
+{
+    auto inode = resolve_path(path);
+    if (!inode) {
+        return nullptr;
+    }
+
+    size_t size = inode->size();
+    auto buffer = (char*)malloc(size);
+
+    FileDescription fd;
+    inode->inode_open(fd);
+    fd.file->read(buffer, size, fd);
+
+    return buffer;
+}
+
 KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -138,7 +147,7 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 
 KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -159,7 +168,7 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 
 KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -182,7 +191,7 @@ KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
 
 KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -197,7 +206,7 @@ KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
 
 KError VFS::ioctl(fd_t fd, uint32_t request)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -219,14 +228,12 @@ KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
         return KError(EINVAL);
     }
 
-    auto free_fd = m_free_fds.top_and_pop();
-    m_file_descriptors[free_fd].offset = 0;
-    return free_fd;
+    return Scheduler::the().cur_process()->allocate_file_descriptor();
 }
 
 KError VFS::bind(fd_t sockfd, const String& path)
 {
-    auto file_descr = get_file_descriptor(sockfd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(sockfd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -258,7 +265,7 @@ KError VFS::bind(fd_t sockfd, const String& path)
 
 KError VFS::connect(fd_t sockfd, const String& path)
 {
-    auto* file_descr = get_file_descriptor(sockfd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(sockfd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -281,16 +288,6 @@ KError VFS::connect(fd_t sockfd, const String& path)
         return KError(ENOTCONN);
     }
     return KError(0);
-}
-
-FileDescription* VFS::get_file_descriptor(const fd_t fd)
-{
-    for (fd_t i : m_free_fds) {
-        if (i == fd) {
-            return nullptr;
-        }
-    }
-    return &m_file_descriptors[fd];
 }
 
 KErrorOr<Relation> VFS::resolve_relation(const String& path)
@@ -342,7 +339,7 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
 
 bool VFS::can_read(fd_t fd)
 {
-    auto* file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return false;
     }
@@ -380,7 +377,7 @@ KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds,
 
 KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
@@ -395,7 +392,7 @@ KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
 
 KErrorOr<String> VFS::ptsname(fd_t fd)
 {
-    auto file_descr = get_file_descriptor(fd);
+    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
     if (!file_descr) {
         return KError(EBADF);
     }
