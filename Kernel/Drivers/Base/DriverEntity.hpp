@@ -8,13 +8,6 @@ enum class DriverEntity {
     Ata2,
     Ata3,
 
-    Uart,
-
-    Mouse,
-    Keyboard,
-
-    BGA,
-
     END,
 };
 

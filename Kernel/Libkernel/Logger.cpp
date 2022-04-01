@@ -1,17 +1,15 @@
 #include "Logger.hpp"
 
-#include <Drivers/DriverManager.hpp>
-#include <Drivers/IO/Uart.hpp>
-#include <Macaronlib/String.hpp>
+#include <Devices/IO/Uart.hpp>
 
 namespace Kernel {
 
-using namespace Drivers;
+using namespace Devices;
 
 namespace Logger {
     void putc(char c)
     {
-        static_cast<Uart*>(DriverManager::the().get_driver(DriverEntity::Uart))->send(c);
+        uart.send(c);
     }
 
     void print(const char* str)

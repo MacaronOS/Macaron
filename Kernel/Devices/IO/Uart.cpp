@@ -1,11 +1,6 @@
 #include "Uart.hpp"
 
-#include <Hardware/Port.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
-
-#include <Macaronlib/Common.hpp>
-
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
 Uart uart;
 
@@ -27,6 +22,20 @@ bool Uart::install()
 
     write(Register::ModemControl, 0x0F);
     return true;
+}
+
+void Uart::read(void* buffer, size_t size, FileDescription& fd)
+{
+    for (size_t i = 0; i < size; i++) {
+        ((char*)buffer)[i] = recieve();
+    }
+}
+
+void Uart::write(void* buffer, size_t size, FileDescription&)
+{
+    for (size_t i = 0; i < size; i++) {
+        send(((char*)buffer)[i]);
+    }
 }
 
 void Uart::send(char byte)

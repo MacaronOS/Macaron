@@ -1,7 +1,6 @@
 #include <Devices/DeviceManager.hpp>
 #include <Drivers/Disk/Ata.hpp>
 #include <Drivers/DriverManager.hpp>
-#include <Drivers/IO/Uart.hpp>
 #include <Drivers/PCI/PCI.hpp>
 #include <Drivers/PIT.hpp>
 #include <FileSystem/Dev/DevFileSystem.hpp>
@@ -54,7 +53,6 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
     PCI::the().initialize();
 
     DriverManager::the().add_driver(ata_0x1f0); // TODO: represent as a block device
-    DriverManager::the().add_driver(uart); // TODO: represent as a character device
     DriverManager::the().install_all();
 
     DeviceManager::the().register_initial_devices();

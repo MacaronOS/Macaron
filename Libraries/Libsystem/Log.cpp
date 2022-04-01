@@ -1,7 +1,7 @@
 #include "Log.hpp"
-#include "Syscalls.hpp"
 
-#include <Macaronlib/String.hpp>
+#include <Libc/Syscalls.hpp>
+#include <Libc/stdio.h>
 
 BufferedLog& operator<<(BufferedLog& BufferedLog, const String& value)
 {
@@ -31,8 +31,9 @@ BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
 {
     switch (op) {
     case BufferedLogOp::Endl:
-        write_string(log.m_buffer);
-        log.m_buffer.clear();
+        log.m_buffer.push_back('\n');
+        write(STDOUT, log.m_buffer.cstr(), log.m_buffer.size());
+        log.m_buffer = log.m_begin_with;
         return log;
     }
 
@@ -41,5 +42,5 @@ BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
 
 BufferedLog::~BufferedLog()
 {
-    write_string(m_buffer);
+    write(STDOUT, m_buffer.cstr(), m_buffer.size());
 }

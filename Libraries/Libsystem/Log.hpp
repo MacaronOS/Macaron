@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Libc/Syscalls.hpp>
 #include <Macaronlib/String.hpp>
 
 enum class BufferedLogOp {
@@ -18,7 +19,8 @@ public:
     friend BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op);
 
 private:
-    String m_buffer {};
+    String m_begin_with { String::From(getpid()) + ": " };
+    String m_buffer { m_begin_with };
 };
 
 static auto Log = BufferedLog();

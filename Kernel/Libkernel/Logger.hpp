@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Macaronlib/String.hpp>
-#include <Drivers/IO/Uart.hpp>
 
 namespace Kernel {
 

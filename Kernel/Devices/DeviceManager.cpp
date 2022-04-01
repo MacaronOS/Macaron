@@ -2,7 +2,9 @@
 #include "Graphics/BochVBE.hpp"
 #include "IO/Keyboard.hpp"
 #include "IO/Mouse.hpp"
+#include "IO/Uart.hpp"
 #include "PTY/PTMX.hpp"
+
 #include <Drivers/PCI/PCI.hpp>
 #include <Libkernel/Logger.hpp>
 
@@ -14,7 +16,8 @@ void DeviceManager::register_initial_devices()
     register_device(mouse);
     register_device(keyboard);
     register_device(ptmx);
-    
+
+    register_device(uart);
 
     // Register PCI devices
     auto& pci = Drivers::PCI::the();
