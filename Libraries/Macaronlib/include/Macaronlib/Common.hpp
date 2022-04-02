@@ -13,9 +13,6 @@ typedef uint32_t       size_t;
 
 typedef decltype(nullptr) nullptr_t;
 
-#define false   0
-#define true    1
-
 #define unlikely(expr)  __builtin_expect(!!(expr), 0)
 #define likely(expr)    __builtin_expect(!!(expr), 1)
 
