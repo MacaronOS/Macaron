@@ -34,7 +34,7 @@ int read(int fd, void* buf, size_t cnt)
 {
     return do_syscall(Syscall::Read, ToSysArg(fd), ToSysArg(buf), ToSysArg(cnt));
 }
-int write(int fd, void* buf, size_t cnt)
+int write(int fd, const void* buf, size_t cnt)
 {
     return do_syscall(Syscall::Write, ToSysArg(fd), ToSysArg(buf), ToSysArg(cnt));
 }

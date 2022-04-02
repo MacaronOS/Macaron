@@ -39,7 +39,7 @@ struct [[gnu::packed]] BMPColorHeader {
 
 Graphics::Bitmap load(const String& path)
 {
-    int fd = open(path.cstr(), 1, 1);
+    int fd = open(path.c_str(), 1, 1);
 
     if (fd < 0) {
         return {};

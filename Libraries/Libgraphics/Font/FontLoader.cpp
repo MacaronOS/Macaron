@@ -66,7 +66,7 @@ struct [[gnu::packed]] Char {
 
 BitmapFont load(const String& binary_description_path, const String& texture_path)
 {
-    int fd = open(binary_description_path.cstr(), 1, 1);
+    int fd = open(binary_description_path.c_str(), 1, 1);
     if (fd < 0) {
         return {};
     }

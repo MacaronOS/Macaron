@@ -32,7 +32,7 @@ BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
     switch (op) {
     case BufferedLogOp::Endl:
         log.m_buffer.push_back('\n');
-        write(STDOUT, log.m_buffer.cstr(), log.m_buffer.size());
+        write(STDOUT, log.m_buffer.c_str(), log.m_buffer.size());
         log.m_buffer = log.m_begin_with;
         return log;
     }
@@ -42,5 +42,5 @@ BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op)
 
 BufferedLog::~BufferedLog()
 {
-    write(STDOUT, m_buffer.cstr(), m_buffer.size());
+    write(STDOUT, m_buffer.c_str(), m_buffer.size());
 }

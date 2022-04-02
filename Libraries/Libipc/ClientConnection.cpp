@@ -13,7 +13,7 @@ ClientConnection::ClientConnection(const String& endpoint)
 {
     m_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 1);
 
-    auto c_endpoint = endpoint.cstr();
+    auto c_endpoint = endpoint.c_str();
     int result = -1;
 
     for (int attempt = 0; attempt < 200; attempt++) {

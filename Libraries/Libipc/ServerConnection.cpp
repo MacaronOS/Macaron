@@ -11,7 +11,7 @@ ServerConnection::ServerConnection(const String& endpoint)
     : m_pid(getpid())
 {
     m_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 1);
-    int result = bind(m_socket_fd, endpoint.cstr());
+    int result = bind(m_socket_fd, endpoint.c_str());
     if (result < 0) {
         return;
     }

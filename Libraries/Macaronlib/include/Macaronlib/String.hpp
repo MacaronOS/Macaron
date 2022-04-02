@@ -47,7 +47,7 @@ public:
 
     // Other api functions
     Vector<String> split(const String& del) const;
-    char* cstr() const;
+    const char* c_str() const;
 
     // Iterators
     using ConstIterator = SimpleIterator<const String, const char>;
@@ -71,10 +71,13 @@ private:
     void swap();
 
 private:
-    char* m_string { nullptr };
+    char* m_string { &null_char };
 
     size_t m_size {};
     size_t m_capacity {};
+
+private:
+    static char null_char;
 };
 
 template <>

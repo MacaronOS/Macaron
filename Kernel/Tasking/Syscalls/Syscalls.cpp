@@ -232,7 +232,7 @@ static int sys_ptsname(int fd, char* buffer, size_t size)
 
     auto path = String("/dev/pts/") + ptsname.result();
     size_t sz = min(path.size(), size - 1);
-    memcpy(buffer, path.cstr(), sz);
+    memcpy(buffer, path.c_str(), sz);
     buffer[sz] = '\0';
 
     return 0;

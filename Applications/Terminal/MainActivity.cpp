@@ -80,7 +80,7 @@ void MainActivity::setup_input_line(UI::LinearLayout* layout)
         if (kb.pressed && kb.key == Key::Enter) {
             m_terminal_buffer += input_view->text();
             m_terminal_view->set_text(m_terminal_buffer);
-            write(m_pty_master, input_view->text().cstr() + 2, input_view->text().size() - 2);
+            write(m_pty_master, input_view->text().c_str() + 2, input_view->text().size() - 2);
             input_view->set_text("> ");
         }
     });

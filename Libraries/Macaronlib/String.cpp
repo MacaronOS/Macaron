@@ -3,34 +3,27 @@
 #include <String.hpp>
 #include <Vector.hpp>
 
+char String::null_char = '\0';
+
 String::String(size_t size)
 {
-    realloc(size);
+    realloc(size + 1);
 }
 
 String::String(const String& str)
 {
-    m_size = str.size();
-    m_capacity = str.capacity();
-
-    m_string = (char*)malloc(m_capacity);
-    memcpy(m_string, str.m_string, m_size);
+    *this = str;
 }
 
 String::String(String&& str)
 {
-    m_string = str.m_string;
-    m_size = str.m_size;
-    m_capacity = str.m_capacity;
-    str.m_string = nullptr;
-    str.m_size = 0;
-    str.m_capacity = 0;
+    *this = move(str);
 }
 
 String::String(const char* s)
 {
-    realloc(2);
-    for (size_t i = 0; s[i] != '\0'; i++) {
+    realloc(4);
+    for (size_t i = 0; s[i] != null_char; i++) {
         push_back(s[i]);
     }
 }
@@ -44,9 +37,9 @@ String::~String()
 {
     m_size = 0;
     m_capacity = 0;
-    if (m_string) {
+    if (m_string != &null_char) {
         free(m_string);
-        m_string = nullptr;
+        m_string = &null_char;
     }
 }
 
@@ -55,42 +48,46 @@ String& String::operator=(const String& str)
     if (m_capacity < str.capacity()) {
         realloc(str.capacity());
     }
-    memcpy(m_string, str.m_string, str.size());
+    memcpy(m_string, str.m_string, str.size() + 1);
     m_size = str.size();
     return *this;
 }
 
 String& String::operator=(String&& str)
 {
-    if (m_string) {
-        free(m_string);
+    if (this != &str) {
+        if (m_string != &null_char) {
+            free(m_string);
+        }
+        m_string = str.m_string;
+        m_size = str.m_size;
+        m_capacity = str.m_capacity;
+        str.m_string = &null_char;
+        str.m_size = 0;
+        str.m_capacity = 0;
     }
-    m_string = str.m_string;
-    m_size = str.m_size;
-    m_capacity = str.m_capacity;
-    str.m_string = nullptr;
-    str.m_size = 0;
-    str.m_capacity = 0;
     return *this;
 }
 
 String& String::operator=(const char* s)
 {
-    size_t i = 0;
-    for (; s[i] != 0; i++) {
-        if (i >= m_capacity) {
-            realloc(m_capacity * 2 + 1);
+    for (size_t i = 0; s[i] != null_char; i++) {
+        if (i + 1 >= m_capacity) {
+            realloc(m_capacity * 2 + 2);
         }
         m_string[i] = s[i];
         m_size++;
     }
+
+    m_string[m_size] = null_char;
+
     return *this;
 }
 
 void String::realloc(size_t new_capacity)
 {
     auto new_string = (char*)malloc(new_capacity);
-    memcpy(new_string, m_string, m_size);
+    memcpy(new_string, m_string, m_size + 1);
     free(m_string);
     m_string = new_string;
     m_capacity = new_capacity;
@@ -98,11 +95,12 @@ void String::realloc(size_t new_capacity)
 
 void String::push_back(char c)
 {
-    if (m_size >= m_capacity) {
-        realloc(m_capacity * 2 + 1);
+    if (m_size + 1 >= m_capacity) {
+        realloc(m_capacity * 2 + 2);
     }
 
     m_string[m_size++] = c;
+    m_string[m_size] = null_char;
 }
 
 char& String::operator[](size_t pos)
@@ -117,20 +115,19 @@ const char& String::operator[](size_t pos) const
 
 String& String::operator+=(const String& str)
 {
-    if (str.size() > m_capacity - m_size) {
-        realloc((m_capacity + str.capacity()) * 2 + 1);
+    if (m_size + str.size() + 1 >= m_capacity) {
+        realloc((m_capacity + str.capacity()) * 2 + 2);
     }
 
-    for (size_t i = 0; i < str.size(); i++) {
-        push_back(str[i]);
-    }
+    memcpy(m_string + m_size, str.m_string, str.m_size + 1);
+    m_size += str.m_size;
 
     return *this;
 }
 
 String& String::operator+=(const char* s)
 {
-    for (size_t i = 0; s[i] != 0; i++) {
+    for (size_t i = 0; s[i] != null_char; i++) {
         push_back(s[i]);
     }
 
@@ -139,9 +136,6 @@ String& String::operator+=(const char* s)
 
 String& String::operator+=(char c)
 {
-    if (m_capacity <= m_size) {
-        realloc(m_capacity * 2 + 1);
-    }
     push_back(c);
     return *this;
 }
@@ -153,6 +147,7 @@ void String::pop_back()
 
 void String::reserve(size_t capacity)
 {
+    capacity++;
     if (m_capacity < capacity) {
         realloc(capacity);
     }
@@ -161,6 +156,7 @@ void String::reserve(size_t capacity)
 void String::clear()
 {
     m_size = 0;
+    m_string[m_size] = null_char;
 }
 
 bool String::operator==(const String& str) const
@@ -181,7 +177,7 @@ bool String::operator==(const String& str) const
 bool String::operator==(const char* s) const
 {
     size_t i = 0;
-    for (; s[i] != '\0'; i++) {
+    for (; s[i] != null_char; i++) {
         if (i >= m_size) {
             return false;
         }
@@ -200,21 +196,14 @@ bool String::operator==(const char* s) const
 String String::operator+(const String& str) const
 {
     auto new_string(*this);
-    if (new_string.m_capacity - new_string.m_size - str.m_size < 0) {
-        new_string.realloc(new_string.m_capacity + str.m_capacity);
-    }
-
-    for (size_t i = 0; i < str.size(); i++) {
-        new_string[new_string.m_size++] = str[i];
-    }
-
+    new_string += str;
     return new_string;
 }
 
 String String::operator+(const char* cstr) const
 {
     auto new_string(*this);
-    for (size_t i = 0; cstr[i] != '\0'; i++) {
+    for (size_t i = 0; cstr[i] != null_char; i++) {
         new_string.push_back(cstr[i]);
     }
 
@@ -250,14 +239,9 @@ Vector<String> String::split(const String& del) const
     return result;
 }
 
-char* String::cstr() const
+const char* String::c_str() const
 {
-    char* res = static_cast<char*>(::operator new(m_size + 1));
-    for (size_t i = 0; i < m_size; i++) {
-        res[i] = m_string[i];
-    }
-    res[m_size] = '\0';
-    return res;
+    return m_string;
 }
 
 void String::swap()

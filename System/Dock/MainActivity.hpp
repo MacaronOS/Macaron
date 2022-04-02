@@ -38,7 +38,7 @@ protected:
             image_view->set_image_bitmap(bitmap);
             image_view->set_on_mouse_click_listener([=](UI::View& view) {
                 if (!fork()) {
-                    execve((application_folder + "/bin").cstr(), nullptr, nullptr);
+                    execve((application_folder + "/bin").c_str(), nullptr, nullptr);
                 } else {
                     kill(getpid(), SIGUSR1);
                 }
