@@ -41,7 +41,7 @@ private:
     void draw_background();
     void copy_changes_to_second_buffer();
 
-    Window* get_window_by_id(int id);
+    void invalidate(const Graphics::Rect& rect);
 
 private:
     Screen m_screen {};

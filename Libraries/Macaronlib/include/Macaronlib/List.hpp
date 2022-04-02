@@ -22,6 +22,8 @@ public:
     bool operator==(const ListIterator& it) const { return m_node_ptr == it.m_node_ptr; }
     bool operator!=(const ListIterator& it) const { return m_node_ptr != it.m_node_ptr; }
 
+    operator bool() { return m_node_ptr != nullptr; }
+
     ListIterator operator++()
     {
         m_node_ptr = m_node_ptr->next;
@@ -107,6 +109,12 @@ public:
     Iterator remove(const Iterator& del_it);
 
     void append(const Iterator& it_begin, const Iterator& it_end);
+
+    ValueType& back() { return *rbegin(); }
+    const ValueType& back() const { return *rbegin(); }
+
+    ValueType& front() { return *begin(); }
+    const ValueType& front() const { return *begin(); }
 
 public:
     void push_front(Node* node);

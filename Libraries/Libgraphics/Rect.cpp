@@ -62,4 +62,14 @@ Rect Rect::intersection(const Rect& rect) const
     return Rect(l, t, r, b);
 }
 
+Rect Rect::union_rect(const Rect& rect) const
+{
+    int l = min(left, rect.left);
+    int t = min(top, rect.top);
+    int r = max(right, rect.right);
+    int b = max(bottom, rect.bottom);
+
+    return Rect(l, t, r, b);
+}
+
 }

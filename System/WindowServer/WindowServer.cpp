@@ -41,9 +41,7 @@ bool WindowServer::initialize()
 
     auto initialize_buffer = [&]() {
         for (int y = 0; y < 768; y++) {
-            for (int x = 0; x < 1024; x++) {
-                m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
-            }
+            memcpy(m_screen.back_buffer()[y], m_wallpaper[y], 1024 * sizeof(Graphics::Color));
         }
     };
 
@@ -76,81 +74,69 @@ bool WindowServer::initialize()
         m_mouse.pump();
 
         if (m_mouse.x() != m_mouse.prev_x() || m_mouse.y() != m_mouse.prev_y()) {
-            m_invalid_areas.push_back(m_mouse.prev_bounds());
+            invalidate(m_mouse.prev_bounds());
             m_mouse_needs_draw_since_moved = true;
         }
 
-        // handling window frame moves
-        if (m_mouse.pressed()) {
-            if (m_selected_window) {
-                m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
+        if (!m_mouse.pressed()) {
+            m_windows.unset_picked_window();
+        }
 
-                int del_x = m_mouse.x() - m_mouse.prev_x();
-                int del_y = m_mouse.y() - m_mouse.prev_y();
-
-                m_selected_window->move_position(del_x, del_y);
-
-                m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
-            } else {
-                for (auto window_it = m_windows.rbegin(); window_it != m_windows.rend(); window_it--) {
-                    auto window = *window_it;
-
-                    if (window->visibility() == 0) {
-                        continue;
-                    }
-                    if (window->all_bounds().contains(m_mouse.x(), m_mouse.y())) {
-                        m_windows.remove(m_windows.find(window));
-                        m_windows.push_back(window);
-                        m_selected_window = window;
-                        m_active_window = window;
-                        m_invalid_areas.push_back(m_selected_window->all_bounds().intersection(m_screen.bounds()));
-                        break;
-                    }
+        if (m_mouse.pressed() && !m_windows.picked_window()) {
+            m_windows.from_top_to_bottom_visible([&](Windows::Iterator window_it) {
+                if (!(*window_it).all_bounds().contains(m_mouse.x(), m_mouse.y())) {
+                    return false;
                 }
-            }
-        } else {
-            m_selected_window = nullptr;
+
+                m_windows.bring_to_top(window_it);
+                window_it = m_windows.top();
+
+                invalidate((*window_it).all_bounds().intersection(m_screen.bounds()));
+
+                if ((*window_it).frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
+                    m_windows.set_picked_window(window_it);
+                }
+
+                return true;
+            });
         }
 
-        // handling window moves
-        for (auto window_it = m_windows.rbegin(); window_it != m_windows.rend(); window_it--) {
-            auto window = *window_it;
-            if (window->visibility() == 0) {
-                continue;
-            }
+        if (m_windows.picked_window()) {
+            auto& picked_window = *m_windows.picked_window();
+            invalidate(picked_window.all_bounds().intersection(m_screen.bounds()));
 
-            if (window->bounds().contains(m_mouse.x(), m_mouse.y())) {
-                m_connection.send_MouseMoveRequest(
-                    UI::Protocols::MouseMoveRequest(
-                        window->id, m_mouse.x() - window->x(), m_mouse.y() - window->y()),
-                    window->pid());
-                break;
-            }
+            int del_x = m_mouse.x() - m_mouse.prev_x();
+            int del_y = m_mouse.y() - m_mouse.prev_y();
+            picked_window.move_position(del_x, del_y);
+
+            invalidate(picked_window.all_bounds().intersection(m_screen.bounds()));
+            return;
         }
 
-        // handling clicks
         auto clicks = m_mouse.take_over_clicks();
         for (auto& click : clicks) {
-            for (auto window_it = m_windows.rbegin(); window_it != m_windows.rend(); window_it--) {
-                auto window = *window_it;
-                if (window->visibility() == 0) {
-                    continue;
-                }
+            m_windows.from_top_to_bottom_visible([&](Windows::Iterator window_it) {
+                auto& window = *window_it;
 
-                if (window->frame_bounds().contains(m_mouse.x(), m_mouse.y())) {
-                    if (window->back_button_clicked(click.x, click.y)) {
-                        m_connection.send_BackRequest(UI::Protocols::BackRequest(window->id), window->pid());
-                    }
-                    break;
-                }
-
-                if (window->bounds().contains(click.x, click.y)) {
+                if (window.bounds().contains(click.x, click.y)) {
                     m_connection.send_MouseClickRequest(
                         UI::Protocols::MouseClickRequest(
-                            window->id, click.x - window->x(), click.y - window->y()),
-                        window->pid());
-                    break;
+                            window.id, click.x - window.x(), click.y - window.y()),
+                        window.pid());
+                    return true;
                 }
+
+                return false;
+            });
+        }
+
+        if (m_windows.top()) {
+            auto& top_window = *m_windows.top();
+            if (top_window.bounds().contains(m_mouse.x(), m_mouse.y())) {
+                m_connection.send_MouseMoveRequest(
+                    UI::Protocols::MouseMoveRequest(
+                        top_window.id, m_mouse.x() - top_window.x(), m_mouse.y() - top_window.y()),
+                    top_window.pid());
             }
         }
     },
@@ -158,11 +144,12 @@ bool WindowServer::initialize()
 
     m_event_loop.register_fd_for_select([this]() {
         m_keyboard.pump();
-        if (m_active_window) {
+        if (m_windows.top()) {
+            auto& top_window = *m_windows.top();
             auto packets = m_keyboard.take_over_packets();
             for (auto& packet : packets) {
                 m_connection.send_KeyRequest(
-                    UI::Protocols::KeyRequest((int)packet.key, packet.pressed), m_active_window->pid());
+                    UI::Protocols::KeyRequest((int)packet.key, packet.pressed), top_window.pid());
             }
         }
     },
@@ -197,50 +184,56 @@ CreateWindowResponse WindowServer::on_CreateWindowRequest(CreateWindowRequest& r
         x_offset = 50;
     }
 
-    auto window = new Window(
+    auto& window = m_windows.create_window(
         request.titile(), request.widht(), request.height(),
         move(pixel_bitmap), shared_buffer.id, pid_from,
         x_offset, y_offset);
 
     if (request.frameless() > 0) {
-        window->make_frameless();
+        window.make_frameless();
     }
 
-    m_windows.push_back(window);
+    invalidate(window.frame_bounds());
 
-    m_invalid_areas.push_back(window->frame_bounds());
-
-    return CreateWindowResponse(window->id, shared_buffer.id);
+    return CreateWindowResponse(window.id, shared_buffer.id);
 }
 
 void WindowServer::on_MakeWindowVisibleRequest(MakeWindowVisibleRequest& request, int pid_from)
 {
     Log << "on_MakeWindowVisibleRequest" << endl;
 
-    auto window = get_window_by_id(request.widnow_id());
-    window->set_visibility(request.visibility());
-    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
+    auto window_it = m_windows.find_window_by_id(request.widnow_id());
+    if (window_it) {
+        auto& window = *window_it;
+        window.set_visibility(request.visibility());
+        invalidate(window.all_bounds().intersection(m_screen.bounds()));
+    }
 }
 
 void WindowServer::on_DestroyWindowRequest(DestroyWindowRequest& request, int pid_from)
 {
     Log << "on_DestroyWindowRequest" << endl;
 
-    auto window = get_window_by_id(request.widnow_id());
-    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
-    m_windows.remove(m_windows.find(window));
+    auto window_it = m_windows.find_window_by_id(request.widnow_id());
+    if (window_it) {
+        auto& window = *window_it;
+        invalidate(window.all_bounds().intersection(m_screen.bounds()));
+        m_windows.destroy_window(window_it);
+    }
 }
 
 void WindowServer::on_InvalidateRequest(InvalidateRequest& request, int pid_from)
 {
     Log << "Recieved InvalidateRequest " << request.window_id() << " " << request.width() << " " << request.height() << endl;
 
-    auto window = get_window_by_id(request.window_id());
-    m_invalid_areas.push_back(
-        Graphics::Rect(
-            window->x() + request.x(), window->y() + request.y(),
-            window->x() + request.x() + request.width(), window->y() + request.y() + request.height())
-            .intersection(m_screen.bounds()));
+    auto window_it = m_windows.find_window_by_id(request.window_id());
+    if (window_it) {
+        auto& window = *window_it;
+        invalidate(Graphics::Rect(
+            window.x() + request.x(), window.y() + request.y(),
+            window.x() + request.x() + request.width(), window.y() + request.y() + request.height())
+                       .intersection(m_screen.bounds()));
+    }
 }
 
 ScreenSizeResponse WindowServer::on_ScreenSizeRequest(ScreenSizeRequest& request, int pid_from)
@@ -250,11 +243,13 @@ ScreenSizeResponse WindowServer::on_ScreenSizeRequest(ScreenSizeRequest& request
 
 void WindowServer::on_SetPositionRequest(SetPositionRequest& request, int pid_from)
 {
-    auto window = get_window_by_id(request.window_id());
-
-    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
-    window->set_position(request.left(), request.top());
-    m_invalid_areas.push_back(window->all_bounds().intersection(m_screen.bounds()));
+    auto window_it = m_windows.find_window_by_id(request.window_id());
+    if (window_it) {
+        auto& window = *window_it;
+        invalidate(window.all_bounds().intersection(m_screen.bounds()));
+        window.set_position(request.left(), request.top());
+        invalidate(window.all_bounds().intersection(m_screen.bounds()));
+    }
 }
 
 void WindowServer::redraw()
@@ -262,6 +257,7 @@ void WindowServer::redraw()
     if (!m_invalid_areas.size()) {
         return;
     }
+
     draw_background();
     draw_windows();
     draw_mouse();
@@ -273,9 +269,7 @@ void WindowServer::redraw()
 
 void WindowServer::draw_background()
 {
-    for (size_t at = 0; at < m_invalid_areas.size(); at++) {
-        auto invalid_area = m_invalid_areas[at];
-
+    for (auto& invalid_area : m_invalid_areas) {
         for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
             for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
                 m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
@@ -286,33 +280,27 @@ void WindowServer::draw_background()
 
 void WindowServer::draw_windows()
 {
-    for (size_t at = 0; at < m_invalid_areas.size(); at++) {
-        auto invalid_area = m_invalid_areas[at];
-
-        for (auto window : m_windows) {
-            if (window->visibility() == 0) {
-                continue;
-            }
-
-            if (invalid_area.intersects(window->bounds())) {
-                auto intersection = invalid_area.intersection(window->bounds());
+    for (auto& window : m_windows) {
+        for (auto& invalid_area : m_invalid_areas) {
+            if (invalid_area.intersects(window.bounds())) {
+                auto intersection = invalid_area.intersection(window.bounds());
 
                 for (int y = intersection.top; y < intersection.bottom; y++) {
-                    for (int x = intersection.left; x < intersection.right; x++) {
-                        m_screen.back_buffer()[y][x] = window->buffer()[y - window->y()][x - window->x()];
-                    }
+                    memcpy(&m_screen.back_buffer()[y][intersection.left],
+                        &window.buffer()[y - window.y()][intersection.left - window.x()],
+                        intersection.width() * sizeof(Graphics::Color));
                 }
             }
 
-            if (invalid_area.intersects(window->frame_bounds())) {
-                auto intersection = invalid_area.intersection(window->frame_bounds());
+            auto frame_bounds = window.frame_bounds();
 
-                auto bounds = window->frame_bounds();
+            if (invalid_area.intersects(frame_bounds)) {
+                auto intersection = invalid_area.intersection(frame_bounds);
 
                 for (int y = intersection.top; y < intersection.bottom; y++) {
-                    for (int x = intersection.left; x < intersection.right; x++) {
-                        m_screen.back_buffer()[y][x] = window->frame_buffer()[y - bounds.top][x - bounds.left];
-                    }
+                    memcpy(&m_screen.back_buffer()[y][intersection.left],
+                        &window.frame_buffer()[y - frame_bounds.top][intersection.left - frame_bounds.left],
+                        intersection.width() * sizeof(Graphics::Color));
                 }
             }
         }
@@ -327,8 +315,7 @@ void WindowServer::draw_mouse()
     auto mouse_rect = m_mouse.bounds().intersection(m_screen.bounds());
 
     bool intersects = false;
-    for (size_t at = 0; at < m_invalid_areas.size(); at++) {
-        auto invalid_area = m_invalid_areas[at];
+    for (auto& invalid_area : m_invalid_areas) {
         if (invalid_area.intersects(mouse_rect)) {
             intersects = true;
             break;
@@ -348,36 +335,37 @@ void WindowServer::draw_mouse()
 
 void WindowServer::copy_changes_to_second_buffer()
 {
-    for (size_t at = 0; at < m_invalid_areas.size(); at++) {
-        auto invalid_area = m_invalid_areas[at];
-
+    for (auto& invalid_area : m_invalid_areas) {
         for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
-            for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
-                m_screen.back_buffer()[y][x] = m_screen.front_buffer()[y][x];
-            }
+            memcpy(&m_screen.back_buffer()[y][invalid_area.left],
+                &m_screen.front_buffer()[y][invalid_area.left],
+                invalid_area.width() * sizeof(Graphics::Color));
         }
     }
 
     auto mouse_rect = m_mouse.bounds().intersection(m_screen.bounds());
     for (int y = mouse_rect.top; y < mouse_rect.bottom; y++) {
-        for (int x = mouse_rect.left; x < mouse_rect.right; x++) {
-            m_screen.back_buffer()[y][x] = m_screen.front_buffer()[y][x];
-        }
+        memcpy(&m_screen.back_buffer()[y][mouse_rect.left],
+            &m_screen.front_buffer()[y][mouse_rect.left],
+            mouse_rect.width() * sizeof(Graphics::Color));
     }
-
-    // for (int h = 0; h < m_cursor.height(); h++) {
-    //     for (int w = 0; w < m_cursor.width(); w++) {
-    //         m_screen.back_buffer()[m_mouse.y() + h][m_mouse.x() + w] = m_screen.front_buffer()[m_mouse.y() + h][m_mouse.x() + w];
-    //     }
-    // }
 }
 
-Window* WindowServer::get_window_by_id(int id)
+void WindowServer::invalidate(const Graphics::Rect& rect)
 {
-    for (auto* window : m_windows) {
-        if (window->id == id) {
-            return window;
+    for (auto& other : m_invalid_areas) {
+        if (other.contains(rect)) {
+            return;
         }
     }
-    return nullptr;
+
+    for (auto& other : m_invalid_areas) {
+        auto uni = other.union_rect(rect);
+        if (uni.area() < other.area() + rect.area()) {
+            other = uni;
+            return;
+        }
+    }
+
+    m_invalid_areas.push_back(rect);
 }

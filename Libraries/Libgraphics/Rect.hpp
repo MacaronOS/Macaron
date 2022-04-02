@@ -15,12 +15,15 @@ public:
     size_t width() const;
     size_t height() const;
 
+    size_t area() const { return width() * height(); }
+
     bool contains(int left, int top, int right, int bottom) const;
     bool contains(const Rect&) const;
     bool contains(int x, int y) const;
 
     bool intersects(const Rect&) const;
     Rect intersection(const Rect&) const;
+    Rect union_rect(const Rect&) const;
 
     bool operator==(const Rect&) const;
 
