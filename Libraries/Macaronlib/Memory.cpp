@@ -1,5 +1,6 @@
 #include <Common.hpp>
 #include <Memory.hpp>
+#include <MemoryUtils/Memcpy.hpp>
 
 void* memset(void* ptr, int value, size_t num)
 {
@@ -11,9 +12,7 @@ void* memset(void* ptr, int value, size_t num)
 
 void* memcpy(void* write, const void* read, size_t num)
 {
-    for (size_t i = 0; i < num; i++) {
-        ((uint8_t*)write)[i] = ((uint8_t*)read)[i];
-    }
+    inline_memcpy(write, read, num);
     return write;
 }
 

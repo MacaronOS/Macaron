@@ -5,8 +5,8 @@
 void MainActivity::on_create()
 {
     set_title("Terminal");
-    constexpr uint32_t width = 460;
-    constexpr uint32_t height = 340;
+    constexpr uint32_t width = 400;
+    constexpr uint32_t height = 300;
     m_font = new Graphics::BitmapFont(Graphics::FontLoader::load("/Resources/Roboto12Medium.fnt", "/Resources/Roboto12Medium.bmp"));
 
     auto layout = new UI::LinearLayout();
@@ -63,8 +63,8 @@ void MainActivity::setup_terminal_view(UI::LinearLayout* layout)
         m_pty_master);
 
     auto terminal_view_params = new UI::LayoutParams();
-    terminal_view_params->width = 460;
-    terminal_view_params->height = 320;
+    terminal_view_params->width = 400;
+    terminal_view_params->height = 280;
 
     layout->add_view(m_terminal_view, terminal_view_params);
 }
@@ -86,7 +86,7 @@ void MainActivity::setup_input_line(UI::LinearLayout* layout)
     });
 
     auto input_view_paprams = new UI::LayoutParams();
-    input_view_paprams->width = 460;
+    input_view_paprams->width = 400;
     input_view_paprams->height = 20;
 
     layout->add_view(input_view, input_view_paprams);

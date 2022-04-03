@@ -13,6 +13,7 @@
 #include <Libgraphics/Color.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/MemoryUtils/Memcpy.hpp>
 #include <Macaronlib/Runtime.hpp>
 
 bool WindowServer::initialize()
@@ -41,7 +42,7 @@ bool WindowServer::initialize()
 
     auto initialize_buffer = [&]() {
         for (int y = 0; y < 768; y++) {
-            memcpy(m_screen.back_buffer()[y], m_wallpaper[y], 1024 * sizeof(Graphics::Color));
+            inline_memcpy(m_screen.back_buffer()[y], m_wallpaper[y], 1024 * sizeof(Graphics::Color));
         }
     };
 
@@ -286,7 +287,7 @@ void WindowServer::draw_windows()
                 auto intersection = invalid_area.intersection(window.bounds());
 
                 for (int y = intersection.top; y < intersection.bottom; y++) {
-                    memcpy(&m_screen.back_buffer()[y][intersection.left],
+                    inline_memcpy(&m_screen.back_buffer()[y][intersection.left],
                         &window.buffer()[y - window.y()][intersection.left - window.x()],
                         intersection.width() * sizeof(Graphics::Color));
                 }
@@ -298,7 +299,7 @@ void WindowServer::draw_windows()
                 auto intersection = invalid_area.intersection(frame_bounds);
 
                 for (int y = intersection.top; y < intersection.bottom; y++) {
-                    memcpy(&m_screen.back_buffer()[y][intersection.left],
+                    inline_memcpy(&m_screen.back_buffer()[y][intersection.left],
                         &window.frame_buffer()[y - frame_bounds.top][intersection.left - frame_bounds.left],
                         intersection.width() * sizeof(Graphics::Color));
                 }
@@ -337,7 +338,7 @@ void WindowServer::copy_changes_to_second_buffer()
 {
     for (auto& invalid_area : m_invalid_areas) {
         for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
-            memcpy(&m_screen.back_buffer()[y][invalid_area.left],
+            inline_memcpy(&m_screen.back_buffer()[y][invalid_area.left],
                 &m_screen.front_buffer()[y][invalid_area.left],
                 invalid_area.width() * sizeof(Graphics::Color));
         }
@@ -345,7 +346,7 @@ void WindowServer::copy_changes_to_second_buffer()
 
     auto mouse_rect = m_mouse.bounds().intersection(m_screen.bounds());
     for (int y = mouse_rect.top; y < mouse_rect.bottom; y++) {
-        memcpy(&m_screen.back_buffer()[y][mouse_rect.left],
+        inline_memcpy(&m_screen.back_buffer()[y][mouse_rect.left],
             &m_screen.front_buffer()[y][mouse_rect.left],
             mouse_rect.width() * sizeof(Graphics::Color));
     }
