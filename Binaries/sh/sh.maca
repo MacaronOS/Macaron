@@ -6,6 +6,10 @@ Build:
     Depends:
         ../../Libraries/Libsystem, ../../Libraries/Libc, ../../Libraries/Macaronlib
 
+    HeaderFolders:
+        ../../Libraries
+        ../../Libraries/Macaronlib/include
+
     Extensions:
         cpp:
             Compiler: i686-elf-g++

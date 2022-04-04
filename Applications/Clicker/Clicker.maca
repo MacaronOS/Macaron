@@ -7,6 +7,10 @@ Build:
         ../../Libraries/Libui, ../../Libraries/Libgraphics, ../../Libraries/Libipc,
         ../../Libraries/Libsystem, ../../Libraries/Libc, ../../Libraries/Macaronlib
 
+    HeaderFolders:
+        ../../Libraries
+        ../../Libraries/Macaronlib/include
+
     Extensions:
         cpp:
             Compiler: i686-elf-g++

@@ -6,6 +6,10 @@ Build:
     Depends:
         WindowServer, Dock, ../Libraries/Libc
 
+    HeaderFolders:
+        ../Libraries
+        ../Libraries/Macaronlib/include
+
     Extensions:
         cpp:
             Compiler: i686-elf-g++
