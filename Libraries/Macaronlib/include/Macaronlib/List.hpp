@@ -116,11 +116,41 @@ public:
     ValueType& front() { return *begin(); }
     const ValueType& front() const { return *begin(); }
 
-public:
+    Iterator insert_before(Iterator it, const T& val)
+    {
+        auto new_node = new Node(val);
+        insert_before(it.m_node_ptr, new_node);
+        return Iterator(new_node);
+    }
+
+    Iterator insert_before(Iterator it, T&& val)
+    {
+        auto new_node = new Node(move(val));
+        insert_before(it.m_node_ptr, new_node);
+        return Iterator(new_node);
+    }
+
+    Iterator insert_after(Iterator it, const T& val)
+    {
+        auto new_node = new Node(val);
+        insert_after(it.m_node_ptr, new_node);
+        return Iterator(new_node);
+    }
+
+    Iterator insert_after(Iterator it, T&& val)
+    {
+        auto new_node = new Node(move(val));
+        insert_after(it.m_node_ptr, new_node);
+        return Iterator(new_node);
+    }
+
+private:
     void push_front(Node* node);
     void push_back(Node* node);
+    void insert_before(Node* node, Node* new_node);
+    void insert_after(Node* node, Node* new_node);
 
-public:
+private:
     Node* m_head {};
     Node* m_tail {};
 
@@ -242,4 +272,44 @@ void List<T>::append(const Iterator& it_begin, const Iterator& it_end)
     for (auto it = it_begin; it != it_end; it++) {
         push_back(*it);
     }
+}
+
+template <typename T>
+void List<T>::insert_before(List<T>::Node* node, List<T>::Node* new_node)
+{
+    m_size++;
+    if (node == m_head) {
+        m_head->prev = new_node;
+        new_node->next = m_head;
+        m_head = new_node;
+        return;
+    }
+
+    if (node->prev) {
+        node->prev->next = new_node;
+        new_node->prev = node->prev;
+    }
+
+    node->prev = new_node;
+    new_node->next = node;
+}
+
+template <typename T>
+void List<T>::insert_after(List<T>::Node* node, List<T>::Node* new_node)
+{
+    m_size++;
+    if (node == m_tail) {
+        m_tail->next = new_node;
+        new_node->prev = m_tail;
+        m_tail = new_node;
+        return;
+    }
+
+    if (node->next) {
+        node->next->prev = new_node;
+        new_node->next = node->next;
+    }
+
+    node->next = new_node;
+    new_node->prev = node;
 }
