@@ -279,6 +279,11 @@ void List<T>::insert_before(List<T>::Node* node, List<T>::Node* new_node)
 {
     m_size++;
     if (node == m_head) {
+        if (!m_head) {
+            m_head = new_node;
+            m_tail = new_node;
+            return;
+        }
         m_head->prev = new_node;
         new_node->next = m_head;
         m_head = new_node;
@@ -299,6 +304,11 @@ void List<T>::insert_after(List<T>::Node* node, List<T>::Node* new_node)
 {
     m_size++;
     if (node == m_tail) {
+        if (!m_tail) {
+            m_tail = new_node;
+            m_head = new_node;
+            return;
+        }
         m_tail->next = new_node;
         new_node->prev = m_tail;
         m_tail = new_node;
