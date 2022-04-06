@@ -27,6 +27,8 @@ public:
     virtual size_t getdents(linux_dirent* dirp, size_t size) override;
 
     // ^Inode
+    virtual size_t read_bytes(void* buffer, size_t size, size_t offset) override;
+    virtual size_t write_bytes(void* buffer, size_t size, size_t offset) override;
     virtual size_t size() const override { return m_raw_inode.size; }
     virtual void lookup(Dentry& dentry) override;
     virtual void inode_open(FileDescription& fd) override { fd.file = static_cast<File*>(this); }
@@ -34,9 +36,6 @@ public:
 
 private:
     Ext2FileSystem& fs() { return static_cast<Ext2FileSystem&>(m_fs); }
-
-    size_t read_bytes(void* buffer, size_t size, size_t offset);
-    size_t write_bytes(void* buffer, size_t size, size_t offset);
 
     size_t resolve_local_block(size_t block);
     size_t resolve_local_block_1(size_t indirection_block, size_t block);
