@@ -136,6 +136,12 @@ static constexpr T&& forward(RemoveReference<T>& t) { return static_cast<T&&>(t)
 template <class T>
 static constexpr T&& forward(RemoveReference<T>&& t) { return static_cast<T&&>(t); }
 
+template<typename T, typename U>
+inline constexpr bool IsSame = false;
+
+template<typename T>
+inline constexpr bool IsSame<T, T> = true;
+
 extern "C" {
 
 typedef void (*AtExitFunction)(void*);
