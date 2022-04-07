@@ -198,18 +198,6 @@ Process& Scheduler::get_process(int pid)
     return (*m_process_storage)[pid];
 }
 
-void Scheduler::block_current_thread_on_read(FileSystem::FileDescription& fd)
-{
-    m_read_blockers.push_back(ReadBlocker(fd, cur_thread()));
-    block_current_thread();
-}
-
-void Scheduler::block_current_thread_on_write(FileSystem::FileDescription& fd)
-{
-    m_write_blockers.push_back(WriteBlocker(fd, cur_thread()));
-    block_current_thread();
-}
-
 void Scheduler::block_current_thread()
 {
     auto cur_thread_ptr = *m_cur_thread;
@@ -223,38 +211,6 @@ void Scheduler::block_current_thread()
         block_and_switch_to_kernel(cur_thread_ptr->kernel_context(), next_thread_ptr->kernel_context());
     } else {
         block_and_switch_to_user(cur_thread_ptr->kernel_context(), next_thread_ptr->trapframe());
-    }
-}
-
-void Scheduler::unblock_threads()
-{
-    unblock_therads_on_read();
-    unblock_therads_on_write();
-}
-
-void Scheduler::unblock_therads_on_read()
-{
-    auto read_blocker = m_read_blockers.rbegin();
-    while (read_blocker != m_read_blockers.rend()) {
-        if ((*read_blocker).can_unblock()) {
-            unblock_blocker(*read_blocker);
-            read_blocker = m_read_blockers.remove(read_blocker);
-            continue;
-        }
-        --read_blocker;
-    }
-}
-
-void Scheduler::unblock_therads_on_write()
-{
-    auto write_blocker = m_write_blockers.rbegin();
-    while (write_blocker != m_write_blockers.rend()) {
-        if ((*write_blocker).can_unblock()) {
-            unblock_blocker(*write_blocker);
-            write_blocker = m_write_blockers.remove(write_blocker);
-            continue;
-        }
-        --write_blocker;
     }
 }
 

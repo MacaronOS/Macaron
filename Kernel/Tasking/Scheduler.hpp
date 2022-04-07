@@ -47,17 +47,53 @@ public:
 
     Process& get_process(int pid);
 
-    void block_current_thread_on_read(FileSystem::FileDescription& fd);
-    void block_current_thread_on_write(FileSystem::FileDescription& fd);
-    void block_current_thread();
-
-    void unblock_threads();
-    void unblock_therads_on_read();
-    void unblock_therads_on_write();
-    void unblock_blocker(Blocker&);
+    template <typename BlockerType>
+    void block_current_thread_with(BlockerType&& blocker)
+    {
+        blocker.set_thread(cur_thread());
+        if constexpr (IsSame<BlockerType, ReadBlocker>) {
+            m_read_blockers.push_back(blocker);
+        } else if constexpr (IsSame<BlockerType, WriteBlocker>) {
+            m_write_blockers.push_back(blocker);
+        }
+        block_current_thread();
+    }
 
 private:
     Scheduler();
+
+    void unblock_threads()
+    {
+        unblock_threads_on<ReadBlocker>();
+        unblock_threads_on<WriteBlocker>();
+    }
+
+    template <typename BlockerType>
+    void unblock_threads_on()
+    {
+        if constexpr (IsSame<BlockerType, ReadBlocker>) {
+            unblock_blocker_list<List<ReadBlocker>>(m_read_blockers);
+        } else if constexpr (IsSame<BlockerType, WriteBlocker>) {
+            unblock_blocker_list<List<WriteBlocker>>(m_write_blockers);
+        }
+    }
+
+    template <typename BlockerList>
+    void unblock_blocker_list(BlockerList& blocker_list)
+    {
+        auto blocker = blocker_list.rbegin();
+        while (blocker != blocker_list.rend()) {
+            if ((*blocker).can_unblock()) {
+                unblock_blocker(*blocker);
+                blocker = blocker_list.remove(blocker);
+                continue;
+            }
+            --blocker;
+        }
+    }
+
+    void unblock_blocker(Blocker&);
+    void block_current_thread();
 
 private:
     List<Thread*>::Iterator find_next_thread();

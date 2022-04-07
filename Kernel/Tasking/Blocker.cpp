@@ -1,6 +1,6 @@
 #include "Blocker.hpp"
 
-namespace Kernel {
+namespace Kernel::Tasking {
 
 bool ReadBlocker::can_unblock() const
 {

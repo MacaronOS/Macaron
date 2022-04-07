@@ -137,7 +137,7 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
     }
 
     if (!file->can_read(*file_descr)) {
-        Tasking::Scheduler::the().block_current_thread_on_read(*file_descr);
+        Scheduler::the().block_current_thread_with<ReadBlocker>(*file_descr);
     }
 
     size_t offset = file_descr->offset;
@@ -158,7 +158,7 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
     }
 
     if (!file->can_write(*file_descr)) {
-        Tasking::Scheduler::the().block_current_thread_on_write(*file_descr);
+        Scheduler::the().block_current_thread_with<WriteBlocker>(*file_descr);
     }
 
     size_t offset = file_descr->offset;

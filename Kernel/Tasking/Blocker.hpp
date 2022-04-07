@@ -3,16 +3,16 @@
 #include "Thread.hpp"
 #include <FileSystem/Base/File.hpp>
 
-namespace Kernel {
+namespace Kernel::Tasking {
+
+class Scheduler;
 
 class Blocker {
-public:
-    Blocker(Tasking::Thread* thread)
-        : m_thread(thread)
-    {
-    }
+    friend class Scheduler;
 
+private:
     Tasking::Thread* thread() { return m_thread; }
+    void set_thread(Tasking::Thread* thread) { m_thread = thread; }
 
 private:
     Tasking::Thread* m_thread;
@@ -20,9 +20,8 @@ private:
 
 class ReadBlocker final : public Blocker {
 public:
-    ReadBlocker(FileSystem::FileDescription& fd, Tasking::Thread* thread)
-        : Blocker(thread)
-        , m_fd(fd)
+    ReadBlocker(FileSystem::FileDescription& fd)
+        : m_fd(fd)
     {
     }
 
@@ -34,9 +33,8 @@ private:
 
 class WriteBlocker final : public Blocker {
 public:
-    WriteBlocker(FileSystem::FileDescription& fd, Tasking::Thread* thread)
-        : Blocker(thread)
-        , m_fd(fd)
+    WriteBlocker(FileSystem::FileDescription& fd)
+        : m_fd(fd)
     {
     }
 
