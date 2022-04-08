@@ -122,21 +122,7 @@ void Scheduler::prepare_switching_to_the_next_thread(List<Thread*>::Iterator nex
         if (next_thread_ptr->signal_is_pending(signo)) {
             next_thread_ptr->signal_remove_pending(signo);
             if (next_thread_ptr->signal_handler(signo)) {
-                auto trapframe = next_thread_ptr->trapframe();
-                trapframe->push(trapframe->useresp);
-                trapframe->push(trapframe->eflags);
-                trapframe->push(trapframe->eip);
-                trapframe->push(trapframe->eax);
-                trapframe->push(trapframe->ecx);
-                trapframe->push(trapframe->edx);
-                trapframe->push(trapframe->ebx);
-                trapframe->push(trapframe->esp);
-                trapframe->push(trapframe->ebp);
-                trapframe->push(trapframe->esi);
-                trapframe->push(trapframe->edi);
-                trapframe->push(signo);
-                trapframe->eax = (uint32_t)next_thread_ptr->signal_handler(signo);
-                trapframe->eip = next_thread_ptr->m_process->m_signal_handler_ip;
+                next_thread_ptr->jump_to_signal_caller(signo);
             } else {
                 auto action = default_action(signo);
                 if (action == DefaultAction::Terminate) {

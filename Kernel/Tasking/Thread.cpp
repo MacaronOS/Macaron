@@ -25,4 +25,22 @@ Thread* Thread::TieNewTo(Process* proc)
     return thread;
 }
 
+void Thread::jump_to_signal_caller(int signo)
+{
+    trapframe()->push(trapframe()->useresp);
+    trapframe()->push(trapframe()->eflags);
+    trapframe()->push(trapframe()->eip);
+    trapframe()->push(trapframe()->eax);
+    trapframe()->push(trapframe()->ecx);
+    trapframe()->push(trapframe()->edx);
+    trapframe()->push(trapframe()->ebx);
+    trapframe()->push(trapframe()->esp);
+    trapframe()->push(trapframe()->ebp);
+    trapframe()->push(trapframe()->esi);
+    trapframe()->push(trapframe()->edi);
+    trapframe()->push(signo);
+    trapframe()->eax = (uint32_t)signal_handler(signo);
+    trapframe()->eip = m_process->m_signal_handler_ip;
+}
+
 }

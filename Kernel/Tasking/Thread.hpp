@@ -136,6 +136,8 @@ public:
     // Signal handlers
     void set_signal_handler(int signo, void* handler) { m_signal_handlers[signo] = handler; }
     void* signal_handler(int signo) { return m_signal_handlers[signo]; }
+    void jump_to_signal_caller(int signo);
+
 
 private:
     Process* m_process;
