@@ -3,8 +3,7 @@
 
 namespace Kernel::Tasking {
 
-struct [[gnu::packed]] ElfHeader
-{
+struct [[gnu::packed]] ElfHeader {
     uint8_t ident[16];
     uint16_t type;
     uint16_t machine;
@@ -21,8 +20,13 @@ struct [[gnu::packed]] ElfHeader
     uint16_t shstrndx;
 };
 
-struct [[gnu::packed]] ElfProgramHeader
-{
+enum SegmentPermissions {
+    PF_X = 0x1,
+    PF_W = 0x2,
+    PF_R = 0x4,
+};
+
+struct [[gnu::packed]] ElfProgramHeader {
     uint32_t type;
     uint32_t offset;
     uint32_t vaddr;
@@ -41,8 +45,8 @@ enum class ElfProgramHeaderType {
     NOTE,
     SHLIB,
     PHDR,
-    LOPROC = 0x70000000, //reserved
-    HIPROC = 0x7FFFFFFF //reserved
+    LOPROC = 0x70000000, // reserved
+    HIPROC = 0x7FFFFFFF // reserved
 };
 
 }

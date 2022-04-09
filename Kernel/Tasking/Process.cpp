@@ -1,4 +1,5 @@
 #include "Process.hpp"
+#include "Elf/DemandElfLoader.hpp"
 #include "Scheduler.hpp"
 
 #include <Libkernel/Logger.hpp>
@@ -42,21 +43,15 @@ Process::Process(uint32_t id)
     : m_id(id)
 {
     m_task_manager = &Scheduler::the();
-    m_pdir_phys = VMM::the().create_page_directory();
 
     // Setup signal caller
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
     auto space = allocate_space(signal_caller_len, Flags::User | Flags::Write | Flags::Present);
     if (space) {
         m_signal_handler_ip = space.result();
-        VMM::the().set_page_directory(m_pdir_phys);
+        VMM::the().set_page_directory(m_memory_description.memory_descriptor());
         memcpy((void*)m_signal_handler_ip, (void*)signal_caller, signal_caller_len);
     }
-}
-
-Process::~Process()
-{
-    VMM::the().free_page_directory(m_pdir_phys);
 }
 
 void Process::Terminate()
@@ -76,6 +71,7 @@ Process* Process::Fork()
 
     new_proc->m_file_descriptions = m_file_descriptions;
     new_proc->m_free_file_descriptors = m_free_file_descriptors;
+    new_proc->m_memory_description.fork_from(m_memory_description);
 
     for (auto region : m_regions) {
         if (region.type == Region::Type::Mapping) {
@@ -84,7 +80,7 @@ Process* Process::Fork()
             if (region.mapping == Region::Mapping::Anonimous) {
                 continue;
             }
-            new_proc->copy_by_region(region, m_pdir_phys);
+            new_proc->copy_by_region(region, m_memory_description.memory_descriptor());
         }
     }
 
@@ -93,11 +89,11 @@ Process* Process::Fork()
     new_thread->trapframe()->eax = 0;
 
     static char stack_buff[USER_STACK_SIZE];
-    VMM::the().set_page_directory(m_pdir_phys);
+    VMM::the().set_page_directory(m_memory_description.memory_descriptor());
     memcpy(&stack_buff, cur_thread->user_stack_ptr(), USER_STACK_SIZE);
-    VMM::the().set_page_directory(new_proc->m_pdir_phys);
+    VMM::the().set_page_directory(new_proc->m_memory_description.memory_descriptor());
     memcpy(new_thread->user_stack_ptr(), &stack_buff, USER_STACK_SIZE);
-    VMM::the().set_page_directory(m_pdir_phys);
+    VMM::the().set_page_directory(m_memory_description.memory_descriptor());
 
     return new_proc;
 }
@@ -108,12 +104,14 @@ void Process::LoadAndPrepare(const String& binary)
     auto initial_thread = *m_threads.begin();
     free_regions_except_include(initial_thread->user_stack() / PAGE_SIZE);
 
-    auto elf = Elf::load_exec(binary, m_pdir_phys);
-    if (!elf) {
+    m_memory_description.free_memory();
+
+    auto entry_point = DemandElfLoader(*this, binary).load();
+    if (!entry_point) {
         return;
     }
-    m_regions.append(elf.result().regions.begin(), elf.result().regions.end());
-    initial_thread->trapframe()->eip = elf.result().entry_point;
+
+    initial_thread->trapframe()->eip = entry_point.result();
 }
 
 ProcessStorage* Process::PS() const
@@ -128,7 +126,7 @@ List<Thread*>& Process::TS() const
 
 KErrorOr<uint32_t> Process::psized_allocate_space(uint32_t pages, uint32_t flags, Region::Mapping mapping)
 {
-    auto page_or_error = VMM::the().psized_find_free_space(m_pdir_phys, pages);
+    auto page_or_error = VMM::the().psized_find_free_space(m_memory_description.memory_descriptor(), pages);
     if (page_or_error) {
         allocate_space_from_by_region({
             .type = Region::Type::Allocated,
@@ -164,29 +162,29 @@ void Process::psized_map(uint32_t page, uint32_t frame, uint32_t pages, uint32_t
 
 KErrorOr<uint32_t> Process::psized_find_free_space(uint32_t pages) const
 {
-    return VMM::the().psized_find_free_space(m_pdir_phys, pages);
+    return VMM::the().psized_find_free_space(m_memory_description.memory_descriptor(), pages);
 }
 
 KErrorOr<uint32_t> Process::find_free_space(uint32_t sz) const
 {
-    return VMM::the().find_free_space(m_pdir_phys, sz);
+    return VMM::the().find_free_space(m_memory_description.memory_descriptor(), sz);
 }
 
 void Process::allocate_space_from_by_region(const Region& region)
 {
-    VMM::the().psized_allocate_space_from(m_pdir_phys, region.page, region.pages, region.flags);
+    VMM::the().psized_allocate_space_from(m_memory_description.memory_descriptor(), region.page, region.pages, region.flags);
     add_region(region);
 }
 
 void Process::copy_by_region(const Region& region, uint32_t page_dir_from)
 {
-    VMM::the().psized_copy(m_pdir_phys, page_dir_from, region.page, region.pages);
+    VMM::the().psized_copy(m_memory_description.memory_descriptor(), page_dir_from, region.page, region.pages);
     add_region(region);
 }
 
 void Process::map_by_region(const Region& region)
 {
-    VMM::the().psized_map(m_pdir_phys, region.page, region.frame, region.pages, region.flags);
+    VMM::the().psized_map(m_memory_description.memory_descriptor(), region.page, region.frame, region.pages, region.flags);
     add_region(region);
 }
 
@@ -200,9 +198,9 @@ void Process::free_regions_except_include(uint32_t page)
             continue;
         }
         if (region.type == Region::Type::Mapping) {
-            VMM::the().psized_unmap(m_pdir_phys, region.page, region.pages);
+            VMM::the().psized_unmap(m_memory_description.memory_descriptor(), region.page, region.pages);
         } else {
-            VMM::the().psized_free(m_pdir_phys, region.page, region.pages);
+            VMM::the().psized_free(m_memory_description.memory_descriptor(), region.page, region.pages);
         }
 
         it = m_regions.remove(it);
