@@ -6,8 +6,8 @@
 #include <Libkernel/Logger.hpp>
 #include <Memory/pmm.hpp>
 #include <Memory/vmm.hpp>
-#include <Tasking/Scheduler.hpp>
 #include <Tasking/Process.hpp>
+#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
@@ -53,7 +53,17 @@ bool BochVBE::install()
 
 void BochVBE::mmap(void* addr, uint32_t size)
 {
-    Scheduler::the().cur_process()->map((uint32_t)addr, (uint32_t)m_pixels, min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
+    auto& memory_description = Scheduler::the().cur_process()->memory_description();
+    auto area = memory_description.find_memory_area_for((size_t)addr);
+    if (!area) {
+        return;
+    }
+
+    VMM::the().map(
+        memory_description.memory_descriptor(),
+        area->vm_start(),
+        (uint32_t)m_pixels,
+        min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
 }
 
 inline void BochVBE::write(IndexRegister reg, uint16_t data)

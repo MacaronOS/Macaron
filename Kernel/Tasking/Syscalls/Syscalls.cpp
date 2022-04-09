@@ -5,6 +5,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Tasking/MemoryDescription/AnonVMArea.hpp>
 #include <Tasking/Process.hpp>
 #include <Tasking/Scheduler.hpp>
 #include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
@@ -69,26 +70,27 @@ static int sys_execve(const char* filename, const char* const* argv, const char*
 
 static int sys_mmap(MmapParams* params)
 {
-    Log() << "handling mmap\n";
     auto cur_process = Scheduler::the().cur_process();
+    Log() << "handling mmap (pid=" << cur_process->id() << ")\n";
 
     if (params->flags & MAP_ANONYMOUS) {
-        auto mem = cur_process->allocate_space(params->size, Flags::Present | Flags::Write | Flags::User);
+        auto mem = cur_process->memory_description().allocate_memory_area<AnonVMArea>(params->size, VM_READ | VM_WRITE);
+
         if (!mem) {
             // TODO: implement errno
             return -1;
         }
-        return mem.result();
+        return mem.result()->vm_start();
     }
 
     if (params->fd) {
         uint32_t mem = params->start;
         if (!mem) {
-            auto free_space = cur_process->find_free_space(params->size);
+            auto free_space = cur_process->memory_description().allocate_memory_area<VMArea>(params->size, VM_READ | VM_WRITE);
             if (!free_space) {
                 return -1;
             }
-            mem = free_space.result();
+            mem = free_space.result()->vm_start();
         }
         auto error_happened = VFS::the().mmap(params->fd, (void*)mem, params->size);
         if (error_happened) {
