@@ -7,8 +7,8 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
-#include <Tasking/Scheduler.hpp>
 #include <Tasking/Process.hpp>
+#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -195,6 +195,18 @@ KErrorOr<uint32_t> VMM::psized_find_free_space(uint32_t page_directory_phys, uin
 
 void VMM::handle_interrupt(Trapframe* tf)
 {
+    auto address = get_cr2();
+    if (Tasking::Scheduler::the().running()) {
+        auto vm_area = Scheduler::the().cur_process()->memory_description().find_memory_area_for(address);
+        if (vm_area) {
+            if (vm_area->fault(address) == VMArea::PageFaultStatus::Handled) {
+                return;
+            }
+        } else {
+            Log() << "NO AREA FOUND " << address;
+        }
+    }
+
     Log() << "\nPage fault! Info:\n";
 
     Log() << "Virtual address: ";

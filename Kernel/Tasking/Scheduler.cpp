@@ -111,7 +111,7 @@ void Scheduler::prepare_switching_to_the_next_thread(List<Thread*>::Iterator nex
     DescriptorTables::GDT::SetKernelStack(next_thread_ptr->kernel_stack_top());
 
     // swtich to the new process address space
-    VMM::the().set_page_directory(next_thread_ptr->m_process->m_pdir_phys);
+    VMM::the().set_page_directory(next_thread_ptr->m_process->m_memory_description.memory_descriptor());
 
     next_thread_ptr->m_process->cur_thread = next_thread_ptr;
 

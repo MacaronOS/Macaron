@@ -1,5 +1,6 @@
 #pragma once
 #include "Elf/Elf.hpp"
+#include "MemoryDescription/MemoryDescription.hpp"
 #include "Scheduler.hpp"
 #include "Thread.hpp"
 
@@ -72,10 +73,11 @@ public:
     KError free_file_descriptor(fd_t fd);
     KErrorOr<fd_t> allocate_file_descriptor();
 
+    MemoryDescription& memory_description() { return m_memory_description; }
+
 private:
     Process() = default;
     explicit Process(uint32_t id);
-    ~Process();
 
 private:
     void free_threads_except_one();
@@ -98,7 +100,6 @@ public:
 
     uint32_t m_id {};
     Thread* cur_thread {};
-    uint32_t m_pdir_phys {};
 
     List<Thread*> m_threads {};
     List<Region> m_regions {};
@@ -107,6 +108,8 @@ public:
 
     Array<FileDescription, 32> m_file_descriptions {};
     StaticStack<fd_t, 32> m_free_file_descriptors {};
+
+    MemoryDescription m_memory_description {};
 };
 
 // TODO: implement object pool
