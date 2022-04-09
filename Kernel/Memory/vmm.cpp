@@ -101,6 +101,48 @@ void VMM::psized_copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t p
     }
 }
 
+void VMM::psized_copy_allocated(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages)
+{
+    auto pdir_virt_to = PageBinder<PageDir*>(pdir_phys_to, m_buffer_1);
+    auto pdir_virt_from = PageBinder<PageDir*>(pdir_phys_from, m_buffer_2);
+
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
+
+    while (pages > 0) {
+        // Skip an entire page table, if there's no page table in "from" page directory.
+        if (!pdir_virt_from.get()->entries[pdir_index]._bits) {
+            pages -= min(pages, 1024);
+            pt_index = 0;
+            pdir_index++;
+            continue;
+        }
+
+        create_ptable_if_neccesary(pdir_virt_to.get()->entries[pdir_index], pdir_virt_from.get()->entries[pdir_index]._bits & 0x7);
+
+        {
+            auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
+            auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+
+            auto& ptentry_from = ptable_virt_from.get()->entries[pt_index];
+            auto& ptentry_to = ptable_virt_to.get()->entries[pt_index];
+
+            if (ptentry_from._bits) {
+                ptentry_to = ptentry_from;
+                ptentry_to.frame_adress = clone_frame(ptentry_from.frame_adress * PAGE_SIZE) / PAGE_SIZE;
+            }
+        }
+
+        page++;
+        pages--;
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+        }
+    }
+}
+
 void VMM::psized_free(uint32_t pdir_phys, uint32_t page, uint32_t pages)
 {
     auto pdir_virt = PageBinder<PageDir*>(pdir_phys, m_buffer_1);
