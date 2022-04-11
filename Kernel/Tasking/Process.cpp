@@ -1,6 +1,7 @@
 #include "Process.hpp"
 #include "Elf/DemandElfLoader.hpp"
 #include "Scheduler.hpp"
+#include <Tasking/MemoryDescription/AnonVMArea.hpp>
 
 #include <Libkernel/Logger.hpp>
 #include <Memory/Region.hpp>
@@ -73,27 +74,10 @@ Process* Process::Fork()
     new_proc->m_free_file_descriptors = m_free_file_descriptors;
     new_proc->m_memory_description.fork_from(m_memory_description);
 
-    for (auto region : m_regions) {
-        if (region.type == Region::Type::Mapping) {
-            new_proc->map_by_region(region);
-        } else {
-            if (region.mapping == Region::Mapping::Anonimous) {
-                continue;
-            }
-            new_proc->copy_by_region(region, m_memory_description.memory_descriptor());
-        }
-    }
-
     auto new_thread = Thread::TieNewTo(new_proc);
+    new_thread->set_user_stack(cur_thread->user_stack());
     *new_thread->trapframe() = *cur_thread->trapframe();
     new_thread->trapframe()->eax = 0;
-
-    static char stack_buff[USER_STACK_SIZE];
-    VMM::the().set_page_directory(m_memory_description.memory_descriptor());
-    memcpy(&stack_buff, cur_thread->user_stack_ptr(), USER_STACK_SIZE);
-    VMM::the().set_page_directory(new_proc->m_memory_description.memory_descriptor());
-    memcpy(new_thread->user_stack_ptr(), &stack_buff, USER_STACK_SIZE);
-    VMM::the().set_page_directory(m_memory_description.memory_descriptor());
 
     return new_proc;
 }
@@ -101,16 +85,26 @@ Process* Process::Fork()
 void Process::LoadAndPrepare(const String& binary)
 {
     free_threads_except_one();
-    auto initial_thread = *m_threads.begin();
-    free_regions_except_include(initial_thread->user_stack() / PAGE_SIZE);
-
     m_memory_description.free_memory();
+
+    auto stack_area = m_memory_description.allocate_memory_area<AnonVMArea>(USER_STACK_SIZE, VM_READ | VM_WRITE);
+    if (!stack_area) {
+        return;
+    }
+
+    VMM::the().allocate_space_from(
+        m_memory_description.memory_descriptor(),
+        stack_area.result()->vm_start(),
+        stack_area.result()->vm_size(),
+        Flags::User | Flags::Write | Flags::Present);
 
     auto entry_point = DemandElfLoader(*this, binary).load();
     if (!entry_point) {
         return;
     }
 
+    auto initial_thread = *m_threads.begin();
+    initial_thread->set_user_stack(stack_area.result()->vm_start());
     initial_thread->trapframe()->eip = entry_point.result();
 }
 
@@ -186,25 +180,6 @@ void Process::map_by_region(const Region& region)
 {
     VMM::the().psized_map(m_memory_description.memory_descriptor(), region.page, region.frame, region.pages, region.flags);
     add_region(region);
-}
-
-void Process::free_regions_except_include(uint32_t page)
-{
-    auto it = m_regions.rbegin();
-    while (it != m_regions.rend()) {
-        auto region = *it;
-        if (region.includes(page)) {
-            it--;
-            continue;
-        }
-        if (region.type == Region::Type::Mapping) {
-            VMM::the().psized_unmap(m_memory_description.memory_descriptor(), region.page, region.pages);
-        } else {
-            VMM::the().psized_free(m_memory_description.memory_descriptor(), region.page, region.pages);
-        }
-
-        it = m_regions.remove(it);
-    }
 }
 
 void Process::free_threads_except_one()

@@ -22,6 +22,7 @@ public:
 
     inline size_t vm_start() const { return m_vm_start; }
     inline size_t vm_end() const { return m_vm_end; }
+    inline size_t vm_size() const { return vm_end() - vm_start(); }
     inline uint32_t flags() const { return m_flags; }
 
     enum class PageFaultStatus {

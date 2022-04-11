@@ -60,7 +60,7 @@ bool Scheduler::run()
     PIT::the().register_tick_reciever(this);
     switch_to_user_mode();
     reschedule();
-    return false;
+    return true;
 }
 
 void Scheduler::reschedule()

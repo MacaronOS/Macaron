@@ -81,7 +81,6 @@ private:
 
 private:
     void free_threads_except_one();
-    void free_regions_except_include(uint32_t page);
 
     void map_by_region(const Region& region);
     void allocate_space_from_by_region(const Region& region);

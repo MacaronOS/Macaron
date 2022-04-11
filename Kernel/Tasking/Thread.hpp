@@ -70,6 +70,12 @@ public:
 
     inline void Terminate() { m_state = ThreadState::Terminated; }
 
+    inline void set_user_stack(size_t addr)
+    {
+        m_user_stack = addr;
+        reset_stack();
+    }
+
     inline void set_privilege(Privilege pr)
     {
         m_privilege = pr;
@@ -137,7 +143,6 @@ public:
     void set_signal_handler(int signo, void* handler) { m_signal_handlers[signo] = handler; }
     void* signal_handler(int signo) { return m_signal_handlers[signo]; }
     void jump_to_signal_caller(int signo);
-
 
 private:
     Process* m_process;

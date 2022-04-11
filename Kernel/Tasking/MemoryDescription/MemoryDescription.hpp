@@ -9,7 +9,7 @@ namespace Kernel::Tasking {
 
 /*
 MemoryDescription is an analogue of Linux mm_struct.
-It belongs to a Process and is used to keep a list of mapped areas of virtual memory. 
+It belongs to a Process and is used to keep a list of mapped areas of virtual memory.
 */
 
 class MemoryDescription {
@@ -28,7 +28,7 @@ public:
         size = (size + 4096 - 1) / 4096 * 4096;
 
         if (m_memory_areas.empty()) {
-            m_memory_areas.push_back(new T(*this, 0, size, flags));
+            m_memory_areas.push_back(new T(*this, 4096, 4096 + size, flags));
             return static_cast<T*>(m_memory_areas.back());
         }
 
