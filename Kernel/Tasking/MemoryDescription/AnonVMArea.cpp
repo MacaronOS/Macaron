@@ -18,7 +18,6 @@ AnonVMArea::PageFaultStatus AnonVMArea::fault(size_t address)
         1,
         Flags::User | Flags::Write | Flags::Present);
 
-    memset((void*)(page_aligned_address), 0, PAGE_SIZE);
     return PageFaultStatus::Handled;
 }
 
@@ -30,7 +29,7 @@ void AnonVMArea::fork(MemoryDescription& other)
         return;
     }
 
-    VMM::the().copy_allocated(other.memory_descriptor(),
+    VMM::the().copy_allocated_as_cow(other.memory_descriptor(),
         m_memory_description.memory_descriptor(),
         vm_start(), vm_end() - vm_start());
 }

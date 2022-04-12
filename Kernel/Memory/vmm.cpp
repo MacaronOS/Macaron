@@ -62,15 +62,25 @@ void VMM::psized_unmap(uint32_t pdir_phys, uint32_t page, uint32_t pages)
     uint32_t pdir_index = page / 1024;
     uint32_t pt_index = page % 1024;
 
-    auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+    while (pages > 0) {
+        if (!pdir_virt.get()->entries[pdir_index]._bits) {
+            pages -= min(pages, 1024);
+            pt_index = 0;
+            pdir_index++;
+            continue;
+        }
 
-    for (; pages > 0; pages--, page++) {
-        ptable_virt.get()->entries[pt_index]._bits = 0;
+        auto ptable_virt = PageBinder<PageTable*>(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+
+        if (ptable_virt.get()->entries[pt_index]._bits) {
+            ptable_virt.get()->entries[pt_index]._bits = 0;
+        }
+
+        pages--;
         pt_index++;
         if (pt_index >= 1024) {
             pt_index = 0;
             pdir_index++;
-            ptable_virt.rebind(pdir_virt.get()->entries[pdir_index].pt_base * PAGE_SIZE);
         }
     }
 }
@@ -124,12 +134,51 @@ void VMM::psized_copy_allocated(uint32_t pdir_phys_to, uint32_t pdir_phys_from, 
             auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
             auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
 
-            auto& ptentry_from = ptable_virt_from.get()->entries[pt_index];
-            auto& ptentry_to = ptable_virt_to.get()->entries[pt_index];
+            auto ptentry_from = ptable_virt_from.get()->entries[pt_index];
 
             if (ptentry_from._bits) {
-                ptentry_to = ptentry_from;
-                ptentry_to.frame_adress = clone_frame(ptentry_from.frame_adress * PAGE_SIZE) / PAGE_SIZE;
+                ptable_virt_to.get()->entries[pt_index] = ptentry_from;
+                ptable_virt_to.get()->entries[pt_index].frame_adress = clone_frame(ptentry_from.frame_adress * PAGE_SIZE) / PAGE_SIZE;
+            }
+        }
+
+        page++;
+        pages--;
+        pt_index++;
+        if (pt_index >= 1024) {
+            pt_index = 0;
+            pdir_index++;
+        }
+    }
+}
+
+void VMM::psized_copy_allocated_as_cow(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages)
+{
+    auto pdir_virt_to = PageBinder<PageDir*>(pdir_phys_to, m_buffer_1);
+    auto pdir_virt_from = PageBinder<PageDir*>(pdir_phys_from, m_buffer_2);
+
+    uint32_t pdir_index = page / 1024;
+    uint32_t pt_index = page % 1024;
+
+    while (pages > 0) {
+        // Skip an entire page table, if there's no page table in "from" page directory.
+        if (!pdir_virt_from.get()->entries[pdir_index]._bits) {
+            pages -= min(pages, 1024);
+            pt_index = 0;
+            pdir_index++;
+            continue;
+        }
+
+        create_ptable_if_neccesary(pdir_virt_to.get()->entries[pdir_index], pdir_virt_from.get()->entries[pdir_index]._bits & 0x7);
+
+        {
+            auto ptable_virt_to = PageBinder<PageTable*>(pdir_virt_to.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_1);
+            auto ptable_virt_from = PageBinder<PageTable*>(pdir_virt_from.get()->entries[pdir_index].pt_base * PAGE_SIZE, m_buffer_2);
+
+            if (ptable_virt_from.get()->entries[pt_index]._bits) {
+                // "from" page is copy-on-write now.
+                ptable_virt_from.get()->entries[pt_index].rw = false;
+                ptable_virt_to.get()->entries[pt_index] = ptable_virt_from.get()->entries[pt_index];
             }
         }
 
@@ -237,22 +286,54 @@ KErrorOr<uint32_t> VMM::psized_find_free_space(uint32_t page_directory_phys, uin
 
 void VMM::handle_interrupt(Trapframe* tf)
 {
+    constexpr auto pagefault_write_flag = 1 << 1;
     auto address = get_cr2();
-    if (Tasking::Scheduler::the().running()) {
+
+    auto try_resolve_page_fault = [&]() -> bool {
+        // If no such area is found, this is an incorrect memory reference.
         auto vm_area = Scheduler::the().cur_process()->memory_description().find_memory_area_for(address);
-        if (vm_area) {
-            if (vm_area->fault(address) == VMArea::PageFaultStatus::Handled) {
-                return;
-            }
-        } else {
-            Log() << "NO AREA FOUND " << address;
+        if (!vm_area) {
+            return false;
         }
+
+        // Check flags
+        if (tf->err_code & pagefault_write_flag && !(vm_area->flags() & VM_WRITE)) {
+            return false;
+        }
+
+        // Check if this page was marked as copy-on-write.
+        // Create an individual copy for that page if so.
+        if (tf->err_code & pagefault_write_flag) {
+            auto pdir_virt = PageBinder<PageDir*>(current_page_directory(), m_buffer_1);
+            auto pdentry = pdir_virt.get()->entries[address / PAGE_SIZE / 1024];
+
+            if (pdentry._bits) {
+                auto ptable_virt = PageBinder<PageTable*>(pdentry.pt_base * PAGE_SIZE, m_buffer_2);
+
+                if (ptable_virt.get()->entries[address / PAGE_SIZE % 1024]._bits) {
+                    if (ptable_virt.get()->entries[address / PAGE_SIZE % 1024].rw == false) {
+                        auto frame_address = ptable_virt.get()->entries[address / PAGE_SIZE % 1024].frame_adress * FRAME_SIZE;
+                        ptable_virt.get()->entries[address / PAGE_SIZE % 1024].frame_adress = clone_frame(frame_address) / FRAME_SIZE;
+                        ptable_virt.get()->entries[address / PAGE_SIZE % 1024].rw = true;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // This is a valid memory reference in the context of VMM.
+        // But it still needs to be resolved by a corresponding VMArea object.
+        return vm_area->fault(address) == VMArea::PageFaultStatus::Handled;
+    };
+
+    if (Scheduler::the().running() && try_resolve_page_fault()) {
+        return;
     }
 
-    Log() << "\nPage fault! Info:\n";
+    Log() << "\n Can not resolve a page fault!\nInformation:\n";
 
     Log() << "Virtual address: ";
-    Log() << get_cr2();
+    Log() << address;
 
     static PageFaultFlag flags[] = {
         PageFaultFlag::Present,

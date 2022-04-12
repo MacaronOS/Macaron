@@ -32,7 +32,7 @@ void MemoryDescription::free_memory()
     auto last_area = m_memory_areas.rbegin();
     while (last_area != m_memory_areas.rend()) {
         auto& area = *last_area;
-        VMM::the().psized_free(m_memory_descriptor, area->vm_start() / PAGE_SIZE, (area->vm_end() - area->vm_start()) / PAGE_SIZE);
+        VMM::the().psized_unmap(m_memory_descriptor, area->vm_start() / PAGE_SIZE, (area->vm_end() - area->vm_start()) / PAGE_SIZE);
         delete *last_area;
         last_area = m_memory_areas.remove(last_area);
     }

@@ -51,7 +51,7 @@ void ElfVMArea::fork(MemoryDescription& other)
     auto& area = *elf_vm_area.result();
     area.setup(m_inode, m_offset, m_vaddr, m_filesz, m_memsz);
 
-    VMM::the().copy_allocated(other.memory_descriptor(),
+    VMM::the().copy_allocated_as_cow(other.memory_descriptor(),
         m_memory_description.memory_descriptor(),
         vm_start(), vm_end() - vm_start());
 }

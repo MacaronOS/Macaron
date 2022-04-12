@@ -110,6 +110,7 @@ public:
     void psized_unmap(uint32_t pdir_phys, uint32_t page, uint32_t pages);
     void psized_copy(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages);
     void psized_copy_allocated(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages);
+    void psized_copy_allocated_as_cow(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t page, uint32_t pages);
     void psized_free(uint32_t pdir_phys, uint32_t page, uint32_t pages);
     void psized_allocate_space_from(uint32_t pdir_phys, uint32_t page, uint32_t pages, uint32_t flags);
 
@@ -134,6 +135,11 @@ public:
     inline void copy_allocated(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t virt_addr, uint32_t size)
     {
         return psized_copy_allocated(pdir_phys_to, pdir_phys_from, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE);
+    }
+
+    inline void copy_allocated_as_cow(uint32_t pdir_phys_to, uint32_t pdir_phys_from, uint32_t virt_addr, uint32_t size)
+    {
+        return psized_copy_allocated_as_cow(pdir_phys_to, pdir_phys_from, virt_addr / PAGE_SIZE, (size + PAGE_SIZE - 1) / PAGE_SIZE);
     }
 
     inline void free(uint32_t pdir_phys, uint32_t virt_addr, uint32_t size)
