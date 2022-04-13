@@ -299,9 +299,9 @@ void WindowServer::draw_windows()
                 auto intersection = invalid_area.intersection(frame_bounds);
 
                 for (int y = intersection.top; y < intersection.bottom; y++) {
-                    inline_memcpy(&m_screen.back_buffer()[y][intersection.left],
-                        &window.frame_buffer()[y - frame_bounds.top][intersection.left - frame_bounds.left],
-                        intersection.width() * sizeof(Graphics::Color));
+                    for (int x = intersection.left; x < intersection.right; x++) {
+                         m_screen.back_buffer()[y][x].mix_with(window.frame_buffer()[y - frame_bounds.top][x - frame_bounds.left]);
+                     }
                 }
             }
         }
