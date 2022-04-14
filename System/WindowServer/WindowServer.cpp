@@ -259,8 +259,9 @@ void WindowServer::redraw()
         return;
     }
 
+    Graphics::Canvas canvas(m_screen.back_buffer());
     draw_background();
-    draw_windows();
+    draw_windows(canvas);
     draw_mouse();
 
     m_screen.swap_buffers();
@@ -272,39 +273,32 @@ void WindowServer::draw_background()
 {
     for (auto& invalid_area : m_invalid_areas) {
         for (size_t y = invalid_area.top; y < invalid_area.bottom; y++) {
-            for (size_t x = invalid_area.left; x < invalid_area.right; x++) {
-                m_screen.back_buffer()[y][x] = m_wallpaper[y][x];
-            }
+            inline_memcpy(&m_screen.back_buffer()[y][invalid_area.left],
+                &m_wallpaper[y][invalid_area.left],
+                invalid_area.width() * sizeof(Graphics::Color));
         }
     }
 }
 
-void WindowServer::draw_windows()
+void WindowServer::draw_windows(Graphics::Canvas& canvas)
 {
-    for (auto& window : m_windows) {
-        for (auto& invalid_area : m_invalid_areas) {
-            if (invalid_area.intersects(window.bounds())) {
-                auto intersection = invalid_area.intersection(window.bounds());
+    for (auto& invalid_area : m_invalid_areas) {
+        canvas.save();
+        canvas.clip_rect(invalid_area);
 
-                for (int y = intersection.top; y < intersection.bottom; y++) {
-                    inline_memcpy(&m_screen.back_buffer()[y][intersection.left],
-                        &window.buffer()[y - window.y()][intersection.left - window.x()],
-                        intersection.width() * sizeof(Graphics::Color));
-                }
-            }
+        for (auto& window : m_windows) {
+            canvas.save();
+            canvas.clip_rect(window.bounds());
+            canvas.draw_bitmap(window.buffer(), window.x(), window.y());
+            canvas.restore();
 
-            auto frame_bounds = window.frame_bounds();
-
-            if (invalid_area.intersects(frame_bounds)) {
-                auto intersection = invalid_area.intersection(frame_bounds);
-
-                for (int y = intersection.top; y < intersection.bottom; y++) {
-                    for (int x = intersection.left; x < intersection.right; x++) {
-                         m_screen.back_buffer()[y][x].mix_with(window.frame_buffer()[y - frame_bounds.top][x - frame_bounds.left]);
-                     }
-                }
-            }
+            canvas.save();
+            canvas.clip_rect(window.frame_bounds());
+            canvas.draw_bitmap(window.frame_buffer(), window.frame_bounds().left, window.frame_bounds().top);
+            canvas.restore();
         }
+
+        canvas.restore();
     }
 }
 

@@ -11,6 +11,7 @@
 #include <Macaronlib/List.hpp>
 #include <Macaronlib/ObjectPool.hpp>
 
+#include <Libgraphics/Canvas.hpp>
 #include <Libgraphics/Font/BitmapFont.hpp>
 #include <Libgraphics/Rect.hpp>
 
@@ -36,7 +37,7 @@ public:
 
 private:
     void redraw();
-    void draw_windows();
+    void draw_windows(Graphics::Canvas& canvas);
     void draw_mouse();
     void draw_background();
     void copy_changes_to_second_buffer();

@@ -53,7 +53,6 @@ public:
     {
         clip_rect(Graphics::Rect(left, top, right, bottom));
     }
-    void clip_out_rect(const Rect& rect);
 
     // Drawing
     inline void draw_color(const Color& color)
@@ -104,8 +103,11 @@ public:
 
     inline void draw_bitmap(const Graphics::Bitmap& bitmap, int xoffset = 0, int yoffset = 0)
     {
-        int top = max(state().clip_rect.top, state().cursor_y + yoffset);
-        int left = max(state().clip_rect.left, state().cursor_x + xoffset);
+        xoffset += state().cursor_x;
+        yoffset += state().cursor_y;
+
+        int top = max(state().clip_rect.top, yoffset);
+        int left = max(state().clip_rect.left, xoffset);
 
         for (int y = top; y < state().clip_rect.bottom; y++) {
             if (y - top >= bitmap.height()) {
@@ -115,7 +117,7 @@ public:
                 if (x - left >= bitmap.width()) {
                     break;
                 }
-                m_bitmap[y][x].mix_with(bitmap[y - top][x - left]);
+                m_bitmap[y][x].mix_with(bitmap[y - yoffset][x - xoffset]);
             }
         }
     }
