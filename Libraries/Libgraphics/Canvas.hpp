@@ -122,6 +122,101 @@ public:
         }
     }
 
+    inline void draw_rounded_bitmap(const Graphics::Bitmap& bitmap, int radius_top, int radius_bottom, int xoffset = 0, int yoffset = 0)
+    {
+        int xo = xoffset;
+        int yo = yoffset;
+        xoffset += state().cursor_x;
+        yoffset += state().cursor_y;
+
+        int left = max(state().clip_rect.left, xoffset);
+        int top = max(state().clip_rect.top, yoffset);
+        int right = state().clip_rect.right;
+        int bottom = state().clip_rect.bottom;
+
+        auto draw_rounded_borders = [&](int left, int top, int ox, int oy, int r) {
+            int t_bottom = min(bottom, top + r);
+            int t_right = min(right, left + r);
+
+            for (int y = top; y < t_bottom; y++) {
+                if (y - top >= bitmap.height()) {
+                    break;
+                }
+                for (int x = left; x < t_right; x++) {
+                    if (x - left >= bitmap.width()) {
+                        break;
+                    }
+                    if ((x - ox) * (x - ox) + (y - oy) * (y - oy) <= r * r) {
+                        m_bitmap[y][x].mix_with(bitmap[y - yoffset][x - xoffset]);
+                    }
+                }
+            }
+        };
+
+        if (radius_top && left - xoffset <= radius_top && top - yoffset <= radius_top) {
+            draw_rounded_borders(
+                left,
+                top,
+                left + radius_top,
+                top + radius_top,
+                radius_top);
+        }
+
+        if (radius_top && xoffset + bitmap.width() - right <= radius_top && top - yoffset <= radius_top) {
+            draw_rounded_borders(
+                right - radius_top,
+                top,
+                right - radius_top - 1,
+                top + radius_top - 1,
+                radius_top);
+        }
+
+        if (radius_bottom && xoffset + bitmap.width() - right <= radius_bottom && yoffset + bitmap.height() - bottom <= radius_bottom) {
+            draw_rounded_borders(
+                right - radius_bottom,
+                bottom - radius_bottom,
+                right - radius_bottom - 1,
+                bottom - radius_bottom - 1,
+                radius_bottom);
+        }
+
+        if (radius_bottom && left - xoffset <= radius_bottom && yoffset + bitmap.height() - bottom <= radius_bottom) {
+            draw_rounded_borders(
+                left,
+                bottom - radius_bottom,
+                left + radius_bottom,
+                bottom - radius_bottom,
+                radius_bottom);
+        }
+
+        save();
+        clip_rect(
+            xoffset + radius_top,
+            yoffset,
+            xoffset + bitmap.width() - radius_top,
+            yoffset + radius_top);
+        draw_bitmap(bitmap, xo, yo);
+        restore();
+
+        save();
+        clip_rect(
+            xoffset,
+            yoffset + radius_top,
+            xoffset + bitmap.width(),
+            yoffset + bitmap.height() - radius_bottom);
+        draw_bitmap(bitmap, xo, yo);
+        restore();
+
+        save();
+        clip_rect(
+            xoffset + radius_bottom,
+            yoffset + bitmap.height() - radius_bottom,
+            xoffset + bitmap.width() - radius_bottom,
+            yoffset + bitmap.height());
+        draw_bitmap(bitmap, xo, yo);
+        restore();
+    }
+
     void draw_rect(const Rect& rect, const Paint& paint);
 
 private:

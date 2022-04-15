@@ -289,7 +289,7 @@ void WindowServer::draw_windows(Graphics::Canvas& canvas)
         for (auto& window : m_windows) {
             canvas.save();
             canvas.clip_rect(window.bounds());
-            canvas.draw_bitmap(window.buffer(), window.x(), window.y());
+            canvas.draw_rounded_bitmap(window.buffer(), window.frameless() ? 7 : 0, 7, window.x(), window.y());
             canvas.restore();
 
             canvas.save();

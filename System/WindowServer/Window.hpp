@@ -45,6 +45,8 @@ public:
         m_frame_height = 0;
     }
 
+    inline bool frameless() { return !m_frame_height; }
+
     inline void set_visibility(int visibility)
     {
         m_visibility = visibility;
