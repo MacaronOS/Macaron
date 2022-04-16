@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Memory/Region.hpp>
-
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/ObjectPool.hpp>
 
@@ -9,6 +7,11 @@ namespace Kernel {
 
 class SharedBufferStorage {
     static constexpr uint32_t MAX_BUFFERS = 100;
+
+    struct SharedBuffer {
+        size_t frame;
+        size_t pages;
+    };
 
 public:
     static SharedBufferStorage& the()
@@ -21,7 +24,7 @@ public:
     uint32_t get_buffer(uint32_t id);
 
 private:
-    ObjectPool<Memory::Region, MAX_BUFFERS> m_free_regions {};
+    ObjectPool<SharedBuffer, MAX_BUFFERS> m_free_buffers {};
 };
 
 }
