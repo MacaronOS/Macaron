@@ -8,6 +8,14 @@ SECTIONS
   *(.multiboot)
  }
 
+.boot_init_bss ALIGN(4K): {
+    *(.boot_init_bss.*)
+ }
+
+ .boot_init_text ALIGN(4K): {
+    *(.boot_init_text.*)
+ }
+
  . += 0xC0000000;
 
  _kernel_start = .;
@@ -53,7 +61,7 @@ SECTIONS
   *(COMMON)
   *(.bss*)
   _kernel_stack_start = .;
-  *(.bootstrap_stack)
+  . += 0x10000;
   _kernel_stack_end = .;
  }
 

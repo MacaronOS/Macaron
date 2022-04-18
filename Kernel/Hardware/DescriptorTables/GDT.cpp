@@ -5,7 +5,7 @@ namespace Kernel::DescriptorTables::GDT {
 extern "C" void gdt_flush(uint32_t);
 extern "C"  void tss_flush();
 
-extern "C" uint32_t stack_top;
+extern "C" uint32_t _kernel_stack_end;
 
 
 class [[gnu::packed]] GDTEntry {
@@ -82,7 +82,7 @@ void Setup()
     gdt_entries[UserData].setup(0, 0xFFFFFFFF, 0xF2, 0xCF);
 
     tss_entry.ss0 = KernelDataOffset;
-    tss_entry.esp0 = (uint32_t)&stack_top;
+    tss_entry.esp0 = (uint32_t)&_kernel_stack_end;
     tss_entry.cs = KernelCodeOffset | 3;
     tss_entry.ss = KernelDataOffset | 3;
     tss_entry.ds = KernelDataOffset | 3;

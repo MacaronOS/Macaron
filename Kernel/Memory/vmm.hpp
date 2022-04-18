@@ -75,8 +75,8 @@ private:
         // by HIGHER_HALF_OFFSET=0xC0000000, we know, that the page table is one of 2 - 768 or 769
 
         static PageTable* page_tables[] = {
-            (PageTable*)&boot_page_table1,
-            (PageTable*)&boot_page_table2,
+            (PageTable*)((uint32_t)&boot_page_table1 + HIGHER_HALF_OFFSET),
+            (PageTable*)((uint32_t)&boot_page_table2 + HIGHER_HALF_OFFSET),
         };
 
         PageTable* pt = page_tables[m_buff_virt / PAGE_SIZE / 1024 - 768];
@@ -178,12 +178,12 @@ public:
 
         // kernel page tables, that has been filled in Boot.s, they are used in PageBinder, so
         // they should be merged in every page directory
-        pd_virt.get()->entries[768].pt_base = ((uint32_t)&boot_page_table1 - HIGHER_HALF_OFFSET) / FRAME_SIZE;
+        pd_virt.get()->entries[768].pt_base = ((uint32_t)&boot_page_table1) / FRAME_SIZE;
         pd_virt.get()->entries[768].present = true;
         pd_virt.get()->entries[768].rw = true;
         pd_virt.get()->entries[768].user_mode = true;
 
-        pd_virt.get()->entries[769].pt_base = ((uint32_t)&boot_page_table2 - HIGHER_HALF_OFFSET) / FRAME_SIZE;
+        pd_virt.get()->entries[769].pt_base = ((uint32_t)&boot_page_table2) / FRAME_SIZE;
         pd_virt.get()->entries[769].present = true;
         pd_virt.get()->entries[769].rw = true;
         pd_virt.get()->entries[769].user_mode = true;
@@ -264,8 +264,8 @@ private:
     uint32_t m_buffer_1;
     uint32_t m_buffer_2;
 
-    uint32_t m_kernel_directory_phys { (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET };
-    uint32_t m_cur_page_dir_phys { (uint32_t)&boot_page_directory - HIGHER_HALF_OFFSET };
+    uint32_t m_kernel_directory_phys { (uint32_t)&boot_page_directory };
+    uint32_t m_cur_page_dir_phys { (uint32_t)&boot_page_directory };
 };
 
 }
