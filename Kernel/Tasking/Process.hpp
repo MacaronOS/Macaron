@@ -1,5 +1,4 @@
 #pragma once
-#include "Elf/Elf.hpp"
 #include "MemoryDescription/MemoryDescription.hpp"
 #include "Scheduler.hpp"
 #include "Thread.hpp"
