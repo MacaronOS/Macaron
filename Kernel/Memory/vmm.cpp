@@ -289,9 +289,9 @@ void VMM::handle_interrupt(Trapframe* tf)
     constexpr auto pagefault_write_flag = 1 << 1;
     auto address = get_cr2();
 
-    auto try_resolve_page_fault = [&]() -> bool {
+    auto try_resolve_page_fault = [&](MemoryDescription& memory_description) -> bool {
         // If no such area is found, this is an incorrect memory reference.
-        auto vm_area = Scheduler::the().cur_process()->memory_description().find_memory_area_for(address);
+        auto vm_area = memory_description.find_memory_area_for(address);
         if (!vm_area) {
             return false;
         }
@@ -326,7 +326,10 @@ void VMM::handle_interrupt(Trapframe* tf)
         return vm_area->fault(address) == VMArea::PageFaultStatus::Handled;
     };
 
-    if (Scheduler::the().running() && try_resolve_page_fault()) {
+    if (Scheduler::the().running() && try_resolve_page_fault(Scheduler::the().cur_process()->memory_description())) {
+        return;
+    }
+    if (try_resolve_page_fault(kernel_memory_description)) {
         return;
     }
 

@@ -39,7 +39,7 @@ void Thread::jump_to_signal_caller(int signo)
     trapframe()->push(trapframe()->edi);
     trapframe()->push(signo);
     trapframe()->eax = (uint32_t)signal_handler(signo);
-    trapframe()->eip = m_process->m_signal_handler_ip;
+    trapframe()->eip = Scheduler::the().m_signal_handler_ip;
 }
 
 }

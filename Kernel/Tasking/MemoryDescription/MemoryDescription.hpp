@@ -15,6 +15,10 @@ It belongs to a Process and is used to keep a list of mapped areas of virtual me
 class MemoryDescription {
 public:
     MemoryDescription();
+    MemoryDescription(uint32_t memory_descriptor)
+        : m_memory_descriptor(memory_descriptor)
+    {
+    }
 
     inline uint32_t memory_descriptor() const { return m_memory_descriptor; }
 
@@ -23,7 +27,7 @@ public:
     VMArea* find_memory_area_for(size_t address);
 
     template <typename T>
-    KErrorOr<T*> allocate_memory_area(size_t size, uint32_t flags)
+    KErrorOr<T*> allocate_memory_area(size_t size, uint32_t flags, bool allow_higher_half = false)
     {
         size = (size + 4096 - 1) / 4096 * 4096;
 
@@ -32,7 +36,7 @@ public:
             return static_cast<T*>(m_memory_areas.back());
         }
 
-        if (m_memory_areas.back()->vm_end() + size <= 0xC0000000) {
+        if (allow_higher_half || m_memory_areas.back()->vm_end() + size <= 0xC0000000) {
             m_memory_areas.push_back(new T(
                 *this,
                 m_memory_areas.back()->vm_end(),
@@ -75,5 +79,12 @@ public:
     List<VMArea*> m_memory_areas {};
     uint32_t m_memory_descriptor;
 };
+
+// A special memory description object used to store memory mappings that are
+// above the HIGHER_HALF_OFFSET.
+// Currently this object is used for keeping a shared area that processes use
+// for calling signals.
+extern MemoryDescription kernel_memory_description;
+void init_kernel_memory_description();
 
 }

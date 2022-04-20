@@ -38,4 +38,18 @@ void MemoryDescription::free_memory()
     }
 }
 
+MemoryDescription kernel_memory_description((uint32_t)&boot_page_directory);
+void init_kernel_memory_description()
+{
+    // When booted we mapped 8MB of the kernel virtual memory starting from HIGHER_HALF_OFFSET.
+    // See Libkernel/Init.cpp.
+    // Save information about that mapping in kernel_memory_description object.
+    size_t kernel_memory_start = HIGHER_HALF_OFFSET;
+    size_t kernel_memory_size = 8 * 1024 * 1024;
+    kernel_memory_description.allocate_memory_area_from<VMArea>(
+        kernel_memory_start,
+        kernel_memory_size,
+        VM_READ | VM_WRITE | VM_EXEC);
+}
+
 }

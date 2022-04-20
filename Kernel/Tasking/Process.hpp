@@ -102,8 +102,6 @@ public:
     List<Thread*> m_threads {};
     List<Region> m_regions {};
 
-    uint32_t m_signal_handler_ip {};
-
     Array<FileDescription, 32> m_file_descriptions {};
     StaticStack<fd_t, 32> m_free_file_descriptors {};
 

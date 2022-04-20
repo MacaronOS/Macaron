@@ -8,6 +8,7 @@
 #include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Tasking/MemoryDescription/AnonVMArea.hpp>
 
 namespace Kernel::Tasking {
 
@@ -26,18 +27,36 @@ extern "C" void switch_to_user(Trapframe* tf);
 extern "C" void block_and_switch_to_kernel(KernelContext** cur, KernelContext** next);
 extern "C" void block_and_switch_to_user(KernelContext** cur, Trapframe* next);
 
+extern "C" void signal_caller();
+extern "C" void signal_caller_end();
+
 using namespace Memory;
 using namespace Logger;
 using namespace Devices;
 
-Scheduler::Scheduler()
+bool Scheduler::initialize()
 {
     m_process_storage = new ProcessStorage();
+
+    // Setup signal caller.
+    uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
+    auto signal_area = kernel_memory_description.allocate_memory_area<AnonVMArea>(
+        signal_caller_len,
+        VM_READ | VM_WRITE | VM_EXEC,
+        true);
+
+    if (!signal_area) {
+        return false;
+    }
+
+    VMM::the().set_page_directory(kernel_memory_description.memory_descriptor());
+    memcpy((void*)signal_area.result()->vm_start(), (void*)signal_caller, signal_caller_len);
+    m_signal_handler_ip = signal_area.result()->vm_start();
+    return true;
 }
 
 bool Scheduler::run()
 {
-    m_running = true;
     m_cur_thread = m_threads.begin();
 
     auto process = cur_process();
@@ -57,6 +76,7 @@ bool Scheduler::run()
     stdout.file = console;
     stderr.file = console;
 
+    m_running = true;
     PIT::the().register_tick_reciever(this);
     switch_to_user_mode();
     reschedule();

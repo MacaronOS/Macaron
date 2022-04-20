@@ -17,6 +17,7 @@
 #include <Memory/pmm.hpp>
 #include <Memory/vmm.hpp>
 #include <Multiboot.hpp>
+#include <Tasking/MemoryDescription/MemoryDescription.hpp>
 #include <Tasking/Scheduler.hpp>
 #include <Tasking/Syscalls/Syscalls.hpp>
 #include <Time/TimeManager.hpp>
@@ -71,6 +72,10 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
         ASSERT_PANIC("Could not initialize TimeManager");
     }
 
+    Tasking::init_kernel_memory_description();
+    if (!Scheduler::the().initialize()) {
+        ASSERT_PANIC("Could not initialize Scheduler");
+    }
     Scheduler::the().create_process("/System/System");
     Scheduler::the().run();
 }

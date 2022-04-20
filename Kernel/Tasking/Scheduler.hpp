@@ -18,6 +18,7 @@ class Thread;
 
 class Scheduler : public TickReciever {
     friend class Process;
+    friend class Thread;
 
 public:
     static Scheduler& the()
@@ -25,7 +26,7 @@ public:
         static Scheduler the {};
         return the;
     }
-
+    bool initialize();
     bool run();
 
     inline bool running() const { return m_running; }
@@ -60,8 +61,6 @@ public:
     }
 
 private:
-    Scheduler();
-
     void unblock_threads()
     {
         unblock_threads_on<ReadBlocker>();
@@ -108,6 +107,7 @@ private:
 
     List<ReadBlocker> m_read_blockers {};
     List<WriteBlocker> m_write_blockers {};
+    size_t m_signal_handler_ip {};
 };
 
 }

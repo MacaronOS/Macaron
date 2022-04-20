@@ -48,11 +48,6 @@ Process::Process(uint32_t id)
     // Setup signal caller
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
     auto space = allocate_space(signal_caller_len, Flags::User | Flags::Write | Flags::Present);
-    if (space) {
-        m_signal_handler_ip = space.result();
-        VMM::the().set_page_directory(m_memory_description.memory_descriptor());
-        memcpy((void*)m_signal_handler_ip, (void*)signal_caller, signal_caller_len);
-    }
 }
 
 void Process::Terminate()
