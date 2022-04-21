@@ -42,7 +42,7 @@ bool BochVBE::install()
     write(IndexRegister::Bank, 0);
 
     auto addr = m_pci_device->read_base_register(0) & 0xfffffff0;
-    PMM::the().occypy_addr_range(addr, 1024 * 768 * 4 * 2);
+    PMM::the().occupy_range_sized(addr, 1024 * 768 * 4 * 2);
     VMM::the().map(VMM::the().current_page_directory(), addr, addr, 1024 * 768 * 4 * 2, Flags::Present | Flags::User | Flags::Write);
 
     m_pixels = reinterpret_cast<uint32_t*>(addr);

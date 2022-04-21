@@ -30,9 +30,9 @@ public:
 
     void occypy_frame(uint32_t frame);
 
-    inline void occypy_addr_range(uint32_t addr_start, uint32_t size)
+    inline void occupy_range_sized(uint32_t addr_start, uint32_t size)
     {
-        occupy_range(addr_start / FRAME_SIZE, (size + FRAME_SIZE - 1) / FRAME_SIZE);
+        occupy_range(addr_start, addr_start + addr_start);
     }
 
 private:
