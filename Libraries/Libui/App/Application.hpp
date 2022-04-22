@@ -3,8 +3,8 @@
 #include "../Connection.hpp"
 #include "../Events.hpp"
 
-#include <Macaronlib/Vector.hpp>
 #include <Macaronlib/List.hpp>
+#include <Macaronlib/Vector.hpp>
 
 namespace UI {
 
@@ -23,7 +23,11 @@ public:
 
     virtual void on_MouseClickRequest(MouseClickRequest& request) override;
     virtual void on_MouseMoveRequest(MouseMoveRequest& request) override;
-    virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override { }
+    virtual CloseWindowResponse on_CloseWindowRequest(CloseWindowRequest& request) override
+    {
+        // TODO: support closing windows
+        return CloseWindowResponse(request.window_id(), -1);
+    }
     virtual void on_CreateWindowResponse(CreateWindowResponse& response) override;
     virtual void on_ScreenSizeResponse(ScreenSizeResponse& response) override;
     virtual void on_BackRequest(BackRequest& request) override;

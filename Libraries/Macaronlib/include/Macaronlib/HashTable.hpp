@@ -165,7 +165,7 @@ public:
 
     Iterator insert(T&& val)
     {
-        auto& bucket = lookup_for_writing(val);
+        auto& bucket = *lookup_for_writing(val);
         new (bucket.slot()) T(move(val));
         bucket.set_used();
         bucket.unset_deleted();
@@ -229,12 +229,12 @@ private:
         return bucket_for_val;
     }
 
-    Bucket& lookup_for_writing(const T& val)
+    Bucket* lookup_for_writing(const T& val)
     {
         // Check if element is already presented
         auto try_value_exists_bucket = lookup_for_reading<T, TypeTraits>(val);
         if (try_value_exists_bucket) {
-            return *try_value_exists_bucket;
+            return try_value_exists_bucket;
         }
 
         // If element isn't presented, it should be added
@@ -248,9 +248,11 @@ private:
         for (size_t i = 0; i < m_capacity; i++) {
             auto& bucket = m_buckets[(hash + i) % m_capacity];
             if (bucket.deleted() || !bucket.used()) {
-                return bucket;
+                return &bucket;
             }
         }
+
+        return nullptr;
     }
 
     bool need_rehash() const { return (m_size + 1) * 100 >= m_capacity * load_factor; }

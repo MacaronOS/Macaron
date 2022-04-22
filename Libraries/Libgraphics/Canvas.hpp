@@ -18,7 +18,7 @@ public:
     Canvas(Bitmap& bitmap)
         : m_bitmap(bitmap)
     {
-        state() = { { 0, 0, bitmap.width(), bitmap.height() }, 0, 0 };
+        state() = { { 0, 0, static_cast<int>(bitmap.width()), static_cast<int>(bitmap.height()) }, 0, 0 };
     }
 
     inline int save()

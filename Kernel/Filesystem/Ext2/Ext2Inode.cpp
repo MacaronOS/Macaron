@@ -152,7 +152,7 @@ size_t Ext2Inode::read_bytes(void* buffer, size_t size, size_t offset)
     // Reading the middle part of the block range: [start_block + 1 ; enb_block - 1]
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
-        fs().read_block(ext2_block, buffer + has_bytes);
+        fs().read_block(ext2_block, (void*)((uintptr_t)buffer + has_bytes));
         has_bytes += m_block_size;
     }
 
@@ -163,7 +163,7 @@ size_t Ext2Inode::read_bytes(void* buffer, size_t size, size_t offset)
         ext2_block = resolve_local_block(block_end);
         fs().read_block(ext2_block, fs().block_buffer());
 
-        memcpy(buffer + has_bytes, fs().block_buffer(), left_read_from_end_block);
+        memcpy((void*)((uintptr_t)buffer + has_bytes), fs().block_buffer(), left_read_from_end_block);
 
         has_bytes += left_read_from_end_block;
     }
@@ -192,7 +192,7 @@ size_t Ext2Inode::write_bytes(void* buffer, size_t size, size_t offset)
     // Writing to the middle part of the block range: [start_block + 1 ; enb_block - 1]
     for (size_t block = block_start + 1; block < block_end; block++) {
         ext2_block = resolve_local_block(block);
-        fs().write_block(ext2_block, buffer + has_bytes);
+        fs().write_block(ext2_block, (void*)((uintptr_t)buffer + has_bytes));
         has_bytes += m_block_size;
     }
 
@@ -203,7 +203,7 @@ size_t Ext2Inode::write_bytes(void* buffer, size_t size, size_t offset)
         ext2_block = resolve_local_block(block_end);
         fs().read_block(ext2_block, fs().block_buffer());
 
-        memcpy(fs().block_buffer(), buffer + has_bytes, left_write_to_end_block);
+        memcpy(fs().block_buffer(), (void*)((uintptr_t)buffer + has_bytes), left_write_to_end_block);
 
         fs().write_block(ext2_block, fs().block_buffer());
         has_bytes += left_write_to_end_block;

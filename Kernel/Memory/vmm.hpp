@@ -16,15 +16,14 @@
 
 namespace Kernel::Memory {
 
-// int paging.s
 extern "C" void set_cr3(uint32_t page_directory_phys);
 extern "C" void enable_paging();
 extern "C" void flush_cr3();
 extern "C" uint32_t get_cr2();
 
-extern "C" uint32_t boot_page_directory;
-extern "C" uint32_t boot_page_table1;
-extern "C" uint32_t boot_page_table2;
+extern "C" volatile PageDir boot_page_directory;
+extern "C" volatile PageTable boot_page_table1;
+extern "C" volatile PageTable boot_page_table2;
 
 template <typename T>
 class [[nodiscard]] PageBinder {
