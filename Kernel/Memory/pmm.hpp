@@ -19,28 +19,31 @@ public:
 
     void initialize(multiboot_info* multiboot_info);
 
-    // allocates available frame
-    // frame represents a FRAME_SIZE sized chunk of main memory
-    uint32_t allocate_frame();
+    // Allocates an available frame.
+    // Frame represents a FRAME_SIZE sized chunk of main memory.
+    size_t allocate_frame();
+    // Alocate "frames" number of sequential frames.
+    size_t allocate_frames(size_t frames);
+    // Deallocates a frame.
+    void free_frame(size_t frame);
+    // Marks a frame as occupied.
+    void occypy_frame(size_t frame);
 
-    uint32_t allocate_frames(uint32_t frames);
-
-    // deallocates frame
-    void free_frame(uint32_t frame);
-
-    void occypy_frame(uint32_t frame);
-
-    inline void occupy_range_sized(uint32_t addr_start, uint32_t size)
+    inline void occupy_range_sized(uintptr_t addr_start, size_t size)
     {
-        occupy_range(addr_start, addr_start + addr_start);
+        occupy_range(addr_start, addr_start + size);
+    }
+
+    inline void free_range_sized(uintptr_t addr_start, size_t size)
+    {
+        free_range(addr_start, addr_start + size);
     }
 
 private:
-    // marks memory [left ; right] as occupied
-    void occupy_range(uint32_t left, size_t right);
-
-    // marks memory [left ; right] as free
-    void free_range(uint32_t left, size_t right);
+    // Marks memory [start ; end) as occupied.
+    void occupy_range(uintptr_t start, uintptr_t end);
+    // Marks memory [start ; end) as free.
+    void free_range(uintptr_t start, uintptr_t end);
 
 private:
     Bitmap m_pmmap; // contains the state of each memory block (0 - unused, 1 - used)
