@@ -7,22 +7,26 @@
 class Bitmap {
 public:
     Bitmap() = default;
-    Bitmap(uint32_t location, size_t size);
+    Bitmap(uintptr_t location, size_t size);
     Bitmap(size_t size);
-
     ~Bitmap();
 
-    static Bitmap wrap(uint32_t location, size_t size);
+    Bitmap(const Bitmap&);
+    Bitmap& operator=(const Bitmap&);
+    Bitmap(Bitmap&&);
+    Bitmap& operator=(Bitmap&&);
 
     size_t size() const;
     size_t memory_size() const;
 
-    bool operator[](const size_t index);
-    void set_true(const size_t index);
-    void set_false(const size_t index);
+    bool operator[](size_t index);
+    void set_true(size_t index);
+    void set_false(size_t index);
     size_t find_first_zero();
     void fill();
     void clear();
+
+    static Bitmap wrap(uintptr_t location, size_t size);
 
 private:
     bool m_self_created {}; // indecates if a bitmap was created or wraped

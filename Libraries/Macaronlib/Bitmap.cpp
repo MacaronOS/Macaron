@@ -1,10 +1,11 @@
 #include <Bitmap.hpp>
 #include <Common.hpp>
+#include <Runtime.hpp>
 
 #define BITMAP_CHUNK_SIZE 32
 #define BITMAP_CHUNK_COUNT(sz) (sz / BITMAP_CHUNK_SIZE + ((sz % BITMAP_CHUNK_SIZE > 0) ? 1 : 0))
 
-Bitmap::Bitmap(uint32_t location, size_t size)
+Bitmap::Bitmap(uintptr_t location, size_t size)
     : m_array((uint32_t*)location)
     , m_size(size)
     , m_memory_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
@@ -17,10 +18,10 @@ Bitmap::Bitmap(size_t size)
     , m_memory_size(BITMAP_CHUNK_COUNT(size) * BITMAP_CHUNK_SIZE)
     , m_self_created(true)
 {
-    m_array = new uint32_t[BITMAP_CHUNK_COUNT(size)];
+    m_array = (uint32_t*)malloc(m_memory_size);
 }
 
-Bitmap Bitmap::wrap(uint32_t location, uint32_t size)
+Bitmap Bitmap::wrap(uintptr_t location, uint32_t size)
 {
     return Bitmap(location, size);
 }
@@ -28,8 +29,42 @@ Bitmap Bitmap::wrap(uint32_t location, uint32_t size)
 Bitmap::~Bitmap()
 {
     if (m_self_created) {
-        delete[] m_array;
+        free(m_array);
     }
+}
+
+Bitmap::Bitmap(const Bitmap& other)
+{
+    *this = other;
+}
+
+Bitmap& Bitmap::operator=(const Bitmap& other)
+{
+    m_self_created = other.m_self_created;
+    m_size = other.m_size;
+    m_memory_size = other.m_memory_size;
+    m_array = (uint32_t*)malloc(m_memory_size);
+    for (size_t i = 0; i < BITMAP_CHUNK_COUNT(m_size); i++) {
+        m_array[i] = other.m_array[i];
+    }
+    return *this;
+}
+
+Bitmap::Bitmap(Bitmap&& other)
+{
+    *this = move(other);
+}
+
+Bitmap& Bitmap::operator=(Bitmap&& other)
+{
+    m_self_created = other.m_self_created;
+    m_size = other.m_size;
+    other.m_size = 0;
+    m_memory_size = other.m_memory_size;
+    other.m_memory_size = 0;
+    m_array = other.m_array;
+    other.m_array = nullptr;
+    return *this;
 }
 
 size_t Bitmap::size() const
@@ -42,17 +77,17 @@ size_t Bitmap::memory_size() const
     return m_memory_size;
 }
 
-bool Bitmap::operator[](const size_t index)
+bool Bitmap::operator[](size_t index)
 {
     return (m_array[index / BITMAP_CHUNK_SIZE] >> (index % BITMAP_CHUNK_SIZE)) & 1;
 }
 
-void Bitmap::set_true(const size_t index)
+void Bitmap::set_true(size_t index)
 {
     m_array[index / BITMAP_CHUNK_SIZE] |= (1 << (index % BITMAP_CHUNK_SIZE));
 }
 
-void Bitmap::set_false(const size_t index)
+void Bitmap::set_false(size_t index)
 {
     m_array[index / BITMAP_CHUNK_SIZE] &= ~(1 << (index % BITMAP_CHUNK_SIZE));
 }
