@@ -15,7 +15,7 @@ void PMM::initialize(multiboot_info_t* multiboot_info)
     const size_t mem_size = multiboot_info->mem_upper * KB; // how much memory we have
     const size_t blocks_size = mem_size / FRAME_SIZE; // how much blocks of memory we manage
 
-    m_pmmap = Bitmap::wrap(Layout::GetLocationVirt(LayoutElement::PMMBitmapStart), blocks_size);
+    m_pmmap = Bitmap(blocks_size);
     m_pmmap.fill();
 
     for (
@@ -33,13 +33,8 @@ void PMM::initialize(multiboot_info_t* multiboot_info)
         }
     }
 
-    // Multiboot doesn't know where kernel is, so we need to mark these blocks manually.
-    occupy_range(Layout::GetLocationPhys(LayoutElement::KernelStart), Layout::GetLocationPhys(LayoutElement::KernelEnd));
-    // Do the same for the pmmap location.
-    occupy_range_sized(Layout::GetLocationPhys(LayoutElement::PMMBitmapStart), m_pmmap.memory_size());
-
-    auto pmmap_end = (Layout::GetLocationVirt(LayoutElement::PMMBitmapStart) + m_pmmap.memory_size() + FRAME_SIZE - 1) / FRAME_SIZE * FRAME_SIZE;
-    Layout::SetLocationVirt(LayoutElement::PMMBitmapEnd, pmmap_end);
+    // Multiboot doesn't know about kernel layout, so marking these blocks manually.
+    occupy_range(Layout::GetLocationPhys(LayoutElement::KernelStart), Layout::GetLocationPhys(LayoutElement::PagingBuffer2));
 }
 
 size_t PMM::allocate_frame()
