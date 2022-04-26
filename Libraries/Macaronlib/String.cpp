@@ -87,8 +87,10 @@ String& String::operator=(const char* s)
 void String::realloc(size_t new_capacity)
 {
     auto new_string = (char*)malloc(new_capacity);
-    memcpy(new_string, m_string, m_size + 1);
-    free(m_string);
+    if (m_string != &null_char) {
+        memcpy(new_string, m_string, m_size + 1);
+        free(m_string);
+    }
     m_string = new_string;
     m_capacity = new_capacity;
 }
