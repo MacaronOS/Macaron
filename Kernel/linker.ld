@@ -69,6 +69,12 @@ SECTIONS
  . = ALIGN(4K);
  _kernel_end = .;
 
- end = .;
+ _kernel_paging_buffer1 = .;
+ . += 4096;
+
+ _kernel_paging_buffer2 = .;
+ . += 4096;
+
+ _end = .;
 
 }
