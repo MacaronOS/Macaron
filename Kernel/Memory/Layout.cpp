@@ -32,8 +32,8 @@ static uintptr_t LayoutElement2Location[] = {
     [static_cast<uintptr_t>(LayoutElement::KernelEnd)] = reinterpret_cast<uintptr_t>(&_kernel_end),
     [static_cast<uintptr_t>(LayoutElement::PagingBuffer1)] = reinterpret_cast<uintptr_t>(&_kernel_paging_buffer1),
     [static_cast<uintptr_t>(LayoutElement::PagingBuffer2)] = reinterpret_cast<uintptr_t>(&_kernel_paging_buffer2),
-    [static_cast<uintptr_t>(LayoutElement::KernelHeapStart)] = reinterpret_cast<uintptr_t>(&_end),
-    [static_cast<uintptr_t>(LayoutElement::KernelHeapEnd)] = HIGHER_HALF_OFFSET + 8 * 1024 * 1024
+    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapStart)] = reinterpret_cast<uintptr_t>(&_end),
+    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapEnd)] = HIGHER_HALF_OFFSET + 8 * 1024 * 1024
 };
 
 uintptr_t Layout::GetLocationVirt(LayoutElement element)

@@ -41,8 +41,8 @@ enum class LayoutElement {
     KernelEnd,
     PagingBuffer1,
     PagingBuffer2,
-    KernelHeapStart,
-    KernelHeapEnd,
+    KernelInitialHeapStart,
+    KernelInitialHeapEnd,
 };
 
 namespace Layout {

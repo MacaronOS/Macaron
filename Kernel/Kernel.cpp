@@ -45,6 +45,8 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     Libkernel::CallConstructors();
 
+    Tasking::init_kernel_memory_description();
+
     PMM::the().initialize(multiboot_structure);
 
     SyscallsManager::initialize();
