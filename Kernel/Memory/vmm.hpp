@@ -69,19 +69,9 @@ private:
 
     PTEntry& get_buffer_pte()
     {
-        // at first, calculating a page table which locates buffer.
-        // as buffers are in a higher half and they were initially shifted
-        // by HIGHER_HALF_OFFSET=0xC0000000, we know, that the page table is one of 2 - 768 or 769
-
-        static PageTable* page_tables[] = {
-            (PageTable*)((uint32_t)&boot_page_table1 + HIGHER_HALF_OFFSET),
-            (PageTable*)((uint32_t)&boot_page_table2 + HIGHER_HALF_OFFSET),
-        };
-
-        PageTable* pt = page_tables[m_buff_virt / PAGE_SIZE / 1024 - 768];
-
-        // now, find what offset has this buffer withing the page table
-        return pt->entries[m_buff_virt / PAGE_SIZE % 1024];
+        auto page_dir = (PageDir*)((uintptr_t)&boot_page_directory + HIGHER_HALF_OFFSET);
+        auto page_table = (PageTable*)(page_dir->entries[m_buff_virt / PAGE_SIZE / 1024].pt_base * FRAME_SIZE + HIGHER_HALF_OFFSET);
+        return page_table->entries[m_buff_virt / PAGE_SIZE % 1024];
     }
 
 private:
