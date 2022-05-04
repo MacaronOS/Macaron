@@ -12,7 +12,8 @@ public:
         return the;
     }
 
-    void flush_tlb(uintptr_t virtual_address, size_t page_count);
+    static constexpr auto page_size() { return 4096; }
+    static void flush_tlb(uintptr_t virtual_address, size_t page_count);
 };
 
 }

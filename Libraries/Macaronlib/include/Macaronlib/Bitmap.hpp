@@ -23,6 +23,7 @@ public:
     void set_true(size_t index);
     void set_false(size_t index);
     size_t find_first_zero();
+    size_t occupy_sequential(size_t size);
     void fill();
     void clear();
 

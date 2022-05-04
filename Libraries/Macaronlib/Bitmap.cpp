@@ -120,3 +120,24 @@ size_t Bitmap::find_first_zero()
 
     return BITMAP_NULL;
 }
+
+size_t Bitmap::occupy_sequential(size_t size)
+{
+    for (size_t start = 0; start < m_size; start++) {
+
+        size_t remain = size;
+        size_t cur = start;
+
+        for (; cur < m_size && !operator[](cur) && remain; cur++, remain--) { }
+
+        if (!remain) {
+            for (size_t i = start; i < start + size; i++) {
+                set_true(i);
+            }
+            return start;
+        }
+
+        start = cur;
+    }
+    return 0;
+}

@@ -45,9 +45,9 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     Libkernel::CallConstructors();
 
-    Tasking::init_kernel_memory_description();
-
     PMM::the().initialize(multiboot_structure);
+
+    Tasking::init_kernel_memory_description();
 
     SyscallsManager::initialize();
 
@@ -74,7 +74,6 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
         ASSERT_PANIC("Could not initialize TimeManager");
     }
 
-    Tasking::init_kernel_memory_description();
     if (!Scheduler::the().initialize()) {
         ASSERT_PANIC("Could not initialize Scheduler");
     }
