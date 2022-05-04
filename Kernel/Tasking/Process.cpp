@@ -4,7 +4,6 @@
 #include <Tasking/MemoryDescription/AnonVMArea.hpp>
 
 #include <Libkernel/Logger.hpp>
-#include <Memory/Region.hpp>
 
 namespace Kernel::Tasking {
 
@@ -36,7 +35,6 @@ void ProcessStorage::free_process(pid_t id)
 
 Process& ProcessStorage::operator[](pid_t pid)
 {
-
     return *((Process*)(&m_process_pool[pid * sizeof(Process)]));
 }
 
@@ -44,21 +42,17 @@ Process::Process(uint32_t id)
     : m_id(id)
 {
     m_task_manager = &Scheduler::the();
-
-    // Setup signal caller
-    uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
-    auto space = allocate_space(signal_caller_len, Flags::User | Flags::Write | Flags::Present);
 }
 
-void Process::Terminate()
+void Process::terminate()
 {
     for (auto thread : m_threads) {
-        thread->Terminate();
+        thread->terminate();
     }
     PS()->free_process(id());
 }
 
-Process* Process::Fork()
+Process* Process::fork()
 {
     auto new_proc = PS()->allocate_process();
     if (!new_proc) {
@@ -77,7 +71,7 @@ Process* Process::Fork()
     return new_proc;
 }
 
-void Process::LoadAndPrepare(const String& binary)
+void Process::load(const String& binary)
 {
     free_threads_except_one();
     m_memory_description.free_memory();
@@ -87,8 +81,8 @@ void Process::LoadAndPrepare(const String& binary)
         return;
     }
 
-    VMM::the().allocate_space_from(
-        m_memory_description.memory_descriptor(),
+    VMM::the().set_translation_table(m_memory_description.memory_descriptor());
+    VMM::the().allocate_memory_from(
         stack_area.result()->vm_start(),
         stack_area.result()->vm_size(),
         Flags::User | Flags::Write | Flags::Present);
@@ -111,70 +105,6 @@ ProcessStorage* Process::PS() const
 List<Thread*>& Process::TS() const
 {
     return m_task_manager->m_threads;
-}
-
-KErrorOr<uint32_t> Process::psized_allocate_space(uint32_t pages, uint32_t flags, Region::Mapping mapping)
-{
-    auto page_or_error = VMM::the().psized_find_free_space(m_memory_description.memory_descriptor(), pages);
-    if (page_or_error) {
-        allocate_space_from_by_region({
-            .type = Region::Type::Allocated,
-            .mapping = mapping,
-            .page = page_or_error.result(),
-            .pages = pages,
-            .flags = flags,
-        });
-    }
-    return page_or_error;
-}
-
-void Process::psized_allocate_space_from(uint32_t start_page, uint32_t pages, uint32_t flags)
-{
-    allocate_space_from_by_region({
-        .type = Region::Type::Allocated,
-        .page = start_page,
-        .pages = pages,
-        .flags = flags,
-    });
-}
-
-void Process::psized_map(uint32_t page, uint32_t frame, uint32_t pages, uint32_t flags)
-{
-    map_by_region({
-        .type = Region::Type::Mapping,
-        .page = page,
-        .frame = frame,
-        .pages = pages,
-        .flags = flags,
-    });
-}
-
-KErrorOr<uint32_t> Process::psized_find_free_space(uint32_t pages) const
-{
-    return VMM::the().psized_find_free_space(m_memory_description.memory_descriptor(), pages);
-}
-
-KErrorOr<uint32_t> Process::find_free_space(uint32_t sz) const
-{
-    return VMM::the().find_free_space(m_memory_description.memory_descriptor(), sz);
-}
-
-void Process::allocate_space_from_by_region(const Region& region)
-{
-    VMM::the().psized_allocate_space_from(m_memory_description.memory_descriptor(), region.page, region.pages, region.flags);
-    add_region(region);
-}
-
-void Process::copy_by_region(const Region& region, uint32_t page_dir_from)
-{
-    VMM::the().psized_copy(m_memory_description.memory_descriptor(), page_dir_from, region.page, region.pages);
-    add_region(region);
-}
-
-void Process::map_by_region(const Region& region)
-{
-    VMM::the().psized_map(m_memory_description.memory_descriptor(), region.page, region.frame, region.pages, region.flags);
-    add_region(region);
 }
 
 void Process::free_threads_except_one()

@@ -41,11 +41,10 @@ bool BochVBE::install()
     write(IndexRegister::Enable, VBE::DisplayEnabled | VBE::LinearFrameBufferEnabled);
     write(IndexRegister::Bank, 0);
 
-    auto addr = m_pci_device->read_base_register(0) & 0xfffffff0;
-    PMM::the().occupy_range_sized(addr, 1024 * 768 * 4 * 2);
-    VMM::the().map(VMM::the().current_page_directory(), addr, addr, 1024 * 768 * 4 * 2, Flags::Present | Flags::User | Flags::Write);
+    auto physical_address = m_pci_device->read_base_register(0) & 0xfffffff0;
+    PMM::the().occupy_range_sized(physical_address, 1024 * 768 * 4 * 2);
 
-    m_pixels = reinterpret_cast<uint32_t*>(addr);
+    m_pixels = reinterpret_cast<uint32_t*>(physical_address);
     m_pixels_length = 1024 * 768 * 4 * 2;
 
     return true;
@@ -53,16 +52,9 @@ bool BochVBE::install()
 
 void BochVBE::mmap(void* addr, uint32_t size)
 {
-    auto& memory_description = Scheduler::the().cur_process()->memory_description();
-    auto area = memory_description.find_memory_area_for((size_t)addr);
-    if (!area) {
-        return;
-    }
-
-    VMM::the().map(
-        memory_description.memory_descriptor(),
-        area->vm_start(),
-        (uint32_t)m_pixels,
+    VMM::the().map_memory(
+        (uintptr_t)addr,
+        (uintptr_t)m_pixels,
         min(m_pixels_length, size), Flags::Present | Flags::User | Flags::Write);
 }
 

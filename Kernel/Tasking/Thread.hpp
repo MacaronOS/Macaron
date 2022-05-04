@@ -68,7 +68,7 @@ public:
         return m_kernel_context != nullptr;
     }
 
-    inline void Terminate() { m_state = ThreadState::Terminated; }
+    inline void terminate() { m_state = ThreadState::Terminated; }
 
     inline void set_user_stack(size_t addr)
     {

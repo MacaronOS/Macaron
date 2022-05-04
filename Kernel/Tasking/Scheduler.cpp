@@ -49,7 +49,7 @@ bool Scheduler::initialize()
         return false;
     }
 
-    VMM::the().set_page_directory(kernel_memory_description.memory_descriptor());
+    VMM::the().set_translation_table(kernel_memory_description.memory_descriptor());
     memcpy((void*)signal_area.result()->vm_start(), (void*)signal_caller, signal_caller_len);
     m_signal_handler_ip = signal_area.result()->vm_start();
     return true;
@@ -131,7 +131,7 @@ void Scheduler::prepare_switching_to_the_next_thread(List<Thread*>::Iterator nex
     DescriptorTables::GDT::SetKernelStack(next_thread_ptr->kernel_stack_top());
 
     // swtich to the new process address space
-    VMM::the().set_page_directory(next_thread_ptr->m_process->m_memory_description.memory_descriptor());
+    VMM::the().set_translation_table(next_thread_ptr->m_process->m_memory_description.memory_descriptor());
 
     next_thread_ptr->m_process->cur_thread = next_thread_ptr;
 
@@ -146,7 +146,7 @@ void Scheduler::prepare_switching_to_the_next_thread(List<Thread*>::Iterator nex
             } else {
                 auto action = default_action(signo);
                 if (action == DefaultAction::Terminate) {
-                    next_thread_ptr->m_process->Terminate();
+                    next_thread_ptr->m_process->terminate();
                     reschedule();
                     return;
                 }
@@ -159,7 +159,7 @@ void Scheduler::create_process(const String& filepath)
 {
     auto new_process = m_process_storage->allocate_process();
     if (new_process) {
-        new_process->LoadAndPrepare(filepath);
+        new_process->load(filepath);
     } else {
         Logger::Log() << "Error: out of processes\n";
     }
@@ -168,14 +168,14 @@ void Scheduler::create_process(const String& filepath)
 void Scheduler::sys_exit_handler(int error_code)
 {
     Log() << "Handling exit, PID: " << (*m_cur_thread)->m_process->id() << ", error code: " << error_code << "\n";
-    cur_process()->Terminate();
+    cur_process()->terminate();
     reschedule();
 }
 
 int Scheduler::sys_fork_handler()
 {
     Log() << "Handling fork\n";
-    auto forked_process = cur_process()->Fork();
+    auto forked_process = cur_process()->fork();
     if (!forked_process) {
         return -1;
     }
@@ -185,7 +185,7 @@ int Scheduler::sys_fork_handler()
 int Scheduler::sys_execve_handler(const char* filename, const char* const* argv, const char* const* envp)
 {
     // TODO: error handling
-    cur_process()->LoadAndPrepare(filename);
+    cur_process()->load(filename);
     return 1;
 }
 

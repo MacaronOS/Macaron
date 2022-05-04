@@ -1,13 +1,12 @@
 #pragma once
 
+#include <Hardware/CPU.hpp>
 #include <Multiboot.hpp>
 
 #include <Macaronlib/Bitmap.hpp>
 #include <Macaronlib/Common.hpp>
 
 namespace Kernel::Memory {
-
-constexpr uint32_t FRAME_SIZE = 4096;
 
 class PMM {
 public:
@@ -20,7 +19,7 @@ public:
     void initialize(multiboot_info* multiboot_info);
 
     // Allocates an available frame.
-    // Frame represents a FRAME_SIZE sized chunk of main memory.
+    // Frame represents a page sized chunk of main memory.
     size_t allocate_frame();
     // Alocate "frames" number of sequential frames.
     size_t allocate_frames(size_t frames);

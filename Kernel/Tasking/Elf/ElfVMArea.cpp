@@ -13,17 +13,16 @@ ElfVMArea::PageFaultStatus ElfVMArea::fault(size_t address)
         return PageFaultStatus::Failed;
     }
 
-    size_t page_for_address = address / PAGE_SIZE;
-    size_t page_aligned_address = page_for_address * PAGE_SIZE;
+    size_t page_for_address = address / CPU::page_size();
+    size_t page_aligned_address = page_for_address * CPU::page_size();
 
-    VMM::the().psized_allocate_space_from(
-        m_memory_description.memory_descriptor(),
+    VMM::the().allocate_pages_from(
         page_for_address,
         1,
         Flags::User | Flags::Write | Flags::Present);
 
     size_t start = max(m_vaddr, page_aligned_address);
-    size_t end = min(m_vaddr + m_memsz, start + PAGE_SIZE);
+    size_t end = min(m_vaddr + m_memsz, start + CPU::page_size());
     size_t size = end - start;
 
     size_t file_start = start - m_vaddr + m_offset;
@@ -51,9 +50,10 @@ void ElfVMArea::fork(MemoryDescription& other)
     auto& area = *elf_vm_area.result();
     area.setup(m_inode, m_offset, m_vaddr, m_filesz, m_memsz);
 
-    VMM::the().copy_allocated_as_cow(other.memory_descriptor(),
+    VMM::the().copy_memory_cow(
         m_memory_description.memory_descriptor(),
-        vm_start(), vm_end() - vm_start());
+        vm_start(),
+        vm_end() - vm_start());
 }
 
 }

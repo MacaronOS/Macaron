@@ -9,11 +9,10 @@ using namespace Memory;
 
 AnonVMArea::PageFaultStatus AnonVMArea::fault(size_t address)
 {
-    size_t page_for_address = address / PAGE_SIZE;
-    size_t page_aligned_address = page_for_address * PAGE_SIZE;
+    size_t page_for_address = address / CPU::page_size();
+    size_t page_aligned_address = page_for_address * CPU::page_size();
 
-    VMM::the().psized_allocate_space_from(
-        m_memory_description.memory_descriptor(),
+    VMM::the().allocate_pages_from(
         page_for_address,
         1,
         Flags::User | Flags::Write | Flags::Present);
@@ -21,7 +20,6 @@ AnonVMArea::PageFaultStatus AnonVMArea::fault(size_t address)
     return PageFaultStatus::Handled;
 }
 
-// TODO: Implement fork as copy-on-write.
 void AnonVMArea::fork(MemoryDescription& other)
 {
     auto anon_vm_area = other.allocate_memory_area_from<AnonVMArea>(vm_start(), vm_end() - vm_start(), flags());
@@ -29,9 +27,10 @@ void AnonVMArea::fork(MemoryDescription& other)
         return;
     }
 
-    VMM::the().copy_allocated_as_cow(other.memory_descriptor(),
+    VMM::the().copy_memory_cow(
         m_memory_description.memory_descriptor(),
-        vm_start(), vm_end() - vm_start());
+        vm_start(),
+        vm_end() - vm_start());
 }
 
 }
