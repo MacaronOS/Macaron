@@ -9,11 +9,12 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 qemu-img create -f raw drive.img 16M
-sudo $EXT2_FORMATTER -t ext2 -r 0 -b 1024 drive.img
-sudo mkdir -p mountpoint
-sudo fuse-ext2 drive.img mountpoint -o rw+
-sudo touch mountpoint/file.txt
-sudo bash -c 'echo "testing..." > mountpoint/file.txt'
-sudo umount mountpoint
+chmod a+rw drive.img
+$EXT2_FORMATTER -t ext2 -r 0 -b 1024 drive.img
+mkdir -p mountpoint
+fuse-ext2 drive.img mountpoint -o rw+
+touch mountpoint/file.txt
+bash -c 'echo "testing..." > mountpoint/file.txt'
+umount mountpoint
 
 fi

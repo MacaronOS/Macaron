@@ -1,19 +1,9 @@
 Commands:
     MakeDrive: 
-        ./Scripts/MakeDrive.sh
+        sudo ./Scripts/make_drive.sh
 
     InstallUserspace:
-        sudo fuse-ext2 drive.img mountpoint -o rw+
-
-        sudo python3 Scripts/install_userspace.py
-
-        sudo mkdir -p mountpoint/System/
-        sudo find System/* -type f ! -name "*.*" -exec cp {} ./mountpoint/System/ \\;
-
-        sudo mkdir -p mountpoint/Resources/
-        sudo cp -r Resources/* mountpoint/Resources/
-        
-        sudo umount mountpoint
+        sudo ./Scripts/install_userspace.sh
 
     Run:
         qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel
