@@ -1,2 +1,2 @@
-file build/kernel/MacaronOS.bin
+file Kernel/MacaBuild/Kernel
 target remote localhost:1234
