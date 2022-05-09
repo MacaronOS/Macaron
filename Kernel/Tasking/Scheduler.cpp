@@ -9,6 +9,7 @@
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/MemoryDescription/AnonVMArea.hpp>
+#include <Tasking/MemoryDescription/SharedVMArea.hpp>
 
 namespace Kernel::Tasking {
 
@@ -40,7 +41,7 @@ bool Scheduler::initialize()
 
     // Setup signal caller.
     uint32_t signal_caller_len = (uint32_t)signal_caller_end - (uint32_t)signal_caller;
-    auto signal_area = kernel_memory_description.allocate_memory_area<AnonVMArea>(
+    auto signal_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
         signal_caller_len,
         VM_READ | VM_WRITE | VM_EXEC,
         true);

@@ -14,4 +14,9 @@ static constexpr auto address_to_page(auto address)
     return address / CPU::page_size();
 }
 
+static constexpr auto page_to_address(auto page)
+{
+    return page * CPU::page_size();
+}
+
 }
