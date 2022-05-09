@@ -1,3 +1,15 @@
+Define:
+    platform: x86
+    compiler: i686-elf-g++
+    linker: i686-elf-ld
+    archiver: i686-elf-ar
+
+    target~aarch32:
+        platform: aarch32
+        compiler: arm-none-eabi-g++
+        linker: arm-none-eabi-ld
+        archiver: arm-none-eabi-ar
+
 Commands:
     MakeDrive: 
         sudo ./Scripts/make_drive.sh

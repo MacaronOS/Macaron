@@ -2,7 +2,8 @@ Build:
     Type: Executable
 
     Src: 
-        *.cpp, *.s, **/*.cpp, **/*.s
+        *.cpp, **/*.cpp
+        *.{platform}.cxx, *.{platform}.s, **/*.{platform}.cxx, **/*.{platform}.s
 
     Depends:
         ../Libraries/Macaronlib
@@ -13,17 +14,29 @@ Build:
 
     Extensions:
         cpp:
-            Compiler: i686-elf-g++
+            Compiler: {compiler}
             Flags: 
                 -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -m32, -fno-leading-underscore, -Wno-write-strings
+                -fno-leading-underscore, -Wno-write-strings, -fpermissive
                 -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
                 -I../Libraries/Macaronlib/include, -I.
 
-        s:
+        cxx:
+            Compiler: {compiler}
+            Flags: 
+                -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
+                -fno-leading-underscore, -Wno-write-strings, -fpermissive
+                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                -I../Libraries/Macaronlib/include, -I.
+    
+        x86.s:
             Compiler: nasm
             Flags: -felf
 
+        aarch32.s:
+            Compiler: arm-none-eabi-as
+            Flags: -march=armv7-a, -mcpu=cortex-a15
+
     Link:
-        Linker: i686-elf-g++
-        Flags: -Wl\,--gc-sections, -ffreestanding, -nostdlib, -nostdinc, -fno-pie, -T, linker.ld
+        Linker: {linker}
+        Flags: -T, linker.ld

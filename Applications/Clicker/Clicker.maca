@@ -13,13 +13,12 @@ Build:
 
     Extensions:
         cpp:
-            Compiler: i686-elf-g++
+            Compiler: {compiler}
             Flags: 
                 -O3, -std=c++2a, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -m32, -fno-leading-underscore, -Wno-write-strings
+                -fpermissive, -fno-leading-underscore, -Wno-write-strings
                 -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
                 -I../../Libraries/Macaronlib/include, -I../../Libraries/
 
     Link:
-        Linker: i686-elf-g++
-        Flags: -Wl\,--gc-sections, -ffreestanding, -nostdlib, -nostdinc, -fno-pie
+        Linker: {linker}

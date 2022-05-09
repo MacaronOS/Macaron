@@ -8,10 +8,10 @@ Build:
 
     Extensions:
         cpp:
-            Compiler: i686-elf-g++
+            Compiler: {compiler}
             Flags: 
                 -O3, -std=c++2a, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -m32, -Iinclude/Macaronlib, -fno-leading-underscore, -Wno-write-strings
+                -Iinclude/Macaronlib, -fno-leading-underscore, -Wno-write-strings, -fpermissive
                 -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
 
-    Archiver: i686-elf-ar
+    Archiver: {archiver}

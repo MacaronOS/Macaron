@@ -1,7 +1,7 @@
 Build:
     Type: StaticLib
 
-    Src: *.cpp, Crt0.s
+    Src: *.cpp, Crt0.{platform}.s
 
     Depends: ../Macaronlib
 
@@ -11,16 +11,19 @@ Build:
 
     Extensions:
         cpp:
-            Compiler: i686-elf-g++
+            Compiler: {compiler}
             Flags: 
                 -O3, -std=c++2a, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding,
-                -m32, -fno-leading-underscore, -Wno-write-strings
+                -fpermissive, -fno-leading-underscore, -Wno-write-strings
                 -fno-use-cxa-atexit,-fno-rtti, -fno-exceptions
                 -I../Macaronlib/include, -I..
 
-        s:
+        x86.s:
             Compiler: nasm
             Flags: -felf
 
+        aarch32.s:
+            Compiler: arm-none-eabi-as
+            Flags: -march=armv7-a, -mcpu=cortex-a15
 
-    Archiver: i686-elf-ar
+    Archiver: {archiver}
