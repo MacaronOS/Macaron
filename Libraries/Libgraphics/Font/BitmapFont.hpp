@@ -2,8 +2,8 @@
 
 #include "../Bitmap.hpp"
 
-#include <Macaronlib/String.hpp>
 #include <Macaronlib/Common.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Graphics {
 

@@ -3,11 +3,8 @@
 #include <Hardware/DescriptorTables/GDT.hpp>
 #include <Hardware/Trapframe.hpp>
 #include <Macaronlib/ABI/Signals.hpp>
-#include <Memory/Region.hpp>
 
 namespace Kernel::Tasking {
-
-using namespace Memory;
 
 #define KERNEL_STACK_SIZE 4096
 #define USER_STACK_SIZE 512 * 4096

@@ -1,8 +1,8 @@
 #include "Ext2FileSystem.hpp"
 #include "Ext2Inode.hpp"
 #include <Drivers/Disk/Ata.hpp>
-#include <Macaronlib/Bitmap.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Macaronlib/Bitmap.hpp>
 
 namespace Kernel::FileSystem::Ext2 {
 

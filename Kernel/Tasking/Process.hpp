@@ -4,7 +4,7 @@
 #include "Thread.hpp"
 
 #include <Filesystem/Base/File.hpp>
-#include <Memory/vmm.hpp>
+#include <Memory/VMM/VMM.hpp>
 
 #include <Macaronlib/Memory.hpp>
 #include <Macaronlib/StaticStack.hpp>

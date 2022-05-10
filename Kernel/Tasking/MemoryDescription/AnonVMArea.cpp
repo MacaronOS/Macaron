@@ -1,6 +1,6 @@
 #include "AnonVMArea.hpp"
 #include <Macaronlib/Memory.hpp>
-#include <Memory/vmm.hpp>
+#include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
 
 namespace Kernel::Tasking {

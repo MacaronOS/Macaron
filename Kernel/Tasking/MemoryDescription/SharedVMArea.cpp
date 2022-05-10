@@ -1,8 +1,8 @@
 #include "SharedVMArea.hpp"
 
 #include <Memory/Utils.hpp>
+#include <Memory/VMM/VMM.hpp>
 #include <Memory/pmm.hpp>
-#include <Memory/vmm.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
 
 namespace Kernel::Tasking {

@@ -19,7 +19,7 @@ public:
     inline void set_pci_device(Drivers::PCIDevice* pci_device) { m_pci_device = pci_device; }
 
     bool install() override;
-    void mmap(void* addr, uint32_t size) override;
+    void mmap(void* addr, size_t size) override;
     void ioctl(uint32_t request) override;
 
 private:

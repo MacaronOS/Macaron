@@ -1,10 +1,10 @@
 #include "PCIDevice.hpp"
 #include "PCI.hpp"
 
-#include <Libkernel/Logger.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Drivers/Base/DriverEntity.hpp>
 #include <Hardware/Port.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Drivers {
 

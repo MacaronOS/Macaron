@@ -15,8 +15,9 @@ public:
     friend BufferedLog& operator<<(BufferedLog& log, const String& value);
     friend BufferedLog& operator<<(BufferedLog& log, int value);
     friend BufferedLog& operator<<(BufferedLog& log, char value);
-    friend BufferedLog& operator<<(BufferedLog& log, uint32_t value);
     friend BufferedLog& operator<<(BufferedLog& log, BufferedLogOp op);
+    friend BufferedLog& operator<<(BufferedLog& log, uint32_t value);
+    friend BufferedLog& operator<<(BufferedLog& log, uint64_t value);
 
 private:
     String m_begin_with { String::From(getpid()) + ": " };

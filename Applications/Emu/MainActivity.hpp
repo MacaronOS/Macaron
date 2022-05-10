@@ -49,7 +49,6 @@ protected:
             start_activity(intent);
         });
 
-
         set_content_view(layout);
     }
 };

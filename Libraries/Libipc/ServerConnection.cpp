@@ -1,9 +1,9 @@
 #include "ServerConnection.hpp"
 #include <Libc/Syscalls.hpp>
 #include <Libsystem/Log.hpp>
-#include <Macaronlib/Runtime.hpp>
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Memory.hpp>
+#include <Macaronlib/Runtime.hpp>
 
 namespace IPC {
 
@@ -61,7 +61,7 @@ void ServerConnection::send_data(void* data, size_t bytes, int pid_to)
     ipch.pid_from = m_pid;
     ipch.pid_to = pid_to;
     ipch.size = bytes;
-    
+
     Vector<uint8_t> d(sizeof(IPCHeader) + bytes);
     memcpy(d.data(), &ipch, sizeof(ipch));
     memcpy(d.data() + sizeof(IPCHeader), data, bytes);

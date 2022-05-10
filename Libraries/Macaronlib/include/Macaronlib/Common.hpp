@@ -1,22 +1,27 @@
 #pragma once
 
-typedef unsigned long  uint64_t;
-typedef unsigned int   uint32_t;
+typedef unsigned long uint64_t;
+typedef unsigned int uint32_t;
 typedef unsigned short uint16_t;
-typedef unsigned char  uint8_t;
+typedef unsigned char uint8_t;
 
-typedef long           int64_t;
-typedef signed int     int32_t;
-typedef signed short   int16_t;
-typedef signed char    int8_t;
-typedef uint32_t       size_t;
+typedef long int64_t;
+typedef signed int int32_t;
+typedef signed short int16_t;
+typedef signed char int8_t;
+
+#ifdef __i386__
+typedef uint64_t size_t;
+#else
+typedef uint32_t size_t;
+#endif
 
 typedef uint32_t uintptr_t;
 
 typedef decltype(nullptr) nullptr_t;
 
-#define unlikely(expr)  __builtin_expect(!!(expr), 0)
-#define likely(expr)    __builtin_expect(!!(expr), 1)
+#define unlikely(expr) __builtin_expect(!!(expr), 0)
+#define likely(expr) __builtin_expect(!!(expr), 1)
 
 #define KB 1024
 
@@ -26,7 +31,7 @@ typedef decltype(nullptr) nullptr_t;
 extern void* malloc(size_t);
 extern void free(void*);
 
-inline void* operator new(unsigned long size)
+inline void* operator new(size_t size)
 {
     return malloc(size);
 }
@@ -36,12 +41,12 @@ inline void operator delete(void* ptr)
     return free(ptr);
 }
 
-inline void operator delete(void* ptr, unsigned long)
+inline void operator delete(void* ptr, size_t)
 {
     return free(ptr);
 }
 
-inline void* operator new[](unsigned long size)
+inline void* operator new[](size_t size)
 {
     return malloc(size);
 }
@@ -51,22 +56,22 @@ inline void operator delete[](void* ptr)
     return free(ptr);
 }
 
-inline void operator delete[](void* ptr, unsigned long)
+inline void operator delete[](void* ptr, size_t)
 {
     return free(ptr);
 }
 
-inline void* operator new(unsigned long, void* ptr)
+inline void* operator new(size_t, void* ptr)
 {
     return ptr;
 }
 
-inline void* operator new[](unsigned long, void* ptr)
+inline void* operator new[](size_t, void* ptr)
 {
     return ptr;
 }
 
-inline void* operator new(unsigned long size, std::align_val_t alignment)
+inline void* operator new(size_t size, std::align_val_t alignment)
 {
     size_t aln = static_cast<size_t>(alignment);
     void* ptr = malloc(size + sizeof(void*) + aln);

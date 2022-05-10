@@ -1,5 +1,5 @@
 #include "ElfVMArea.hpp"
-#include <Memory/vmm.hpp>
+#include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
 #include <Tasking/Process.hpp>
 

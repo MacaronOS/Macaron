@@ -2,8 +2,7 @@
 #include <Hardware/CPU.hpp>
 #include <Macaronlib/Common.hpp>
 #include <Memory/Layout.hpp>
-#include <Memory/pagingstructs.hpp>
-#include <Memory/vmm.hpp>
+#include <Memory/VMM/TranslationTables.x86.hpp>
 
 namespace Libkernel {
 

@@ -3,14 +3,13 @@
 namespace Kernel::DescriptorTables::GDT {
 
 extern "C" void gdt_flush(uint32_t);
-extern "C"  void tss_flush();
+extern "C" void tss_flush();
 
 extern "C" uint32_t _kernel_stack_end;
 
-
 class [[gnu::packed]] GDTEntry {
 public:
-    void setup(uint32_t pointer, uint32_t limit_byte, uint32_t access, uint8_t granularity) 
+    void setup(uint32_t pointer, uint32_t limit_byte, uint32_t access, uint8_t granularity)
     {
         m_pointer_low = (pointer & 0xFFFF);
         m_pointer_middle = (pointer >> 16) & 0xFF;
@@ -35,8 +34,7 @@ struct [[gnu::packed]] GDTPointer {
     uint32_t pointer;
 };
 
-struct [[gnu::packed]] TSSEntry
-{
+struct [[gnu::packed]] TSSEntry {
     uint32_t prev_tss { 0 };
     uint32_t esp0 { 0 };
     uint32_t ss0 { 0 };
@@ -96,7 +94,7 @@ void Setup()
     tss_flush();
 }
 
-void SetKernelStack(uint32_t stack) 
+void SetKernelStack(uint32_t stack)
 {
     tss_entry.esp0 = stack;
 }

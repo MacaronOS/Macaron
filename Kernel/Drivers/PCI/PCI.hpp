@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Macaronlib/Vector.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Macaronlib/Common.hpp>
+#include <Macaronlib/Vector.hpp>
 
 namespace Kernel::Drivers {
 
@@ -21,7 +21,7 @@ public:
 
     static uint32_t Read(uint16_t bus, uint16_t device, uint16_t func, uint16_t regoff);
     static void Write(uint16_t bus, uint16_t device, uint16_t func, uint16_t regoff, uint32_t val);
-    
+
     static uint32_t GetID(uint16_t bus, uint16_t device, uint16_t func, uint16_t regoff);
 
     const Vector<PCIDevice*>& devices() const { return m_devices; }

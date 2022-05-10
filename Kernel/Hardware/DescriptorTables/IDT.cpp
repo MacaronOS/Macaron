@@ -1,7 +1,7 @@
 
 #include "IDT.hpp"
-#include "IDTPointers.hpp"
 #include "GDT.hpp"
+#include "IDTPointers.hpp"
 
 #include <Hardware/Port.hpp>
 
@@ -43,7 +43,7 @@ void Setup()
 {
     idt_pointer.limit_byte = sizeof(IDTEntry) * 256 - 1;
     idt_pointer.pointer = (uint32_t)&idt_entries;
-    
+
     // Remap the irq table.
     outb(0x20, 0x11);
     outb(0xA0, 0x11);
@@ -57,7 +57,7 @@ void Setup()
     outb(0xA1, 0x0);
 
     // Setup isr + irq pointers
-    for (size_t at = 0 ; at <= 47 ; at++) {
+    for (size_t at = 0; at <= 47; at++) {
         idt_entries[at].setup(GetInitialInterruptPointer(at), GDT::KernelCodeOffset, 0x8E);
     }
 

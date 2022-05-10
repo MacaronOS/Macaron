@@ -256,7 +256,7 @@ void String::swap()
     }
 }
 
-String String::From(uint32_t num)
+String String::From(size_t num)
 {
     String str {};
 

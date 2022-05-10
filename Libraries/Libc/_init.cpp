@@ -13,5 +13,4 @@ void _init()
         (*__init_array_start[i])(0, 0, 0);
     }
 }
-
 }

@@ -6,9 +6,9 @@
 #include <Libui/App/Activity.hpp>
 #include <Libui/Button.hpp>
 #include <Libui/EditText.hpp>
+#include <Libui/Events.hpp>
 #include <Libui/LinearLayout.hpp>
 #include <Libui/TextView.hpp>
-#include <Libui/Events.hpp>
 
 #include <Libgraphics/Bitmap.hpp>
 #include <Libgraphics/Color.hpp>

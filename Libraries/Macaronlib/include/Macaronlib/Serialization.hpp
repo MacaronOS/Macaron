@@ -1,9 +1,9 @@
 #pragma once
 
-#include "String.hpp"
-#include "Vector.hpp"
 #include "Common.hpp"
 #include "Runtime.hpp"
+#include "String.hpp"
+#include "Vector.hpp"
 
 class Encoder {
 public:

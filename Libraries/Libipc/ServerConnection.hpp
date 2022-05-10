@@ -2,8 +2,8 @@
 
 #include "IPCHeader.hpp"
 
-#include <Macaronlib/String.hpp>
 #include <Macaronlib/Runtime.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace IPC {
 

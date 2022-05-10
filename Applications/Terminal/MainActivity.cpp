@@ -55,7 +55,7 @@ void MainActivity::setup_terminal_view(UI::LinearLayout* layout)
     UI::EventLoop::the().register_fd_for_select([&]() {
         char buff[255];
         int sz = read(m_pty_master, buff, sizeof(buff) - 1);
-        for (int i = 0 ; i < sz ; i++) {
+        for (int i = 0; i < sz; i++) {
             m_terminal_buffer.push_back(buff[i]);
         }
         m_terminal_view->set_text(m_terminal_buffer);

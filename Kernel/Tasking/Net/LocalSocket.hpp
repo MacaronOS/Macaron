@@ -1,10 +1,10 @@
 #pragma once
 
 #include <FileSystem/Base/File.hpp>
+#include <Libkernel/Logger.hpp>
 #include <Macaronlib/HashMap.hpp>
 #include <Macaronlib/Ringbuffer.hpp>
 #include <Macaronlib/String.hpp>
-#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Net {
 

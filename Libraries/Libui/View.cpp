@@ -43,7 +43,7 @@ void View::request_layout()
     if (!window || !content_view) {
         return;
     }
-    
+
     auto canvas = Graphics::Canvas(window->buffer());
 
     content_view->measure(

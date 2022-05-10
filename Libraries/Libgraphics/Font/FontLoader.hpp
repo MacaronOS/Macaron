@@ -3,8 +3,8 @@
 #include "BitmapFont.hpp"
 
 #include <Libgraphics/Bitmap.hpp>
-#include <Macaronlib/String.hpp>
 #include <Macaronlib/Memory.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Graphics::FontLoader {
 

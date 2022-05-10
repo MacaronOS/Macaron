@@ -86,6 +86,12 @@ namespace Logger {
         return log;
     }
 
+    const Log& operator<<(const Log& log, uint64_t value)
+    {
+        printd((uint32_t)value);
+        return log;
+    }
+
     const Log& operator<<(const Log& log, int value)
     {
         printd((int64_t)value);

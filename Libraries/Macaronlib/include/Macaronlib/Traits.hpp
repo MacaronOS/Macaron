@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Common.hpp"
-#include "Runtime.hpp"
 #include "HashFunctions.hpp"
+#include "Runtime.hpp"
 
 template <typename T>
 struct GenericTraits {

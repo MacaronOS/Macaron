@@ -1,12 +1,12 @@
 #include "Malloc.hpp"
 #include "Layout.hpp"
-#include "vmm.hpp"
 
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
-#include <Tasking/MemoryDescription/AnonVMArea.hpp>
+#include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
+#include <Tasking/MemoryDescription/SharedVMArea.hpp>
 
 #include <Macaronlib/Vector.hpp>
 
@@ -37,7 +37,7 @@ void SetupMalloc()
 static MallocHeader* allocate_new_block(size_t size)
 {
     size_t allocated_size = max(minimal_block_size, size + sizeof(MallocHeader));
-    auto allocation_result = kernel_memory_description.allocate_memory_area<AnonVMArea>(allocated_size, VM_READ | VM_WRITE, true);
+    auto allocation_result = kernel_memory_description.allocate_memory_area<SharedVMArea>(allocated_size, VM_READ | VM_WRITE, true);
     if (!allocation_result) {
         return nullptr;
     }

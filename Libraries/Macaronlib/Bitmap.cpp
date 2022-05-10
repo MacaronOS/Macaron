@@ -21,7 +21,7 @@ Bitmap::Bitmap(size_t size)
     m_array = (uint32_t*)malloc(m_memory_size);
 }
 
-Bitmap Bitmap::wrap(uintptr_t location, uint32_t size)
+Bitmap Bitmap::wrap(uintptr_t location, size_t size)
 {
     return Bitmap(location, size);
 }

@@ -5,6 +5,7 @@
 template <typename Container, typename ValueType>
 class SimpleIterator {
     friend Container;
+
 public:
     bool operator==(const SimpleIterator& other) const { return m_index == other.m_index; }
     bool operator!=(const SimpleIterator& other) const { return m_index != other.m_index; }

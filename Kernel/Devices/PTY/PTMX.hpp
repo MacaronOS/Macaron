@@ -13,7 +13,7 @@ public:
         : Device(5, 0, DeviceType::Char)
     {
     }
-    
+
     virtual void open(FileSystem::FileDescription& fd) override;
 
 private:

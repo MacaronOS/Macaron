@@ -19,6 +19,7 @@ namespace Logger {
         friend const Log& operator<<(const Log& log, int value);
         friend const Log& operator<<(const Log& log, char value);
         friend const Log& operator<<(const Log& log, uint32_t value);
+        friend const Log& operator<<(const Log& log, uint64_t value);
     };
 }
 

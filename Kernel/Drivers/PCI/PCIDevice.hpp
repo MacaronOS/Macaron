@@ -2,9 +2,9 @@
 
 #include "PCI.hpp"
 
-#include <Macaronlib/Vector.hpp>
 #include <Drivers/Base/Driver.hpp>
 #include <Macaronlib/Common.hpp>
+#include <Macaronlib/Vector.hpp>
 
 namespace Kernel::Drivers {
 

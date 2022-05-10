@@ -1,5 +1,5 @@
 #include "MemoryDescription.hpp"
-#include <Memory/vmm.hpp>
+#include <Memory/VMM/VMM.hpp>
 
 namespace Kernel::Tasking {
 

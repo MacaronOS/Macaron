@@ -17,7 +17,13 @@ BufferedLog& operator<<(BufferedLog& BufferedLog, int value)
 
 BufferedLog& operator<<(BufferedLog& BufferedLog, uint32_t value)
 {
-    BufferedLog.m_buffer += String::From(value);
+    BufferedLog.m_buffer += String::From((size_t)value);
+    return BufferedLog;
+}
+
+BufferedLog& operator<<(BufferedLog& BufferedLog, uint64_t value)
+{
+    BufferedLog.m_buffer += String::From((size_t)value);
     return BufferedLog;
 }
 

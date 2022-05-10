@@ -10,7 +10,7 @@ public:
         : m_fd(fd)
     {
     }
-    
+
     void pump();
     inline Vector<KeyboardPacket> take_over_packets() { return move(m_packets); }
 

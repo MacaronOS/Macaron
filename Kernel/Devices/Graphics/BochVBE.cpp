@@ -4,8 +4,8 @@
 #include <Hardware/Port.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Memory/VMM/VMM.hpp>
 #include <Memory/pmm.hpp>
-#include <Memory/vmm.hpp>
 #include <Tasking/Process.hpp>
 #include <Tasking/Scheduler.hpp>
 
@@ -50,7 +50,7 @@ bool BochVBE::install()
     return true;
 }
 
-void BochVBE::mmap(void* addr, uint32_t size)
+void BochVBE::mmap(void* addr, size_t size)
 {
     VMM::the().map_memory(
         (uintptr_t)addr,

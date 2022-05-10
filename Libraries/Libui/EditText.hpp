@@ -1,7 +1,7 @@
 #pragma once
 
-#include "TextView.hpp"
 #include "Events.hpp"
+#include "TextView.hpp"
 
 namespace UI {
 

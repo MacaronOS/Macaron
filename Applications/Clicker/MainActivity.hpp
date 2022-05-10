@@ -28,7 +28,7 @@ protected:
         layout->set_layout_params(layout_params);
         layout->set_orientation(UI::LinearLayout::Orientation::Vertical);
 
-        static uint32_t counter = 0;
+        static size_t counter = 0;
         static auto counter_view = new UI::TextView();
         counter_view->set_text("0");
         counter_view->set_typeface(font);

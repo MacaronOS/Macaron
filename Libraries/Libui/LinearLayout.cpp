@@ -76,7 +76,7 @@ bool LinearLayout::check_layout_params(LayoutParams* params)
 }
 
 LayoutParams* LinearLayout::generate_layout_params(LayoutParams* params)
-{   
+{
     if (params->type == LayoutParamsType::LinearLayoutParams) {
         return params;
     }

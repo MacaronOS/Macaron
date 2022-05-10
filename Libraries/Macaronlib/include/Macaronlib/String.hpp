@@ -60,7 +60,7 @@ public:
     Iterator end() { return Iterator(*this, m_size); }
 
     // Convertation
-    static String From(uint32_t num);
+    static String From(size_t num);
     static String From(int num);
 
     // Hash
