@@ -1,13 +1,12 @@
-#include "VMM.hpp"
-#include "TranslationTables.x86.hpp"
+#include "../VMM.hpp"
+#include "TranslationTables.hpp"
 
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/pmm.hpp>
-#include <Tasking/Process.hpp>
-#include <Tasking/Scheduler.hpp>
+#include <Tasking/Scheduler/Scheduler.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -250,7 +249,7 @@ void VMM::handle_interrupt(Trapframe* tf)
         return vm_area->fault(address) == VMArea::PageFaultStatus::Handled;
     };
 
-    if (Scheduler::the().running() && try_resolve_page_fault(Scheduler::the().cur_process()->memory_description())) {
+    if (Scheduler::the().running() && try_resolve_page_fault(Scheduler::the().current_process().memory_description())) {
         return;
     }
     if (try_resolve_page_fault(kernel_memory_description)) {
@@ -287,13 +286,11 @@ void VMM::handle_interrupt(Trapframe* tf)
     }
 
     if (Tasking::Scheduler::the().running()) {
-        Log() << "\nPID: " << Tasking::Scheduler::the().cur_process()->id() << "\n";
-        auto thread = Tasking::Scheduler::the().cur_thread();
+        Log() << "\nPID: " << Tasking::Scheduler::the().current_process().id() << "\n";
+        auto& thread = Tasking::Scheduler::the().current_thread();
         Log() << "Registers:\n";
-        Log() << "eip: " << thread->trapframe()->eip << "\n";
-        Log() << "esp: " << thread->trapframe()->useresp << "\n";
-
-        Log() << "stack: " << thread->user_stack() << " " << thread->user_stack_top() << "\n";
+        Log() << "eip: " << thread.trapframe()->eip << "\n";
+        Log() << "esp: " << thread.trapframe()->useresp << "\n";
     }
 
     STOP();

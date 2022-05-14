@@ -1,5 +1,5 @@
-#include "PhysicalBinder.hpp"
-#include "TranslationTables.x86.hpp"
+#include "../PhysicalBinder.hpp"
+#include "TranslationTables.hpp"
 
 #include <Hardware/CPU.hpp>
 #include <Libkernel/Logger.hpp>

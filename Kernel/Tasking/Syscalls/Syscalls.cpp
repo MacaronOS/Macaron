@@ -6,39 +6,51 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/MemoryDescription/AnonVMArea.hpp>
-#include <Tasking/Process.hpp>
-#include <Tasking/Scheduler.hpp>
+#include <Tasking/Scheduler/Scheduler.hpp>
 #include <Tasking/SharedBuffers/SharedBufferStorage.hpp>
 #include <Time/TimeManager.hpp>
 
 #include <Macaronlib/ABI/Errors.hpp>
 #include <Macaronlib/ABI/Signals.hpp>
 #include <Macaronlib/ABI/Syscalls.hpp>
+#include <Macaronlib/Memory.hpp>
 
 namespace Kernel::Syscalls {
 
 using namespace Logger;
-using namespace Memory;
 using namespace Tasking;
 using namespace FileSystem;
 using namespace Time;
 
 static int sys_putc(char a)
 {
-    Log() << "handling putc " << a << "\n";
+    Log() << "Handling putc " << a << "\n";
     VgaTUI::Putc(a);
-    return 1;
-}
-
-static int sys_exit(int error_code)
-{
-    Scheduler::the().sys_exit_handler(error_code);
     return 1;
 }
 
 static int sys_fork()
 {
-    return Scheduler::the().sys_fork_handler();
+    Log() << "Handling fork\n";
+    auto fork_result = Scheduler::the().current_process().fork();
+    if (!fork_result) {
+        return fork_result.error();
+    }
+    return fork_result.result()->id();
+}
+
+static int sys_execve(const char* filename, const char* const* argv, const char* const* envp)
+{
+    Log() << "Handling execve pid=(" << Scheduler::the().current_process().id() << ")\n";
+    return Scheduler::the().current_process().exec(filename);
+}
+
+static int sys_exit(int error_code)
+{
+    Log() << "Handling exit\n";
+    Scheduler::the().current_process().terminate();
+    Scheduler::the().reschedule();
+    return 1;
 }
 
 static int sys_read(fd_t fd, uint8_t* buf, size_t cnt)
@@ -58,23 +70,18 @@ static int sys_lseek(fd_t fd, size_t offset, int whence)
 
 static int sys_open(const char* filename, int flags, unsigned short mode)
 {
-    Log() << "handling open " << filename << "\n";
+    Log() << "Handling open " << filename << "\n";
     return int(VFS::the().open(filename, flags, mode));
-}
-
-static int sys_execve(const char* filename, const char* const* argv, const char* const* envp)
-{
-    Log() << "handling excve\n";
-    return Scheduler::the().sys_execve_handler(filename, argv, envp);
 }
 
 static int sys_mmap(MmapParams* params)
 {
-    auto cur_process = Scheduler::the().cur_process();
-    Log() << "handling mmap (pid=" << cur_process->id() << ")\n";
+    auto& process = Scheduler::the().current_process();
+
+    Log() << "Handling mmap (pid=" << process.id() << ")\n";
 
     if (params->flags & MAP_ANONYMOUS) {
-        auto mem = cur_process->memory_description().allocate_memory_area<AnonVMArea>(params->size, VM_READ | VM_WRITE);
+        auto mem = process.memory_description().allocate_memory_area<AnonVMArea>(params->size, VM_READ | VM_WRITE);
 
         if (!mem) {
             // TODO: implement errno
@@ -86,7 +93,7 @@ static int sys_mmap(MmapParams* params)
     if (params->fd) {
         uint32_t mem = params->start;
         if (!mem) {
-            auto free_space = cur_process->memory_description().allocate_memory_area<VMArea>(params->size, VM_READ | VM_WRITE);
+            auto free_space = process.memory_description().allocate_memory_area<VMArea>(params->size, VM_READ | VM_WRITE);
             if (!free_space) {
                 return -1;
             }
@@ -104,7 +111,7 @@ static int sys_mmap(MmapParams* params)
 
 static int sys_write_string(String const* str)
 {
-    Logger::Log() << "PID" << Scheduler::the().cur_process()->id() << ": " << *str << "\n";
+    Logger::Log() << "PID" << Scheduler::the().current_process().id() << ": " << *str << "\n";
     return 0;
 }
 
@@ -140,6 +147,7 @@ static int sys_connect(fd_t fd, const char* path)
 
 static int sys_can_read(fd_t fd)
 {
+    Log() << "Handling read\n";
     return VFS::the().can_read(fd);
 }
 
@@ -150,7 +158,7 @@ static int sys_select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execf
 
 static int sys_getpid()
 {
-    return Scheduler::the().cur_process()->id();
+    return Scheduler::the().current_process().id();
 }
 
 static int sys_clock_gettime(int clock_id, timespec* ts)
@@ -170,50 +178,44 @@ static int sys_getdents(fd_t fd, linux_dirent* dirp, size_t size)
 
 static int sys_sigaction(int sig, const sigaction* act, sigaction* old_act)
 {
-    auto cur_thread = Scheduler::the().cur_thread();
-    cur_thread->set_signal_handler(sig, (void*)act->sa_handler);
+    auto& thread = Scheduler::the().current_thread();
+    thread.signals().set_handler(sig, (void*)act->sa_handler);
     return 0;
 }
 
 static int sys_sigprocmask(int how, const sigset_t* set, sigset_t* old_set)
 {
-    auto cur_thread = Scheduler::the().cur_thread();
+    auto& thread = Scheduler::the().current_thread();
     if (old_set != nullptr) {
-        *old_set = cur_thread->signal_mask();
+        *old_set = thread.signals().mask();
     }
     if (how == SIG_BLOCK) {
-        cur_thread->signal_mask_block(*set);
+        thread.signals().mask_block(*set);
     } else if (how == SIG_UNBLOCK) {
-        cur_thread->signal_mask_unblock(*set);
+        thread.signals().mask_unblock(*set);
     } else if (how == SIG_SETMASK) {
-        cur_thread->signal_mask_set(*set);
+        thread.signals().mask_set(*set);
     }
     return 0;
 }
 
 static int sys_sigreturn()
 {
-    auto cur_thread = Scheduler::the().cur_thread();
-    auto trapframe = cur_thread->trapframe();
-    trapframe->useresp += sizeof(uint32_t); // cleaning signo argument
-    trapframe->edi = trapframe->pop();
-    trapframe->esi = trapframe->pop();
-    trapframe->ebp = trapframe->pop();
-    trapframe->esp = trapframe->pop();
-    trapframe->ebx = trapframe->pop();
-    trapframe->edx = trapframe->pop();
-    trapframe->ecx = trapframe->pop();
-    trapframe->eax = trapframe->pop();
-    trapframe->eip = trapframe->pop();
-    trapframe->eflags = trapframe->pop();
-    trapframe->useresp = trapframe->pop();
+    Scheduler::the().current_thread().return_from_signal_caller();
     Scheduler::the().reschedule();
     return 0; // never returns
 }
 
 static int sys_kill(int pid, int sig)
 {
-    Scheduler::the().get_process(pid).cur_thread->signal_add_pending(sig);
+    auto find_result = Process::find_process_by_id(pid);
+    if (!find_result) {
+        return find_result.error();
+    }
+
+    auto& process = *find_result.result();
+    process.current_thread().signals().add_pending(sig);
+
     return 0;
 }
 
@@ -284,36 +286,6 @@ void SyscallsManager::initialize()
 void SyscallsManager::register_syscall(Syscall ss, uint32_t syscall_ptr)
 {
     m_syscalls[(uint16_t)ss] = syscall_ptr;
-}
-
-void SyscallsManager::handle_interrupt(Trapframe* regs)
-{
-    if (static_cast<Syscall>(regs->eax) == Syscall::SchedYield) {
-        regs->eax = 0;
-        Scheduler::the().reschedule();
-    }
-    if (regs->eax >= syscall_count || !m_syscalls[regs->eax]) {
-        return;
-    }
-    int ret;
-    asm volatile(
-        "\
-        push %1; \
-        push %2; \
-        push %3; \
-        push %4; \
-        push %5; \
-        call *%6; \
-        pop %%ebx; \
-        pop %%ebx; \
-        pop %%ebx; \
-        pop %%ebx; \
-        pop %%ebx; \
-        "
-        : "=a"(ret)
-        : "r"(regs->edi), "r"(regs->esi), "r"(regs->edx), "r"(regs->ecx), "r"(regs->ebx), "r"(m_syscalls[regs->eax]));
-
-    regs->eax = ret;
 }
 
 }

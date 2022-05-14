@@ -1,5 +1,5 @@
-#include "TranslationAllocator.hpp"
-#include "TranslationTables.x86.hpp"
+#include "../TranslationAllocator.hpp"
+#include "TranslationTables.hpp"
 
 #include <Hardware/CPU.hpp>
 #include <Memory/Layout.hpp>

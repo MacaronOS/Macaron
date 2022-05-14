@@ -1,7 +1,6 @@
 #include "ElfVMArea.hpp"
 #include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
-#include <Tasking/Process.hpp>
 
 namespace Kernel::Tasking {
 

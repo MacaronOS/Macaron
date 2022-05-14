@@ -14,10 +14,10 @@ public:
     static void initialize();
 
     void handle_interrupt(Trapframe* tf) override;
-    void register_syscall(Syscall ss, uint32_t syscall_ptr);
+    void register_syscall(Syscall ss, uintptr_t syscall_ptr);
 
 private:
-    uint32_t m_syscalls[syscall_count] {};
+    uintptr_t m_syscalls[syscall_count] {};
 };
 
 }

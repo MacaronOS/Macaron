@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Macaronlib/Common.hpp>
-#include <Tasking/Process.hpp>
+#include <Macaronlib/String.hpp>
+#include <Libkernel/KError.hpp>
 
 namespace Kernel::Tasking {
 

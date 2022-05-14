@@ -2,7 +2,7 @@
 #include "Elfstructs.hpp"
 #include <Filesystem/Base/Inode.hpp>
 #include <Tasking/Elf/ElfVMArea.hpp>
-#include <Tasking/Process.hpp>
+#include <Tasking/Processes/Process.hpp>
 
 namespace Kernel::Tasking {
 

@@ -6,8 +6,7 @@
 #include <FileSystem/Dev/DevFileSystem.hpp>
 #include <FileSystem/Ext2/Ext2FileSystem.hpp>
 #include <FileSystem/VFS/VFS.hpp>
-#include <Hardware/DescriptorTables/GDT.hpp>
-#include <Hardware/DescriptorTables/IDT.hpp>
+#include <Hardware/Init.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Init.hpp>
@@ -18,7 +17,7 @@
 #include <Memory/pmm.hpp>
 #include <Multiboot.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
-#include <Tasking/Scheduler.hpp>
+#include <Tasking/Scheduler/Scheduler.hpp>
 #include <Tasking/Syscalls/Syscalls.hpp>
 #include <Time/TimeManager.hpp>
 
@@ -35,8 +34,7 @@ using namespace Devices;
 
 extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 {
-    DescriptorTables::GDT::Setup();
-    DescriptorTables::IDT::Setup();
+    initialize_hardware();
 
     VgaTUI::Initialize();
     VgaTUI::Print("Starting up Macaron OS kernel...\n");
@@ -74,9 +72,6 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
         ASSERT_PANIC("Could not initialize TimeManager");
     }
 
-    if (!Scheduler::the().initialize()) {
-        ASSERT_PANIC("Could not initialize Scheduler");
-    }
-    Scheduler::the().create_process("/System/System");
+    Scheduler::the().initialize();
     Scheduler::the().run();
 }

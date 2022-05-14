@@ -28,4 +28,5 @@ void emulate_multiboot()
     multiboot_memory_map[1].type = MULTIBOOT_MEMORY_RESERVED;
     multiboot_memory_map[1].size = sizeof(multiboot_memory_map_t);
 }
+
 }

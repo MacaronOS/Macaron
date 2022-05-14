@@ -83,6 +83,16 @@ public:
     void push_back(const T& val) { push_back(new Node(val)); }
     void push_back(T&& val) { push_back(new Node(move(val))); }
 
+    void pop_front()
+    {
+        remove(begin());
+    }
+
+    void pop_back()
+    {
+        remove(rbegin());
+    }
+
     void clear();
     bool empty() const { return !m_size; }
     size_t size() const { return m_size; }

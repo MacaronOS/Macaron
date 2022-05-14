@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Thread.hpp"
 #include <FileSystem/Base/File.hpp>
 
 namespace Kernel::Tasking {
 
-class Scheduler;
+class Thread;
 
 class Blocker {
     friend class Scheduler;

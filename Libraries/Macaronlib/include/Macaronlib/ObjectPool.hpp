@@ -24,8 +24,25 @@ public:
         m_objects = nullptr;
     }
 
-    ObjectPool(const ObjectPool&) = delete;
-    ObjectPool& operator=(const ObjectPool&) = delete;
+    ObjectPool(const ObjectPool& other)
+    {
+        *this = other;
+    }
+
+    ObjectPool& operator=(const ObjectPool& other)
+    {
+        for (size_t obj_i = 0; obj_i < size; obj_i++) {
+            m_objects[obj_i].~T();
+        }
+
+        for (size_t obj_i = 0; obj_i < size; obj_i++) {
+            new (&m_objects[obj_i]) T(other.m_objects[obj_i]);
+        }
+
+        m_free_ids = other.m_free_ids;
+
+        return *this;
+    }
 
     struct AllocateResult {
         size_t id {};
@@ -46,18 +63,41 @@ public:
         };
     }
 
-    void deallocate(const size_t id)
+    bool deallocate(const size_t id)
     {
+        if (!is_id_in_use(id)) {
+            return false;
+        }
         m_objects[id].~T();
         m_free_ids.push(id);
+        return true;
     }
 
     T* get(size_t id)
     {
+        if (!is_id_in_use(id)) {
+            return nullptr;
+        }
         return &m_objects[id];
     }
 
+    T& get_no_check(size_t id)
+    {
+        return m_objects[id];
+    }
+
 private:
-    T* m_objects;
+    bool is_id_in_use(size_t id)
+    {
+        for (auto fid : m_free_ids) {
+            if (id == fid) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+private:
+    T* m_objects {};
     StaticStack<size_t, size> m_free_ids {};
 };

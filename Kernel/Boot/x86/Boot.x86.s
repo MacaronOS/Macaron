@@ -4,29 +4,29 @@ MBOOT_HEADER_MAGIC  equ 0x1BADB002
 MBOOT_HEADER_FLAGS  equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
 MBOOT_CHECKSUM      equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
 
-[BITS 32]
-
-; Multiboot header
 section .multiboot
 dd  MBOOT_HEADER_MAGIC
 dd  MBOOT_HEADER_FLAGS
 dd  MBOOT_CHECKSUM
 
-global start
 extern boot_page_directory
 extern init_boot_translation_table
+global start
 start:
-  ; Fill and set a boot page translation table.
+  ; Load kernel stack.
+  lea esp, [_kernel_stack_end - 0xC0000000]
+
+  ; Fill and set a boot translation table.
   call init_boot_translation_table
   mov ecx, boot_page_directory
   mov cr3, ecx
 
-  ; enable paging
+  ; Enable paging.
   mov ecx, cr0
   or ecx, 0x80010000
   mov cr0, ecx
 
-  ; jump to the kernel
+  ; Jump to the kernel.
   lea ecx, [L4]
   jmp ecx
 
@@ -39,7 +39,8 @@ L4:
   mov     cr3, ecx
   mov     esp, _kernel_stack_end
 
+  ; Save multiboot structure pointer.
   add ebx, 0xC0000000
-  push ebx ; saving multiboot structure
+  push ebx
   call kernel_entry_point
   jmp $

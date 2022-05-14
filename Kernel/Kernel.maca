@@ -2,8 +2,11 @@ Build:
     Type: Executable
 
     Src: 
-        *.cpp, **/*.cpp
-        *.{platform}.cxx, *.{platform}.s, **/*.{platform}.cxx, **/*.{platform}.s
+        Kernel.cpp
+        **/*.cpp
+        **/{platform}/*.cxx
+        **/{platform}/**/*.cxx
+        **/*.{platform}.s
 
     Depends:
         ../Libraries/Macaronlib

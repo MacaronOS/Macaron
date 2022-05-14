@@ -4,8 +4,27 @@
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Macaronlib/List.hpp>
+#include <Memory/VMM/VMM.hpp>
 
 namespace Kernel::Tasking {
+
+using namespace Memory;
+
+class TranslationTableRestorer {
+public:
+    TranslationTableRestorer()
+        : m_last_translation_table(VMM::the().current_translation_table())
+    {
+    }
+
+    ~TranslationTableRestorer()
+    {
+        VMM::the().set_translation_table(m_last_translation_table);
+    }
+
+private:
+    uintptr_t m_last_translation_table;
+};
 
 /*
 MemoryDescription is an analogue of Linux mm_struct.
@@ -14,6 +33,8 @@ It belongs to a Process and is used to keep a list of mapped areas of virtual me
 
 class MemoryDescription {
 public:
+    using Iterator = List<VMArea*>::Iterator;
+
     MemoryDescription();
     MemoryDescription(uint32_t memory_descriptor)
         : m_memory_descriptor(memory_descriptor)
@@ -74,8 +95,32 @@ public:
         return static_cast<T*>(*m_memory_areas.insert_before(first_greater_area, new T(*this, start, end, flags)));
     }
 
+    enum class FreeMemoryArea {
+        Yes,
+        No,
+    };
+
+    template <typename Callback>
+    void free_memory_areas(Callback callback)
+    {
+        TranslationTableRestorer _;
+        VMM::the().set_translation_table(m_memory_descriptor);
+
+        auto area_it = m_memory_areas.rbegin();
+        while (area_it != m_memory_areas.rend()) {
+            if (callback(**area_it) == FreeMemoryArea::Yes) {
+                free_memory_area(area_it);
+                area_it = m_memory_areas.remove(area_it);
+                continue;
+            }
+            --area_it;
+        }
+    }
+
+private:
+    void free_memory_area(Iterator area_it);
+
 public:
-    using Iterator = List<VMArea*>::Iterator;
     List<VMArea*> m_memory_areas {};
     uint32_t m_memory_descriptor;
 };

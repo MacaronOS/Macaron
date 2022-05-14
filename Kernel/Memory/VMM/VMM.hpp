@@ -2,7 +2,6 @@
 
 #include "PhysicalBinder.hpp"
 #include "TranslationAllocator.hpp"
-#include "TranslationTables.x86.hpp"
 
 #include <Hardware/CPU.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
@@ -11,7 +10,6 @@
 #include <Memory/Layout.hpp>
 #include <Memory/Utils.hpp>
 #include <Memory/pmm.hpp>
-#include <Tasking/Scheduler.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>

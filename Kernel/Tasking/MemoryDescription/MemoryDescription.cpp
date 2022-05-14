@@ -1,25 +1,6 @@
 #include "MemoryDescription.hpp"
-#include <Memory/VMM/VMM.hpp>
 
 namespace Kernel::Tasking {
-
-using namespace Memory;
-
-class TranslationTableRestorer {
-public:
-    TranslationTableRestorer()
-        : m_last_translation_table(VMM::the().current_translation_table())
-    {
-    }
-
-    ~TranslationTableRestorer()
-    {
-        VMM::the().set_translation_table(m_last_translation_table);
-    }
-
-private:
-    uintptr_t m_last_translation_table;
-};
 
 MemoryDescription::MemoryDescription()
     : m_memory_descriptor(VMM::the().create_translation_table())
@@ -54,11 +35,16 @@ void MemoryDescription::free_memory()
 
     auto last_area = m_memory_areas.rbegin();
     while (last_area != m_memory_areas.rend()) {
-        auto& area = *last_area;
-        VMM::the().unmap_memory(area->vm_start(), area->vm_size());
-        delete *last_area;
+        free_memory_area(last_area);
         last_area = m_memory_areas.remove(last_area);
     }
+}
+
+void MemoryDescription::free_memory_area(Iterator area_it)
+{
+    auto area = *area_it;
+    VMM::the().unmap_memory(area->vm_start(), area->vm_size());
+    delete area;
 }
 
 MemoryDescription kernel_memory_description;

@@ -8,8 +8,7 @@
 #include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/Net/LocalSocket.hpp>
-#include <Tasking/Process.hpp>
-#include <Tasking/Scheduler.hpp>
+#include <Tasking/Scheduler/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Memory.hpp>
@@ -46,7 +45,7 @@ Inode* VFS::resolve_path(const String& path)
 
 KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 {
-    auto free_fd = Scheduler::the().cur_process()->allocate_file_descriptor();
+    auto free_fd = Scheduler::the().current_process().file_descriptions().allocate();
     if (!free_fd) {
         return free_fd;
     }
@@ -69,12 +68,17 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
         }
     }
 
-    auto& file_descr = *Scheduler::the().cur_process()->file_description(free_fd.result());
-    file_descr.flags = flags;
-    file_descr.offset = 0;
-    file_dentry->inode()->inode_open(file_descr);
-    if (file_descr.file) {
-        file_descr.file->open(file_descr);
+    auto file_description_result = Scheduler::the().current_process().file_descriptions().lookup(free_fd.result());
+    if (!file_description_result) {
+        return file_description_result.error();
+    }
+
+    auto file_description = file_description_result.result();
+    file_description->flags = flags;
+    file_description->offset = 0;
+    file_dentry->inode()->inode_open(*file_description);
+    if (file_description->file) {
+        file_description->file->open(*file_description);
     }
 
     return free_fd;
@@ -82,7 +86,7 @@ KErrorOr<fd_t> VFS::open(const String& path, int flags, mode_t mode)
 
 KError VFS::close(const fd_t fd)
 {
-    return Scheduler::the().cur_process()->free_file_descriptor(fd);
+    return Scheduler::the().current_process().file_descriptions().free(fd);
 }
 
 KError VFS::mount(const String& path, FileSystem& FileSystem)
@@ -126,10 +130,11 @@ char* VFS::read_entire_file(const String& path)
 
 KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     auto file = file_descr->file;
     if (!file) {
@@ -147,10 +152,11 @@ KErrorOr<size_t> VFS::read(fd_t fd, void* buffer, size_t size)
 
 KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     auto file = file_descr->file;
     if (!file) {
@@ -168,10 +174,11 @@ KErrorOr<size_t> VFS::write(fd_t fd, void* buffer, size_t size)
 
 KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     switch (whence) {
     case SEEK_SET: {
@@ -191,10 +198,11 @@ KErrorOr<size_t> VFS::lseek(fd_t fd, size_t offset, int whence)
 
 KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     if (!file_descr->file) {
         KError(ENOENT);
@@ -206,10 +214,11 @@ KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
 
 KError VFS::ioctl(fd_t fd, uint32_t request)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     if (!file_descr->file) {
         KError(ENOENT);
@@ -228,15 +237,16 @@ KErrorOr<fd_t> VFS::socket(int domain, int type, int protocol)
         return KError(EINVAL);
     }
 
-    return Scheduler::the().cur_process()->allocate_file_descriptor();
+    return Scheduler::the().current_process().file_descriptions().allocate();
 }
 
 KError VFS::bind(fd_t sockfd, const String& path)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(sockfd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(sockfd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     auto relation = resolve_relation(path);
     if (!relation) {
@@ -265,10 +275,11 @@ KError VFS::bind(fd_t sockfd, const String& path)
 
 KError VFS::connect(fd_t sockfd, const String& path)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(sockfd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(sockfd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     auto relation = resolve_relation(path);
     if (!relation) {
@@ -339,10 +350,11 @@ KErrorOr<Relation> VFS::resolve_relation(const String& path)
 
 bool VFS::can_read(fd_t fd)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
-        return false;
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
+        return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     if (!file_descr->file) {
         return false;
@@ -377,10 +389,11 @@ KError VFS::select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds,
 
 KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     if (!file_descr->file) {
         return KError(ENOENT);
@@ -392,10 +405,11 @@ KErrorOr<size_t> VFS::getdents(fd_t fd, linux_dirent* dirp, size_t size)
 
 KErrorOr<String> VFS::ptsname(fd_t fd)
 {
-    auto file_descr = Scheduler::the().cur_process()->file_description(fd);
-    if (!file_descr) {
+    auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
+    if (!file_descr_result) {
         return KError(EBADF);
     }
+    auto file_descr = file_descr_result.result();
 
     if (!file_descr->file) {
         return KError(ENOENT);

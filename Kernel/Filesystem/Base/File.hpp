@@ -10,7 +10,7 @@ class File;
 struct FileDescription {
     File* file {};
     size_t offset {};
-    int flags;
+    int flags {};
 };
 
 enum class FileType {

@@ -6,8 +6,7 @@
 #include <Libkernel/Logger.hpp>
 #include <Memory/VMM/VMM.hpp>
 #include <Memory/pmm.hpp>
-#include <Tasking/Process.hpp>
-#include <Tasking/Scheduler.hpp>
+#include <Tasking/Scheduler/Scheduler.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>

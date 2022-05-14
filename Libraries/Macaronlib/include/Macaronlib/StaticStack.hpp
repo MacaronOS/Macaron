@@ -111,7 +111,7 @@ public:
     }
     Iterator end()
     {
-        return Iterator((T*)((size_t)&m_data + m_data_pointer));
+        return Iterator(&m_data[m_data_pointer]);
     }
 
 private:
