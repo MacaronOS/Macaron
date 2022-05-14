@@ -2,7 +2,7 @@
 
 #include <Devices/Device.hpp>
 #include <Hardware/Interrupts/InterruptManager.hpp>
-#include <Hardware/Port.hpp>
+#include <Hardware/x86/Port.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>

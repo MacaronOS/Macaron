@@ -1,6 +1,6 @@
 #include "Mouse.hpp"
 
-#include <Hardware/Port.hpp>
+#include <Hardware/x86/Port.hpp>
 #include <Libkernel/Logger.hpp>
 
 #include <Macaronlib/ABI/Syscalls.hpp>

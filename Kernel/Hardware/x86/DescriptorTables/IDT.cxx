@@ -3,7 +3,7 @@
 #include "GDT.hpp"
 #include "IDTPointers.hpp"
 
-#include <Hardware/Port.hpp>
+#include <Hardware/x86/Port.hpp>
 
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Memory.hpp>

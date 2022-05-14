@@ -1,7 +1,7 @@
 #include "BochVBE.hpp"
 
 #include <Drivers/Base/DriverEntity.hpp>
-#include <Hardware/Port.hpp>
+#include <Hardware/x86/Port.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/VMM/VMM.hpp>

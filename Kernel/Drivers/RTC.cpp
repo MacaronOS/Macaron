@@ -1,5 +1,5 @@
 #include "RTC.hpp"
-#include "../Hardware/Port.hpp"
+#include <Hardware/x86/Port.hpp>
 
 namespace Kernel::Drivers {
 

@@ -8,11 +8,15 @@
 
 static inline int do_syscall(Syscall num, int arg1 = 0, int arg2 = 0, int arg3 = 0, int arg4 = 0, int arg5 = 0)
 {
+#ifdef __i386__
     int a;
     asm volatile("int $0x80"
                  : "=a"(a)
                  : "0"(int(num)), "b"(arg1), "c"(arg2), "d"(arg3), "S"(arg4), "D"(arg5));
     return a;
+#else
+    return 0;
+#endif
 }
 
 void write_string(const String& str)

@@ -3,10 +3,10 @@
 #include <Macaronlib/Common.hpp>
 #include <Macaronlib/Vector.hpp>
 
-#include "../Hardware/Interrupts/InterruptManager.hpp"
-#include "../Hardware/Port.hpp"
 #include "Base/Driver.hpp"
 #include "Base/DriverEntity.hpp"
+#include <Hardware/Interrupts/InterruptManager.hpp>
+#include <Hardware/x86/Port.hpp>
 
 namespace Kernel::Drivers {
 
