@@ -2,7 +2,6 @@
 #include "Layout.hpp"
 
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>

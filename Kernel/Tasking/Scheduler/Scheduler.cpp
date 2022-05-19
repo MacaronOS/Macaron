@@ -1,8 +1,5 @@
 #include "Scheduler.hpp"
 #include <Devices/DeviceManager.hpp>
-#include <Drivers/Base/DriverEntity.hpp>
-#include <Drivers/DriverManager.hpp>
-#include <Drivers/PIT.hpp>
 #include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/x86/DescriptorTables/GDT.hpp>
 #include <Libkernel/Logger.hpp>
@@ -47,6 +44,12 @@ Process& Scheduler::current_process()
 
 void Scheduler::initialize()
 {
+    auto pit = static_cast<InterruptTimer*>(DeviceManager::the().find_attached_driver_by_name("PIT"));
+    if (!pit) {
+        ASSERT_PANIC("[Scheduler] Can not find interrupt timer");
+    }
+    m_interrupt_timer = pit;
+
     Signals::setup_caller();
     Process::create_initial_process();
     m_current_thread = m_schedulling_threads.begin();
@@ -55,7 +58,7 @@ void Scheduler::initialize()
 void Scheduler::run()
 {
     m_running = true;
-    PIT::the().register_tick_reciever(this);
+    m_interrupt_timer->register_callback(this);
     switch_to_user_mode();
     reschedule();
 }

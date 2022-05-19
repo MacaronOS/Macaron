@@ -212,7 +212,7 @@ KError VFS::mmap(fd_t fd, void* addr, uint32_t size)
     return KError(0);
 }
 
-KError VFS::ioctl(fd_t fd, uint32_t request)
+KError VFS::ioctl(fd_t fd, uint32_t request, void* arg)
 {
     auto file_descr_result = Scheduler::the().current_process().file_descriptions().lookup(fd);
     if (!file_descr_result) {
@@ -224,7 +224,7 @@ KError VFS::ioctl(fd_t fd, uint32_t request)
         KError(ENOENT);
     }
 
-    file_descr->file->ioctl(request);
+    file_descr->file->ioctl(request, arg);
     return KError(0);
 }
 

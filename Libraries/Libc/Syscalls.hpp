@@ -16,7 +16,7 @@ int lseek(int fd, size_t offset, int whence);
 int open(const char* filename, int flags, uint16_t mode);
 int execve(const char* filename, const char* const* argv, const char* const* envp);
 void* mmap(void* start, uint32_t length, int prot, int flags, int fd, uint32_t offset);
-int ioctl(int fd, unsigned long request);
+int ioctl(int fd, unsigned long request, void* arg);
 int socket(int domain, int type, int protocol);
 int bind(int fd, const char* path);
 int connect(int fd, const char* path);

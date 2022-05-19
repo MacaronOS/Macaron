@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Drivers/PIT.hpp>
+#include <Devices/Drivers/Generic/InterruptTimer.hpp>
 #include <FileSystem/VFS/VFS.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Tasking/Blocker.hpp>
@@ -10,9 +10,9 @@
 
 namespace Kernel::Tasking {
 
-using namespace Drivers;
+using namespace Devices;
 
-class Scheduler : public TickReciever {
+class Scheduler : public InterruptTimerCallback {
     friend class Process;
     using Iterator = List<Thread*>::Iterator;
 
@@ -31,7 +31,7 @@ public:
     void run();
     void reschedule();
 
-    void on_tick(Trapframe* tf) override
+    void on_interrupt_timer(Trapframe* tf) override
     {
         reschedule();
     }
@@ -90,6 +90,7 @@ private:
 
 private:
     bool m_running {};
+    InterruptTimer* m_interrupt_timer;
     List<Thread*> m_schedulling_threads {};
     Iterator m_current_thread {};
     List<ReadBlocker> m_read_blockers {};

@@ -35,6 +35,20 @@
 #define CLOCK_REALTIME_COARSE 5
 #define CLOCK_MONOTONIC_COARSE 6
 
+struct rtc_time {
+    int tm_sec;
+    int tm_min;
+    int tm_hour;
+    int tm_mday;
+    int tm_mon;
+    int tm_year;
+    int tm_wday; /* unused */
+    int tm_yday; /* unused */
+    int tm_isdst; /* unused */
+};
+
+#define RTC_RD_TIME 0
+
 enum class Syscall {
     Putc = 0,
     Exit,

@@ -1,12 +1,10 @@
 #pragma once
 
-#include "PCI.hpp"
-
-#include <Drivers/Base/Driver.hpp>
 #include <Macaronlib/Common.hpp>
-#include <Macaronlib/Vector.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
+
+class PCI;
 
 class PCIDevice {
     friend class PCI;

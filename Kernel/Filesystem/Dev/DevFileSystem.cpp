@@ -22,8 +22,12 @@ void DevFileSystem::init()
             name = "mouse";
         }
 
-        if (device.major() == 1 && device.minor() == 1 && device.type() == DeviceType::Block) {
+        if (device.major() == 29 && device.minor() == 0 && device.type() == DeviceType::Char) {
             name = "bga";
+        }
+
+        if (device.major() == 10 && device.minor() == 135 && device.type() == DeviceType::Char) {
+            name = "rtc";
         }
 
         if (device.major() == 5 && device.minor() == 0 && device.type() == DeviceType::Char) {

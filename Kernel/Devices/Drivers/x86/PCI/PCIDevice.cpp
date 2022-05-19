@@ -1,12 +1,10 @@
 #include "PCIDevice.hpp"
 #include "PCI.hpp"
 
-#include <Drivers/Base/Driver.hpp>
-#include <Drivers/Base/DriverEntity.hpp>
 #include <Hardware/x86/Port.hpp>
 #include <Libkernel/Logger.hpp>
 
-namespace Kernel::Drivers {
+namespace Kernel::Devices {
 
 PCIDevice::PCIDevice(uint16_t bus, uint16_t device, uint16_t function, uint16_t vendor_id)
     : m_bus(bus)
@@ -50,7 +48,7 @@ uint32_t PCIDevice::read_base_register(uint8_t bar)
 
 uint32_t PCIDevice::read(uint16_t regoff)
 {
-    return PCI::Read(m_bus, m_device, m_function, regoff);
+    return PCI::read(m_bus, m_device, m_function, regoff);
 }
 
 }

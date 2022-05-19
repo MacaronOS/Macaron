@@ -47,7 +47,7 @@ public:
     virtual bool can_write(FileDescription&) { return false; }
     virtual void write(void* buffer, size_t size, FileDescription&) { }
     virtual void mmap(void* addr, size_t size) { }
-    virtual void ioctl(uint32_t request) { }
+    virtual void ioctl(uint32_t request, void* arg) { }
     // TODO: implement as iterate
     virtual size_t getdents(linux_dirent* dirp, size_t size) { return 0; }
 };

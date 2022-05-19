@@ -1,18 +1,19 @@
 #pragma once
 
 #include "Ext2Structs.hpp"
-
-#include <Drivers/Disk/DiskDriver.hpp>
+#include <Devices/Device.hpp>
 #include <FileSystem/Base/FileSystem.hpp>
 
 namespace Kernel::FileSystem::Ext2 {
+
+using namespace Devices;
 
 class Ext2Inode;
 
 class Ext2FileSystem : public FileSystem {
 public:
-    Ext2FileSystem(Drivers::DiskDriver& disk_driver)
-        : m_disk_driver(disk_driver)
+    Ext2FileSystem(BlockDevice& block_device)
+        : m_block_device(block_device)
     {
     }
 
@@ -32,7 +33,7 @@ private:
     char* own_block_buffer() { return m_own_block_buffer.data(); }
 
 private:
-    Drivers::DiskDriver& m_disk_driver;
+    BlockDevice& m_block_device;
     ext2_superblock_t m_superblock;
     uint32_t m_block_size;
     uint32_t m_bgd_table_size;

@@ -1,8 +1,14 @@
 #pragma once
 
-#include "Device.hpp"
+#include <Devices/Device.hpp>
+#include <Libkernel/KError.hpp>
+#include <Libkernel/Logger.hpp>
+#include <Macaronlib/HashMap.hpp>
+#include <Macaronlib/String.hpp>
 
 namespace Kernel::Devices {
+
+class Driver;
 
 class DeviceManager {
 public:
@@ -64,13 +70,23 @@ public:
         return the;
     }
 
-    bool register_device(Device* device)
+    KError register_device(Device* device)
     {
-        if (device->install()) {
-            m_devices[device->major()][device->minor()][static_cast<uint8_t>(device->type())] = device;
-            return true;
+        if (!device) {
+            return KError(ENODEV);
         }
-        return false;
+
+        auto major = device->major();
+        auto minor = device->minor();
+        auto type = static_cast<uint8_t>(device->type());
+
+        auto& device_slot = m_devices[major][minor][type];
+        if (device_slot) {
+            return KError(EEXIST);
+        }
+
+        device_slot = device;
+        return KError(0);
     }
 
     bool register_device(Device& device)
@@ -83,14 +99,24 @@ public:
         return m_devices[major][minor][static_cast<uint8_t>(type)];
     }
 
+    BlockDevice* get_block_device(uint32_t major, uint32_t minor)
+    {
+        return static_cast<BlockDevice*>(get_device(major, minor, DeviceType::Block));
+    }
+
+    Driver* find_attached_driver_by_name(const String& name);
+    void register_virtual_devices();
+    void acknowledge_driver(Driver* driver);
+    void install_acknowledged_drivers();
+
     friend class Iterator;
     Iterator begin() { return Iterator(0, *this); }
     Iterator end() { return Iterator(majors * minors * types, *this); }
 
-    void register_initial_devices();
-
 private:
     Device* m_devices[majors][minors][types] {};
+    HashMap<String, Driver*> m_acknowledged_drivers {};
+    HashMap<String, Driver*> m_attached_drivers {};
 };
 
 }

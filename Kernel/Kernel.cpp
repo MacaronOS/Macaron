@@ -1,8 +1,4 @@
 #include <Devices/DeviceManager.hpp>
-#include <Drivers/Disk/Ata.hpp>
-#include <Drivers/DriverManager.hpp>
-#include <Drivers/PCI/PCI.hpp>
-#include <Drivers/PIT.hpp>
 #include <FileSystem/Dev/DevFileSystem.hpp>
 #include <FileSystem/Ext2/Ext2FileSystem.hpp>
 #include <FileSystem/VFS/VFS.hpp>
@@ -22,7 +18,6 @@
 #include <Time/TimeManager.hpp>
 
 using namespace Kernel;
-using namespace Drivers;
 using namespace FileSystem;
 using namespace Ext2;
 using namespace Syscalls;
@@ -49,18 +44,16 @@ extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 
     SyscallsManager::initialize();
 
-    // Setting up drivers
-    PIT::the().initialize();
-    PCI::the().initialize();
-
-    DriverManager::the().add_driver(ata_0x1f0); // TODO: represent as a block device
-    DriverManager::the().install_all();
-
-    DeviceManager::the().register_initial_devices();
+    DeviceManager::the().install_acknowledged_drivers();
+    DeviceManager::the().register_virtual_devices();
 
     VFS::the().init();
 
-    auto ext2 = new Ext2FileSystem(ata_0x1f0);
+    auto hda0 = DeviceManager::the().get_block_device(3, 0);
+    if (!hda0) {
+        ASSERT_PANIC("No hard drive");
+    }
+    auto ext2 = new Ext2FileSystem(*hda0);
     ext2->init();
 
     devfs.init();

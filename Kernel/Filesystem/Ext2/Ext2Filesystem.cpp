@@ -1,6 +1,6 @@
 #include "Ext2FileSystem.hpp"
 #include "Ext2Inode.hpp"
-#include <Drivers/Disk/Ata.hpp>
+
 #include <Libkernel/Logger.hpp>
 #include <Macaronlib/Bitmap.hpp>
 
@@ -87,17 +87,17 @@ uint32_t Ext2FileSystem::allocate_block()
 
 bool Ext2FileSystem::read_block(size_t block, void* buffer)
 {
-    return m_disk_driver.read(
-        block * block_size() / BYTES_PER_SECTOR,
-        block_size() / BYTES_PER_SECTOR,
+    return m_block_device.read_blocks(
+        block * block_size() / m_block_device.block_size(),
+        block_size() / m_block_device.block_size(),
         buffer);
 }
 
 bool Ext2FileSystem::write_block(size_t block, void* buffer)
 {
-    return m_disk_driver.write(
-        block * block_size() / BYTES_PER_SECTOR,
-        block_size() / BYTES_PER_SECTOR,
+    return m_block_device.write_blocks(
+        block * block_size() / m_block_device.block_size(),
+        block_size() / m_block_device.block_size(),
         buffer);
 }
 

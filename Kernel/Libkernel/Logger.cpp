@@ -1,15 +1,20 @@
 #include "Logger.hpp"
-
-#include <Devices/IO/Uart.hpp>
+#include <Devices/Device.hpp>
 
 namespace Kernel {
 
-using namespace Devices;
+static Device* s_console;
 
 namespace Logger {
+    void initialize(Device* console_device)
+    {
+        s_console = console_device;
+    }
+
     void putc(char c)
     {
-        uart.send(c);
+        FileDescription fd;
+        s_console->write(&c, 1, fd);
     }
 
     void print(const char* str)

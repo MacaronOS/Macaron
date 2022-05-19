@@ -44,7 +44,7 @@ public:
     KErrorOr<size_t> write(fd_t fd, void* buffer, size_t size);
     KErrorOr<size_t> lseek(fd_t fd, size_t offset, int whence);
     KError mmap(fd_t fd, void* addr, uint32_t size);
-    KError ioctl(fd_t fd, uint32_t request);
+    KError ioctl(fd_t fd, uint32_t request, void* arg);
     KError select(int nfds, fd_set* readfds, fd_set* writefds, fd_set* execfds, void* timeout);
     KErrorOr<size_t> getdents(fd_t fd, linux_dirent* dirp, size_t size);
     KError mkdir(const String& path);

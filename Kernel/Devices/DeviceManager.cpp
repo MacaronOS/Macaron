@@ -1,43 +1,52 @@
 #include "DeviceManager.hpp"
-#include "Graphics/BochVBE.hpp"
-#include "IO/Keyboard.hpp"
-#include "IO/Mouse.hpp"
-#include "IO/Uart.hpp"
 #include "PTY/PTMX.hpp"
-
-#include <Drivers/PCI/PCI.hpp>
+#include <Devices/Drivers/Driver.hpp>
+#include <Libkernel/Assert.hpp>
 #include <Libkernel/Logger.hpp>
 
 namespace Kernel::Devices {
 
-void DeviceManager::register_initial_devices()
+void DeviceManager::register_virtual_devices()
 {
-    // Register PS/2 devices
-    register_device(mouse);
-    register_device(keyboard);
     register_device(ptmx);
+}
 
-    register_device(uart);
+void DeviceManager::acknowledge_driver(Driver* driver)
+{
+    m_acknowledged_drivers[driver->driver_name()] = driver;
+}
 
-    // Register PCI devices
-    auto& pci = Drivers::PCI::the();
-    for (size_t device_index = 0; device_index < pci.devices().size(); device_index++) {
-        auto device = pci.devices()[device_index];
-        switch (device->vendor_id()) {
-        case 0x1234: {
-            switch (device->device_id()) {
-            case 0x1111: {
-                bga.set_pci_device(device);
-                register_device(bga);
-                break;
-            }
-            }
-            break;
+void DeviceManager::install_acknowledged_drivers()
+{
+    static char* desired_drivers[] = {
+        "UART",
+        "ATA",
+        "PS/2-Mouse",
+        "PS/2-Keyboard",
+        "RTC",
+        "PIT",
+        "PCI",
+        "BGA",
+    };
+
+    for (auto desired_driver : desired_drivers) {
+        if (m_acknowledged_drivers.contains(desired_driver)) {
+            m_acknowledged_drivers[desired_driver]->install();
+            m_attached_drivers[desired_driver] = m_acknowledged_drivers[desired_driver];
+            Log() << "[DeviceManager] Installed a driver: " << desired_driver << "\n";
+            continue;
         }
-        default:
-            break;
-        }
+
+        Log() << "[DeviceManager] Failed to install a driver: " << desired_driver << "\n";
     }
+}
+
+Driver* DeviceManager::find_attached_driver_by_name(const String& name)
+{
+    if (m_attached_drivers.contains(name)) {
+        return m_attached_drivers[name];
+    }
+    return nullptr;
 }
 
 }

@@ -125,9 +125,9 @@ static int sys_get_shared_buffer(uint32_t id)
     return SharedBufferStorage::the().get_buffer(id);
 }
 
-static int sys_ioctl(fd_t fd, uint32_t request)
+static int sys_ioctl(fd_t fd, uint32_t request, void* arg)
 {
-    return int(VFS::the().ioctl(fd, request));
+    return int(VFS::the().ioctl(fd, request, arg));
 }
 
 static int sys_socket(int domain, int type, int protocol)

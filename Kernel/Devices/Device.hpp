@@ -24,13 +24,30 @@ public:
     uint32_t minor() const { return m_minor; }
     DeviceType type() const { return m_type; }
 
-    virtual bool install() { return true; }
-    virtual bool uninstall() { return true; }
-
 private:
     uint32_t m_major;
     uint32_t m_minor;
     DeviceType m_type;
+};
+
+class CharacterDevice : public Device {
+public:
+    CharacterDevice(uint32_t major, uint32_t minor)
+        : Device(major, minor, DeviceType::Char)
+    {
+    }
+};
+
+class BlockDevice : public Device {
+public:
+    BlockDevice(uint32_t major, uint32_t minor)
+        : Device(major, minor, DeviceType::Block)
+    {
+    }
+
+    virtual size_t block_size() = 0;
+    virtual bool read_blocks(size_t block, size_t block_count, void* buffer) = 0;
+    virtual bool write_blocks(size_t block, size_t block_count, void* buffer) = 0;
 };
 
 }

@@ -1,10 +1,14 @@
 #pragma once
 
+#include <Devices/Device.hpp>
 #include <Macaronlib/String.hpp>
 
 namespace Kernel {
 
 namespace Logger {
+    using namespace Devices;
+
+    void initialize(Device* console_device);
     void putc(char c);
     void print(const char* str);
     void print(const String& str);

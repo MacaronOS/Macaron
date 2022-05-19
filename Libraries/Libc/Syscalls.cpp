@@ -62,9 +62,9 @@ void* mmap(void* start, uint32_t length, int prot, int flags, int fd, uint32_t o
     return (void*)do_syscall(Syscall::Mmap, ToSysArg(&params));
 }
 
-int ioctl(int fd, unsigned long request)
+int ioctl(int fd, unsigned long request, void* arg)
 {
-    return do_syscall(Syscall::Ioctl, ToSysArg(fd), ToSysArg(request));
+    return do_syscall(Syscall::Ioctl, ToSysArg(fd), ToSysArg(request), ToSysArg(arg));
 }
 
 int socket(int domain, int type, int protocol)

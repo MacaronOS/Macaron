@@ -68,5 +68,5 @@ void Screen::swap_buffers()
     m_front_buffer = m_back_buffer;
     m_back_buffer = copy_front;
 
-    ioctl(m_screen_fd, BGA_SWAP_BUFFERS);
+    ioctl(m_screen_fd, BGA_SWAP_BUFFERS, nullptr);
 }
