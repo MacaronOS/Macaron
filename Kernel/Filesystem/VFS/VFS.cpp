@@ -5,7 +5,6 @@
 #include <FileSystem/Base/DentryCache.hpp>
 #include <FileSystem/Base/Inode.hpp>
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/Net/LocalSocket.hpp>
 #include <Tasking/Scheduler/Scheduler.hpp>

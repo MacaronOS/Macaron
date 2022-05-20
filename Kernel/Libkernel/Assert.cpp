@@ -1,5 +1,4 @@
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 
 void ASSERT_PANIC(char* message)

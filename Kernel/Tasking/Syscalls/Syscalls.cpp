@@ -3,7 +3,6 @@
 #include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/Trapframe.hpp>
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Tasking/MemoryDescription/AnonVMArea.hpp>
 #include <Tasking/Scheduler/Scheduler.hpp>
@@ -25,7 +24,7 @@ using namespace Time;
 static int sys_putc(char a)
 {
     Log() << "Handling putc " << a << "\n";
-    VgaTUI::Putc(a);
+    Log() << a << "\n";
     return 1;
 }
 

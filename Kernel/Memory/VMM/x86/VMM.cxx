@@ -2,7 +2,6 @@
 #include "TranslationTables.hpp"
 
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/pmm.hpp>

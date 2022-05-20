@@ -13,6 +13,9 @@ namespace Logger {
 
     void putc(char c)
     {
+        if (!s_console) {
+            return;
+        }
         FileDescription fd;
         s_console->write(&c, 1, fd);
     }

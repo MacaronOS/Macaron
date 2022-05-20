@@ -81,9 +81,12 @@ public:
         auto type = static_cast<uint8_t>(device->type());
 
         auto& device_slot = m_devices[major][minor][type];
-        if (device_slot) {
-            return KError(EEXIST);
-        }
+
+        // Alllow rewrites to the device slot untill we does not support a device tree.
+        // TOOD: prioritize drivers.
+        // if (device_slot) {
+        // return KError(EEXIST);
+        // }
 
         device_slot = device;
         return KError(0);

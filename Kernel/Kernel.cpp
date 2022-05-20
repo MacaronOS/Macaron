@@ -4,7 +4,6 @@
 #include <FileSystem/VFS/VFS.hpp>
 #include <Hardware/Init.hpp>
 #include <Libkernel/Assert.hpp>
-#include <Libkernel/Graphics/VgaTUI.hpp>
 #include <Libkernel/Init.hpp>
 #include <Libkernel/Logger.hpp>
 #include <Memory/Layout.hpp>
@@ -30,9 +29,6 @@ using namespace Devices;
 extern "C" void kernel_entry_point(multiboot_info_t* multiboot_structure)
 {
     initialize_hardware();
-
-    VgaTUI::Initialize();
-    VgaTUI::Print("Starting up Macaron OS kernel...\n");
 
     Memory::SetupMalloc();
 
