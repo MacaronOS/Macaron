@@ -92,8 +92,10 @@ void Scheduler::prepare_switching_to_the_next_thread(Iterator next_thread_for_sc
     auto next_thread_it = *next_thread_for_scheduling;
     auto& next_thread = *next_thread_it;
 
+#ifdef __i386__
     // switch to the new thread's tss entry
     DescriptorTables::GDT::SetKernelStack(next_thread.kernel_stack_top());
+#endif
 
     // swtich to the new process address space
     VMM::the().set_translation_table(next_thread.process().memory_description().memory_descriptor());

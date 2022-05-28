@@ -10,7 +10,7 @@ using namespace Memory;
 
 volatile PageDir __attribute__((section(".boot_init_bss"))) boot_page_directory {};
 volatile PageTable __attribute__((section(".boot_init_bss"))) kernel_page_table {};
-volatile PageTable __attribute__((section(".boot_init_bss"))) kernel_translation_allocator_page_table {};
+volatile PageTable __attribute__((section(".boot_init_bss"))) translation_allocator_page_table {};
 volatile PageTable __attribute__((section(".boot_init_bss"))) kernel_heap_page_table {};
 
 void __attribute__((section(".boot_init_text"))) init_boot_translation_table()
@@ -37,7 +37,7 @@ void __attribute__((section(".boot_init_text"))) init_boot_translation_table()
     };
 
     map_table(kernel_page_table);
-    map_table(kernel_translation_allocator_page_table);
+    map_table(translation_allocator_page_table);
     map_table(kernel_heap_page_table);
 
     // Identity map the first table. Used during boot.
@@ -46,4 +46,5 @@ void __attribute__((section(".boot_init_text"))) init_boot_translation_table()
     boot_page_directory.entries[0].user_mode = 1;
     boot_page_directory.entries[0].pt_base = (uint32_t)&kernel_page_table / CPU::page_size();
 }
+
 }

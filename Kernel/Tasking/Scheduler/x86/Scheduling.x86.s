@@ -1,4 +1,4 @@
-[GLOBAL switch_to_user]
+global switch_to_user
 switch_to_user:
     mov esp, [esp+4] ; Trapframe* tf
 
@@ -18,7 +18,7 @@ switch_to_user:
     add esp, 8
     iretd
 
-[GLOBAL switch_to_kernel]
+global switch_to_kernel
 switch_to_kernel:
     mov eax, [esp + 4] ; KernelContext** kc
 
@@ -32,7 +32,7 @@ switch_to_kernel:
 
     ret
 
-[GLOBAL block_and_switch_to_kernel]
+global block_and_switch_to_kernel
 block_and_switch_to_kernel:
     mov eax, [esp + 4] ; KernelContext** cur
     mov edx, [esp + 8] ; KernelContext** next
@@ -53,7 +53,7 @@ block_and_switch_to_kernel:
 
     ret
 
-[GLOBAL block_and_switch_to_user]
+global block_and_switch_to_user
 block_and_switch_to_user:
     mov eax, [esp + 4] ; KernelContext** cur
     mov edx, [esp + 8] ; Trapframe* next
@@ -82,7 +82,7 @@ block_and_switch_to_user:
     add esp, 8
     iretd
 
-[GLOBAL switch_to_user_mode]
+global switch_to_user_mode
 switch_to_user_mode:
     cli
     mov ax, 0x20 | 0x3

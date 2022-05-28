@@ -38,7 +38,6 @@ SECTIONS
  _kernel_rodata_end = .;
  _kernel_data_start = .;
  
- /* Read-write data (initialized) */
  .data ALIGN(4K) : AT(ADDR(.data)-0xC0000000)
  {
   start_ctors = .;
@@ -54,7 +53,6 @@ SECTIONS
  _kernel_data_end = .;
  _kernel_bss_start = .;
  
- /* Read-write data (uninitialized) and stack */
  .bss ALIGN(4K) : AT(ADDR(.bss)-0xC0000000)
  {
   bss = .;

@@ -7,13 +7,13 @@
 
 namespace Kernel::Memory {
 
-extern "C" volatile PageTable kernel_translation_allocator_page_table;
+extern "C" volatile PageTable translation_allocator_page_table;
 
 PhysicalBinder::PhysicalBinder(uintptr_t virtual_base_address)
     : m_virtual_base_address(virtual_base_address)
 {
     auto page_table_entry = virtual_base_address / CPU::page_size() % 1024;
-    auto& page_table = *reinterpret_cast<PageTable*>(Layout::PhysToVirt((uintptr_t)&kernel_translation_allocator_page_table));
+    auto& page_table = *reinterpret_cast<PageTable*>(Layout::PhysToVirt((uintptr_t)&translation_allocator_page_table));
     m_translation_entry = &page_table.entries[page_table_entry];
 }
 

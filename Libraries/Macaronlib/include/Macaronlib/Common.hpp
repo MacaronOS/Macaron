@@ -24,6 +24,7 @@ typedef decltype(nullptr) nullptr_t;
 #define likely(expr) __builtin_expect(!!(expr), 1)
 
 #define KB 1024
+#define MB (KB * KB)
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))

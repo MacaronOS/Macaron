@@ -1,3 +1,9 @@
+Define:
+    linker_script: linker.x86.ld
+
+    target~aarch32:
+        linker_script: linker.aarch32.ld
+
 Build:
     Type: Executable
 
@@ -19,17 +25,13 @@ Build:
         cpp:
             Compiler: {compiler}
             Flags: 
-                -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -fno-leading-underscore, -Wno-write-strings, -fpermissive
-                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                {cpp_flags}
                 -I../Libraries/Macaronlib/include, -I.
 
         cxx:
             Compiler: {compiler}
             Flags: 
-                -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -fno-leading-underscore, -Wno-write-strings, -fpermissive
-                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                {cpp_flags}
                 -I../Libraries/Macaronlib/include, -I.
     
         x86.s:
@@ -42,4 +44,4 @@ Build:
 
     Link:
         Linker: {linker}
-        Flags: -T, linker.ld
+        Flags: -T, {linker_script}

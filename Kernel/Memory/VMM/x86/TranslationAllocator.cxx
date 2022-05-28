@@ -8,10 +8,10 @@
 
 namespace Kernel::Memory {
 
-extern "C" volatile PageTable kernel_translation_allocator_page_table;
+extern "C" volatile PageTable translation_allocator_page_table;
 static inline PageTable& page_table()
 {
-    return *reinterpret_cast<PageTable*>(Layout::PhysToVirt((uintptr_t)&kernel_translation_allocator_page_table));
+    return *reinterpret_cast<PageTable*>(Layout::PhysToVirt((uintptr_t)&translation_allocator_page_table));
 }
 
 TranslationAllocator::TranslationAllocator()
