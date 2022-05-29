@@ -18,7 +18,7 @@ void DeviceManager::acknowledge_driver(Driver* driver)
 
 void DeviceManager::install_acknowledged_drivers()
 {
-    static char* desired_drivers[] = {
+    static const char* desired_drivers[] = {
         "VgaTUI",
         "UART",
         "ATA",

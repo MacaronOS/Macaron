@@ -1,7 +1,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Logger.hpp>
 
-void ASSERT_PANIC(char* message)
+void ASSERT_PANIC(const char* message)
 {
     Kernel::Log() << "ASSERT PANIC:\n"
                   << message << "\n";

@@ -10,8 +10,7 @@ Build:
         cpp:
             Compiler: {compiler}
             Flags: 
-                -O3, -std=c++2a, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -Iinclude/Macaronlib, -fno-leading-underscore, -Wno-write-strings, -fpermissive
-                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                {cpp_flags}
+                -Iinclude/Macaronlib
 
     Archiver: {archiver}

@@ -1,4 +1,4 @@
 #pragma once
 
-void ASSERT_PANIC(char* message);
+void ASSERT_PANIC(const char* message);
 void STOP();

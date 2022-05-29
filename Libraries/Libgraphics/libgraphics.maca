@@ -13,9 +13,7 @@ Build:
         cpp:
             Compiler: {compiler}
             Flags:
-                -O3, -std=c++2a, -nostdlib, -nostdinc, -fno-builtin, -fno-stack-protector, -ffreestanding
-                -fpermissive, -fno-leading-underscore, -Wno-write-strings,
-                -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+                {cpp_flags}
                 -I../Macaronlib/include, -I..
 
     Archiver: {archiver}

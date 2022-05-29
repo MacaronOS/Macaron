@@ -3,10 +3,11 @@ Define:
     compiler: i686-elf-g++
     linker: i686-elf-ld
     archiver: i686-elf-ar
+    assembly: nasm
+    assembly_flags: -felf
     cpp_flags: 
-        -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
-        -fno-leading-underscore, -Wno-write-strings, -fpermissive
-        -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
+        -g, -O3, -std=c++2a,
+        -ffreestanding, -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
 
     run_qemu: qemu-system-i386 -vga std -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel 
 
@@ -15,11 +16,11 @@ Define:
         compiler: arm-none-eabi-g++
         linker: arm-none-eabi-ld
         archiver: arm-none-eabi-ar
+        assembly: arm-none-eabi-as
+        assembly_flags: -march=armv7-a, -mcpu=cortex-a15
         cpp_flags: 
+            {cpp_flags}
             -march=armv7ve
-            -g, -O3, -std=c++2a, -nostdinc, -nostdlib, -fno-builtin, -fno-stack-protector, -ffreestanding
-            -fno-leading-underscore, -Wno-write-strings, -fpermissive
-            -fno-use-cxa-atexit, -fno-rtti, -fno-exceptions
 
         run_qemu: qemu-system-arm -M vexpress-a15 -cpu cortex-a15 -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel 
 

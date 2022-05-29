@@ -268,7 +268,7 @@ void VMM::handle_interrupt(Trapframe* tf)
         PageFaultFlag::InstructionFetch,
     };
 
-    static char* descr[] = {
+    static const char* descr[] = {
         "Present",
         "Write",
         "User",

@@ -37,7 +37,7 @@ ATA ata(0x1F0, true);
 
 inline void ata_handle_error(uint8_t error)
 {
-    static char* error_to_description[] = {
+    static const char* error_to_description[] = {
         "Address mark not found\n",
         "Track zero not found\n",
         "Aborted command\n",

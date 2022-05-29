@@ -23,7 +23,7 @@ void Shell::process(char buffer[], int sz)
 {
     char out[255] {};
 
-    char* received = "sh received: ";
+    const char* received = "sh received: ";
     memcpy(out, received, 14);
     memcpy(out + 14, buffer, min(255 - 14, sz));
 
