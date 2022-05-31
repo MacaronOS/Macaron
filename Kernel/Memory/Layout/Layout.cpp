@@ -42,19 +42,4 @@ uintptr_t Layout::GetLocationVirt(LayoutElement element)
     return LayoutElement2Location[static_cast<uintptr_t>(element)];
 }
 
-uintptr_t Layout::GetLocationPhys(LayoutElement element)
-{
-    return GetLocationVirt(element) - HIGHER_HALF_OFFSET;
-}
-
-uintptr_t Layout::VirtToPhys(uintptr_t addr)
-{
-    return addr - HIGHER_HALF_OFFSET;
-}
-
-uintptr_t Layout::PhysToVirt(uintptr_t addr)
-{
-    return addr + HIGHER_HALF_OFFSET;
-}
-
 }

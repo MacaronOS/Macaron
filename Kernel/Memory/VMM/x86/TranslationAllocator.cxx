@@ -2,7 +2,7 @@
 #include "TranslationTables.hpp"
 
 #include <Hardware/CPU.hpp>
-#include <Memory/Layout.hpp>
+#include <Memory/Layout/Layout.hpp>
 #include <Memory/Utils.hpp>
 #include <Memory/pmm.hpp>
 

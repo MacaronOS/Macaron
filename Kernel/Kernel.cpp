@@ -6,7 +6,7 @@
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Init.hpp>
 #include <Libkernel/Logger.hpp>
-#include <Memory/Layout.hpp>
+#include <Memory/Layout/Layout.hpp>
 #include <Memory/Malloc.hpp>
 #include <Memory/VMM/VMM.hpp>
 #include <Memory/pmm.hpp>

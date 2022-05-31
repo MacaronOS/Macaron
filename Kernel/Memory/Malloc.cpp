@@ -1,8 +1,8 @@
 #include "Malloc.hpp"
-#include "Layout.hpp"
 
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/Logger.hpp>
+#include <Memory/Layout/Layout.hpp>
 #include <Memory/VMM/VMM.hpp>
 #include <Tasking/MemoryDescription/MemoryDescription.hpp>
 #include <Tasking/MemoryDescription/SharedVMArea.hpp>

@@ -7,7 +7,7 @@
 #include <Hardware/Interrupts/InterruptManager.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
-#include <Memory/Layout.hpp>
+#include <Memory/Layout/Layout.hpp>
 #include <Memory/Utils.hpp>
 #include <Memory/pmm.hpp>
 

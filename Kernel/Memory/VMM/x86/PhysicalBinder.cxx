@@ -3,7 +3,7 @@
 
 #include <Hardware/CPU.hpp>
 #include <Libkernel/Logger.hpp>
-#include <Memory/Layout.hpp>
+#include <Memory/Layout/Layout.hpp>
 
 namespace Kernel::Memory {
 

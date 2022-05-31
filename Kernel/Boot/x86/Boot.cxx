@@ -1,6 +1,6 @@
 #include <Hardware/CPU.hpp>
 #include <Macaronlib/Common.hpp>
-#include <Memory/Layout.hpp>
+#include <Memory/Layout/Layout.hpp>
 #include <Memory/VMM/x86/TranslationTables.hpp>
 
 extern "C" {
