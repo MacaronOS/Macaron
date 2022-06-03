@@ -69,7 +69,7 @@ namespace VGA {
     }
 }
 
-DriverInstallationResult VgaTUI::try_install()
+DriverInstallationResult VgaTUI::try_install_console()
 {
     VGA::clear_screen();
     VGA::enable_cursor();

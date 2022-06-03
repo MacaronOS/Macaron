@@ -32,8 +32,9 @@ void DeviceManager::install_acknowledged_drivers()
 
     for (auto desired_driver : desired_drivers) {
         if (m_acknowledged_drivers.contains(desired_driver)) {
-            m_acknowledged_drivers[desired_driver]->install();
-            m_attached_drivers[desired_driver] = m_acknowledged_drivers[desired_driver];
+            auto driver = m_acknowledged_drivers[desired_driver];
+            driver->install();
+            m_attached_drivers[desired_driver] = driver;
             Log() << "[DeviceManager] Installed a driver: " << desired_driver << "\n";
             continue;
         }

@@ -8,7 +8,7 @@ class FileSystem {
 public:
     Inode* root() { return m_root; }
 
-    virtual void init();
+    virtual void init() {}
 
     virtual Inode* allocate_inode() { return nullptr; }
     virtual void write_inode(Inode& inode) { }

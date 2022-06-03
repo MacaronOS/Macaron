@@ -29,7 +29,7 @@ static inline auto uart_read(UARTRegister reg)
     return inb(static_cast<uint16_t>(reg));
 }
 
-DriverInstallationResult UART::try_install()
+DriverInstallationResult UART::try_install_console()
 {
     uart_write(UARTRegister::Interrupt, 0x00);
     uart_write(UARTRegister::LineControl, 0x80);

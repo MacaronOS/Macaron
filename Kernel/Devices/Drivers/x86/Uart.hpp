@@ -9,8 +9,8 @@ class UART : public ConsoleDevice<UART> {
 public:
     REGISTER_DRIVER(UART);
 
-    // ^DeviceDriver
-    DriverInstallationResult try_install();
+    // ^ConsoleDevice
+    DriverInstallationResult try_install_console();
 
     // ^Driver
     virtual String driver_name() override

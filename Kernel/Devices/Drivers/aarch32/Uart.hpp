@@ -5,9 +5,9 @@
 
 namespace Kernel::Devices {
 
-class VgaTUI : public ConsoleDevice<VgaTUI> {
+class UART : public ConsoleDevice<UART> {
 public:
-    REGISTER_DRIVER(VgaTUI);
+    REGISTER_DRIVER(UART);
 
     // ^ConsoleDevice
     DriverInstallationResult try_install_console();
@@ -15,11 +15,11 @@ public:
     // ^Driver
     virtual String driver_name() override
     {
-        return "VgaTUI";
+        return "UART";
     }
     virtual String driver_info() override
     {
-        return "MacaronOS x86 VGA Text User Interface console driver";
+        return "MacaronOS aarch32 UART console driver";
     }
 
     // ^ConsoleDevice
@@ -27,6 +27,9 @@ public:
     char receive_byte();
     bool can_send();
     void send_byte(char);
+
+private:
+    char* m_base_register {};
 };
 
 }

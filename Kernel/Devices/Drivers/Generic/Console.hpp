@@ -16,7 +16,7 @@ public:
     // ^DeviceDriver
     DriverInstallationResult try_install()
     {
-        auto result = static_cast<Implementation*>(this)->try_install();
+        auto result = static_cast<Implementation*>(this)->try_install_console();
         if (result == DriverInstallationResult::Succeeded) {
             Logger::initialize(this);
         }

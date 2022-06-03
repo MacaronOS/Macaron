@@ -7,7 +7,7 @@
 namespace Kernel::Devices {
 
 struct InterruptTimerCallback {
-    virtual void on_interrupt_timer(Trapframe*);
+    virtual void on_interrupt_timer(Trapframe*) = 0;
 };
 
 class InterruptTimer : public Driver {
