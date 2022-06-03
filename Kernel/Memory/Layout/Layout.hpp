@@ -4,6 +4,11 @@
 namespace Kernel::Memory {
 
 constexpr uintptr_t HIGHER_HALF_OFFSET = 0xC0000000;
+#ifdef __i386__
+constexpr uintptr_t PHYSICAL_OFFSET = 0;
+#else
+constexpr uintptr_t PHYSICAL_OFFSET = 0x80000000;
+#endif
 
 enum class LayoutElement {
     KernelStart,

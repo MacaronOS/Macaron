@@ -28,13 +28,13 @@ static uintptr_t LayoutElement2Location[] = {
     [static_cast<uintptr_t>(LayoutElement::KernelStackEnd)] = reinterpret_cast<uintptr_t>(&_kernel_stack_end),
     [static_cast<uintptr_t>(LayoutElement::KernelEnd)] = reinterpret_cast<uintptr_t>(&_kernel_end),
 
-    [static_cast<uintptr_t>(LayoutElement::TranslationAllocatorAreaStart)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 4 * 1024 * 1024),
-    [static_cast<uintptr_t>(LayoutElement::TranslationAllocatorAreaEnd)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * 1024 * 1024 - 2 * 4096),
-    [static_cast<uintptr_t>(LayoutElement::PagingBuffer1)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * 1024 * 1024 - 2 * 4096),
-    [static_cast<uintptr_t>(LayoutElement::PagingBuffer2)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * 1024 * 1024 - 1 * 4096),
+    [static_cast<uintptr_t>(LayoutElement::TranslationAllocatorAreaStart)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 4 * MB),
+    [static_cast<uintptr_t>(LayoutElement::TranslationAllocatorAreaEnd)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * MB - 2 * 4096),
+    [static_cast<uintptr_t>(LayoutElement::PagingBuffer1)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * MB - 2 * 4096),
+    [static_cast<uintptr_t>(LayoutElement::PagingBuffer2)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * MB - 1 * 4096),
 
-    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapStart)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * 1024 * 1024),
-    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapEnd)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 12 * 1024 * 1024),
+    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapStart)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 8 * MB),
+    [static_cast<uintptr_t>(LayoutElement::KernelInitialHeapEnd)] = reinterpret_cast<uintptr_t>(HIGHER_HALF_OFFSET + 12 * MB),
 };
 
 uintptr_t Layout::GetLocationVirt(LayoutElement element)

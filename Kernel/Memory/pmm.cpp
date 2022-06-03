@@ -1,9 +1,9 @@
 #include "pmm.hpp"
 
 #include <Libkernel/Logger.hpp>
-#include <Memory/Layout/Layout.hpp>
-
 #include <Macaronlib/Memory.hpp>
+#include <Memory/Layout/Layout.hpp>
+#include <Memory/Utils.hpp>
 
 namespace Kernel::Memory {
 
@@ -30,8 +30,10 @@ void PMM::initialize(multiboot_info_t* multiboot_info)
         }
     }
 
-    // Multiboot doesn't know about kernel layout, so marking these blocks manually.
-    occupy_range(Layout::GetLocationPhys(LayoutElement::KernelStart), Layout::GetLocationPhys(LayoutElement::KernelInitialHeapEnd));
+    // Bootloader doesn't know about kernel layout, so marking these blocks manually.
+    occupy_range(
+        Layout::GetLocationPhys(LayoutElement::KernelStart),
+        Layout::GetLocationPhys(LayoutElement::KernelInitialHeapEnd));
 }
 
 size_t PMM::allocate_frame()
@@ -41,36 +43,49 @@ size_t PMM::allocate_frame()
         return BITMAP_NULL;
     }
     m_pmmap.set_true(frame);
+    frame += bytes_to_pages(PHYSICAL_OFFSET);
     return frame;
 }
 
 void PMM::free_frame(size_t frame)
 {
+    frame -= bytes_to_pages(PHYSICAL_OFFSET);
     m_pmmap.set_false(frame);
 }
 
 void PMM::occypy_frame(size_t frame)
 {
+    frame -= bytes_to_pages(PHYSICAL_OFFSET);
     m_pmmap.set_true(frame);
 }
 
 void PMM::occupy_range(uintptr_t start, uintptr_t end)
 {
-    for (size_t frame = start / CPU::page_size(); frame < (end + CPU::page_size() - 1) / CPU::page_size(); frame++) {
+    start -= PHYSICAL_OFFSET;
+    end -= PHYSICAL_OFFSET;
+
+    for (size_t frame = start / CPU::page_size();
+         frame < (end + CPU::page_size() - 1) / CPU::page_size();
+         frame++) {
         m_pmmap.set_true(frame);
     }
 }
 
 void PMM::free_range(uintptr_t start, uintptr_t end)
 {
-    for (size_t block = start / CPU::page_size(); block < (end + CPU::page_size() - 1) / CPU::page_size(); block++) {
+    start -= PHYSICAL_OFFSET;
+    end -= PHYSICAL_OFFSET;
+
+    for (size_t block = start / CPU::page_size();
+         block < (end + CPU::page_size() - 1) / CPU::page_size();
+         block++) {
         m_pmmap.set_false(block);
     }
 }
 
 size_t PMM::allocate_frames(size_t frames)
 {
-    return m_pmmap.occupy_sequential(frames);
+    return m_pmmap.occupy_sequential(frames) + bytes_to_pages(PHYSICAL_OFFSET);
 }
 
 }
