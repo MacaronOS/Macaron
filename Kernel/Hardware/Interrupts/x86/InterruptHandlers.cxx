@@ -3,15 +3,18 @@
 
 extern "C" void isr_handler(Trapframe* regs)
 {
-    InterruptManager::the().handle_interrupt(regs);
+    auto interrupt = regs->int_no;
+    InterruptManager::the().handle_interrupt(interrupt, regs);
 }
 
 extern "C" void irq_handler(Trapframe* regs)
 {
-    if (regs->int_no >= 40) {
+    auto interrupt = regs->int_no;
+
+    if (interrupt >= 40) {
         outb(0xA0, 0x20);
     }
     outb(0x20, 0x20);
 
-    InterruptManager::the().handle_interrupt(regs);
+    InterruptManager::the().handle_interrupt(interrupt, regs);
 }

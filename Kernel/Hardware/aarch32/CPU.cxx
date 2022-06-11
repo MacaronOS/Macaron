@@ -14,4 +14,14 @@ void CPU::flush_tlb(uintptr_t virtual_address, size_t page_count)
     }
 }
 
+void CPU::enable_interrupts()
+{
+    asm volatile("cpsie i");
+}
+
+void CPU::disable_interrupts()
+{
+    asm volatile("cpsid i");
+}
+
 }

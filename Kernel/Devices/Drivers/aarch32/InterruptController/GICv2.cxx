@@ -88,10 +88,11 @@ void GICv2::enable_interrupt(uint32_t irq, InterruptType type)
 
     auto icfgreg = irq / 16;
     auto icfgbit = (irq % 16) * 2;
-    if (type == InterruptType::EdgeTriggered) {
-        m_distributor_registers->interrupt_configuration_registers[icfgreg] |= (0b10 << icfgbit);
+
+    if (type == InterruptType::LevelSensitive) {
+        m_distributor_registers->interrupt_configuration_registers[icfgreg] &= ~(uint32_t)(0b11 << icfgbit);
     } else {
-        m_distributor_registers->interrupt_configuration_registers[icfgreg] |= ~(uint32_t)(0b11 << icfgbit);
+        m_distributor_registers->interrupt_configuration_registers[icfgreg] |= (0b10 << icfgbit);
     }
 
     auto iprctrgtreg = irq / 4;
@@ -105,12 +106,12 @@ void GICv2::enable_interrupt(uint32_t irq, InterruptType type)
 
 uint32_t GICv2::acknowledge_interrupt()
 {
-    return m_cpu_interface_registers->interrupt_acknowledge & 0x1ff;
+    return m_cpu_interface_registers->interrupt_acknowledge;
 }
 
 void GICv2::end_of_interrupt(uint32_t intno)
 {
-    m_cpu_interface_registers->end_of_interrupt = intno & 0x1ff;
+    m_cpu_interface_registers->end_of_interrupt = intno;
 }
 
 }

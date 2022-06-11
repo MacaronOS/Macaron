@@ -4,15 +4,15 @@
 
 #include <Devices/Drivers/DeviceDriver.hpp>
 #include <Devices/Drivers/Generic/Console.hpp>
-#include <Hardware/Interrupts/InterruptManager.hpp>
+#include <Hardware/Interrupts/aarch32/InterruptArchManager.hpp>
 
 namespace Kernel::Devices {
 
 class UartPL011 : public ConsoleDevice<UartPL011>,
-                  public InterruptHandler {
+                  public InterruptArchHandler {
 public:
     UartPL011()
-        : InterruptHandler(37)
+        : InterruptArchHandler(37)
     {
         ACKNOWLEDGE_DRIVER;
     }

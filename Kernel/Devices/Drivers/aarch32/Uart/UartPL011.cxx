@@ -83,7 +83,8 @@ void UartPL011::send_byte(char byte)
 void UartPL011::handle_interrupt(Trapframe* tf)
 {
     auto masked_interrupt = m_registers->masked_interrupt_status;
-    Log() << "uart " << masked_interrupt;
+    auto byte = receive_byte();
+    Log() << "uart " << byte << "\n";
     m_registers->interrupt_clear = masked_interrupt;
 }
 

@@ -32,8 +32,8 @@ protected:
     virtual void install() override;
 
 private:
-    DistributorRegisters* m_distributor_registers {};
-    CPUInterfaceRegisters* m_cpu_interface_registers {};
+    volatile DistributorRegisters* m_distributor_registers {};
+    volatile CPUInterfaceRegisters* m_cpu_interface_registers {};
 };
 
 }

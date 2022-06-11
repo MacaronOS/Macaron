@@ -15,7 +15,17 @@ public:
     }
 
     void register_interrupt_handler(InterruptHandler* handler);
-    void handle_interrupt(Trapframe* tf);
+    void handle_interrupt(uint8_t interrupt_number, Trapframe* tf);
+
+    template <typename Callback>
+    void for_each_registered_interrupt(Callback callback)
+    {
+        for (size_t i = 0; i < 256; i++) {
+            if (m_handlers[i] != nullptr) {
+                callback(m_handlers[i]);
+            }
+        }
+    }
 
 private:
     InterruptHandler* m_handlers[256] {};
