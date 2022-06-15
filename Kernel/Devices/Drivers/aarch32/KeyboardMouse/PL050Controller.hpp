@@ -12,7 +12,7 @@ struct PL050Registers {
     const uint32_t interrupt_identification;
 };
 
-// PL050 status register masks are taken from here:
+// PL050 status register masks can be found here:
 // https://developer.arm.com/documentation/ddi0143/c/programmer-s-model/register-descriptions/kmistat---7-----0x04-
 
 constexpr auto pl050_receiver_busy = 1 << 3;
@@ -20,7 +20,7 @@ constexpr auto pl050_ready_to_receive = 1 << 4;
 constexpr auto pl050_sender_busy = 1 << 5;
 constexpr auto pl050_ready_to_send = 1 << 6;
 
-// PL050 control register masks are taken from here:
+// PL050 control register masks can be found here:
 // https://developer.arm.com/documentation/ddi0143/c/programmer-s-model/register-descriptions/kmicr---6-----0x00-
 
 constexpr auto pl050_enable = 1 << 2;

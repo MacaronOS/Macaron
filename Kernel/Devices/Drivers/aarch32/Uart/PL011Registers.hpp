@@ -4,7 +4,7 @@
 
 namespace Kernel::Devices {
 
-// PL011 registers description are taken from here:
+// PL011 registers description can be found here:
 // https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions
 
 struct [[gnu::packed]] PL011Registers {
@@ -41,25 +41,25 @@ struct [[gnu::packed]] PL011Registers {
     uint32_t interrupt_clear;
 };
 
-// PL011 line control register masks are taken from here:
+// PL011 line control register masks can be found here:
 // https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/line-control-register--uartlcr-h
 
 constexpr auto pl011_enable_fifo = 1 << 4;
 constexpr auto pl011_word_length_8_bits = 3 << 5;
 
-// PL011 control register masks are taken from here:
+// PL011 control register masks can be found here:
 // https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/control-register--uartcr
 
 constexpr auto pl011_uart_enable = 1 << 0;
 constexpr auto pl011_transmit_enable = 1 << 8;
 constexpr auto pl011_receive_enable = 1 << 9;
 
-// PL011 interrupt mask set/clear register masks are taken from here:
+// PL011 interrupt mask set/clear register masks can be found here:
 // https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/interrupt-mask-set-clear-register--uartimsc
 
 constexpr auto pl011_receive_interrupt_enable = 1 << 4;
 
-// PL011 Flag register masks are taken from here:
+// PL011 Flag register masks can be found here:
 // https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/flag-register--uartfr
 
 constexpr auto pl011_uart_busy = 1 << 3;

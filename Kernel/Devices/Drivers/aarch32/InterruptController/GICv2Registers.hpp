@@ -4,7 +4,7 @@
 
 namespace Kernel::Devices {
 
-// GICv2 registers description are taken from here:
+// GICv2 registers description can be found here:
 // https://developer.arm.com/documentation/ihi0048/latest
 
 struct [[gnu::packed]] DistributorRegisters {
