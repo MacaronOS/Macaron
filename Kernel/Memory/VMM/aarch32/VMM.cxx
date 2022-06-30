@@ -44,15 +44,6 @@ void assure_tranlation_entity(void* to, TranslationEntity* from, TranslationAllo
     static_assert("[VMM][Aarch32] Unsupported translation entity");
 }
 
-uintptr_t VMM::page_fault_linear_address() const
-{
-    uint32_t dfar;
-    asm volatile("mrc p15, 0, %0, c6, c0, 0"
-                 : "=r"(dfar)
-                 :);
-    return dfar;
-}
-
 uintptr_t VMM::current_translation_table() const
 {
     uint32_t ttbr0;
@@ -74,6 +65,8 @@ uintptr_t VMM::create_translation_table()
     for (size_t i = 0; i < 12; i++) {
         translation_table.descriptors[(HIGHER_HALF_OFFSET >> 20) + i] = ktranslation_table.descriptors[(HIGHER_HALF_OFFSET >> 20) + i];
     }
+
+    translation_table = ktranslation_table;
 
     return m_tranlation_allocator.virtual_to_physical((uintptr_t)&translation_table);
 }
@@ -316,11 +309,6 @@ void VMM::unmap_pages(size_t page, size_t pages)
     }
 
     CPU::flush_tlb(page * CPU::page_size(), pages);
-}
-
-void VMM::handle_interrupt(Trapframe* tf)
-{
-    return;
 }
 
 }

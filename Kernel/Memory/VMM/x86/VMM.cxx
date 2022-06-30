@@ -26,14 +26,6 @@ static inline void assure_page_table(PDEntry& pde, uint32_t flags, TranslationAl
     }
 }
 
-uintptr_t VMM::page_fault_linear_address() const
-{
-    uintptr_t cr2;
-    asm("mov %%cr2, %%eax"
-        : "=a"(cr2));
-    return cr2;
-}
-
 uintptr_t VMM::current_translation_table() const
 {
     uintptr_t cr3;
@@ -203,10 +195,34 @@ void VMM::unmap_pages(size_t page, size_t pages)
     CPU::flush_tlb(page * CPU::page_size(), pages);
 }
 
-void VMM::handle_interrupt(Trapframe* tf)
+class VMMInterruptHandler : public InterruptHandler {
+public:
+    VMMInterruptHandler()
+        : InterruptHandler(14)
+    {
+    }
+
+    //^InterruptHandler
+    void handle_interrupt(Trapframe* tf)
+    {
+        VMM::the().on_fault(page_fault_linear_address(), tf->err_code);
+    }
+
+private:
+    uintptr_t page_fault_linear_address()
+    {
+        uintptr_t cr2;
+        asm("mov %%cr2, %%eax"
+            : "=a"(cr2));
+        return cr2;
+    }
+};
+
+static VMMInterruptHandler _;
+
+void VMM::on_fault(uintptr_t address, uint32_t flags)
 {
     constexpr auto pagefault_write_flag = 1 << 1;
-    auto address = page_fault_linear_address();
 
     auto try_resolve_page_fault = [&](MemoryDescription& memory_description) -> bool {
         // If no such area is found, this is an incorrect memory reference.
@@ -216,13 +232,13 @@ void VMM::handle_interrupt(Trapframe* tf)
         }
 
         // Check flags
-        if (tf->err_code & pagefault_write_flag && !(vm_area->flags() & VM_WRITE)) {
+        if (flags & pagefault_write_flag && !(vm_area->flags() & VM_WRITE)) {
             return false;
         }
 
         // Check if this page was marked as copy-on-write.
         // Create an individual copy for that page if so.
-        if (tf->err_code & pagefault_write_flag) {
+        if (flags & pagefault_write_flag) {
             auto& page_directory = m_tranlation_allocator.get_translation_entity<PageDir>(current_translation_table());
             auto& page_directory_entry = page_directory.entries[address / CPU::page_size() / 1024];
 
@@ -260,7 +276,7 @@ void VMM::handle_interrupt(Trapframe* tf)
     Log() << "Virtual address: ";
     Log() << address;
 
-    static PageFaultFlag flags[] = {
+    static PageFaultFlag page_fault_flags[] = {
         PageFaultFlag::Present,
         PageFaultFlag::Write,
         PageFaultFlag::User,
@@ -278,8 +294,8 @@ void VMM::handle_interrupt(Trapframe* tf)
 
     Log() << "\nFlags: ";
 
-    for (auto flag : flags) {
-        if (tf->err_code & (1 << static_cast<uint32_t>(flag))) {
+    for (auto flag : page_fault_flags) {
+        if (flags & (1 << static_cast<uint32_t>(flag))) {
             Log() << descr[static_cast<uint32_t>(flag)] << " ";
         }
     }

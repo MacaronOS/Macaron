@@ -22,7 +22,7 @@ enum Flags {
     User = 1 << 2,
 };
 
-class VMM : public InterruptHandler {
+class VMM {
 public:
     static VMM& the()
     {
@@ -30,7 +30,6 @@ public:
         return the;
     }
 
-    uintptr_t page_fault_linear_address() const;
     uintptr_t current_translation_table() const;
     uintptr_t create_translation_table();
     void set_translation_table(uintptr_t translation_table_physical_address);
@@ -60,13 +59,14 @@ public:
         unmap_pages(address_to_page(address), bytes_to_pages(bytes));
     }
 
-    //^InterruptHandler
-    void handle_interrupt(Trapframe* tf) override;
+    // Called when:
+    // Page fault on x86.
+    // Data / Prefetch about on aarch32.
+    void on_fault(uintptr_t address, uint32_t flags);
 
 private:
     VMM()
-        : InterruptHandler(14)
-        , m_primary_physical_binder(Layout::GetLocationVirt(LayoutElement::PagingBuffer1))
+        : m_primary_physical_binder(Layout::GetLocationVirt(LayoutElement::PagingBuffer1))
         , m_secondary_physical_binder(Layout::GetLocationVirt(LayoutElement::PagingBuffer2))
     {
     }
