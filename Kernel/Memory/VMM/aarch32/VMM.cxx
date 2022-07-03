@@ -1,5 +1,7 @@
 #include "../VMM.hpp"
 #include "TranslationTables.hpp"
+#include <Hardware/aarch32/CPU.hpp>
+#include <Libkernel/Logger.hpp>
 
 namespace Kernel::Memory {
 
@@ -309,6 +311,42 @@ void VMM::unmap_pages(size_t page, size_t pages)
     }
 
     CPU::flush_tlb(page * CPU::page_size(), pages);
+}
+
+namespace FaultStatus {
+    enum FaultStatus {
+        AlignmentFault = 00001,
+        InstructionCacheMaintenanceFault = 00100,
+        SynchronousExternalAbortFirstLevel = 01100,
+        SynchronousExternalAbortSecondLevel = 01110,
+        SynchronousParityErrorFirstLevel = 11100,
+        SynchronousParityErrorSecondLevel = 11110,
+        TranslationFaultFirstLevel = 00101,
+        TranslationFaultSecondLevel = 00111,
+        AccessFlagFaultFirstLevel = 00011,
+        AccessFlagFaultSecondLevel = 00110,
+        DomainFaultFirstLevel = 01001,
+        DomainFaultSecondLevel = 01011,
+        PermissionFaultFirstLevel = 01101,
+        PermissionFaultSecondLevel = 01111,
+        DebugeEvent = 00010,
+        SynchronousExternalAbort = 01000,
+        TLBConflictAbort = 10000,
+        SynchronousParityError = 11001,
+        AsynchronousExternalAbort = 10110,
+        AsynchronousParityError = 11000,
+    };
+}
+
+void VMM::on_fault(uintptr_t address, uint32_t flags_bits)
+{
+    DFSR flags;
+    flags.__bits = flags_bits;
+    Log() << "\nCan not resolve a page fault!\nInformation:\n";
+    Log() << "Virtual address: " << address << "\n";
+    Log() << "Flags: " << flags.__bits << "\n";
+
+    STOP();
 }
 
 }

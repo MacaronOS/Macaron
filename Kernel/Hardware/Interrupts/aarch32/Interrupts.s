@@ -1,5 +1,39 @@
 .section .text
 
+.global prefetch_abort_exception_handler
+prefetch_abort_exception_handler:
+    // lr_ABT points to the instruction at the address following the one 
+    // that caused the abort, so the address to be restored is at lr_ABT-4.
+    sub lr, #4
+    stmfd sp!, {r0-r12, lr}
+    mrs r2, spsr
+    mrs r1, sp_usr
+    mrs r0, lr_usr
+    stmfd sp!, {r0-r2}
+
+    ldr r1, =data_abort_handler
+    mov r0, sp
+    blx r1
+
+    b exception_out
+
+.global data_abort_exception_handler
+data_abort_exception_handler:
+    // The instruction that caused the abort is at lr_ABT-8 because
+    // lr_ABT points two instructions beyond the instruction that caused the abort.
+    sub lr, #8
+    stmfd sp!, {r0-r12, lr}
+    mrs r2, spsr
+    mrs r1, sp_usr
+    mrs r0, lr_usr
+    stmfd sp!, {r0-r2}
+
+    ldr r1, =data_abort_handler
+    mov r0, sp
+    blx r1
+
+    b exception_out
+
 .global irq_exception_handler
 irq_exception_handler:
     // Saving IRQ-banked (and R0) registers on the IRQ stack.
@@ -29,6 +63,7 @@ irq_exception_handler:
     mov r0, sp
     blx r1
 
+exception_out:
     // Restoring registers from the trapframe.
     ldmfd sp!, {r0-r2}
     msr lr_usr, r0

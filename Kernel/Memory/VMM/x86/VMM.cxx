@@ -1,6 +1,7 @@
 #include "../VMM.hpp"
 #include "TranslationTables.hpp"
 
+#include <Hardware/x86/CPU.hpp>
 #include <Libkernel/Assert.hpp>
 #include <Libkernel/KError.hpp>
 #include <Libkernel/Logger.hpp>
@@ -205,16 +206,7 @@ public:
     //^InterruptHandler
     void handle_interrupt(Trapframe* tf)
     {
-        VMM::the().on_fault(page_fault_linear_address(), tf->err_code);
-    }
-
-private:
-    uintptr_t page_fault_linear_address()
-    {
-        uintptr_t cr2;
-        asm("mov %%cr2, %%eax"
-            : "=a"(cr2));
-        return cr2;
+        VMM::the().on_fault(read_page_fault_linear_address(), tf->err_code);
     }
 };
 
