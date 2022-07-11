@@ -81,3 +81,16 @@ inline void* operator new(size_t size, std::align_val_t alignment)
     ((void**)aligned_ptr)[-1] = ptr;
     return aligned_ptr;
 }
+
+// alignment is maximum alignment required by the architecture
+// for any load or store instruction.
+#ifdef __i386__
+constexpr int alignment = 1;
+#else
+constexpr int alignment = 4;
+#endif
+
+constexpr size_t align_to(size_t value, size_t align)
+{
+    return (value + (align - 1)) & ~(align - 1);
+}

@@ -12,7 +12,8 @@
 using namespace Kernel::Memory;
 using namespace Kernel::Tasking;
 
-struct MallocHeader {
+struct [[gnu::aligned(alignment)]] MallocHeader
+{
     MallocHeader* next;
     MallocHeader* prev;
     size_t size;
@@ -55,6 +56,8 @@ static MallocHeader* allocate_new_block(size_t size)
 
 void* malloc(size_t size)
 {
+    size = align_to(size, alignment);
+
     auto find_first_fit_chunk = [size](MallocHeader* block) -> MallocHeader* {
         MallocHeader* first_fit_chunk = nullptr;
         MallocHeader* cur_chunk = block;

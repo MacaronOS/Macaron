@@ -5,7 +5,8 @@
 #include <Macaronlib/ABI/Syscalls.hpp>
 #include <Macaronlib/Common.hpp>
 
-struct MallocHeader {
+struct [[gnu::aligned(alignment)]] MallocHeader
+{
     MallocHeader* next;
     MallocHeader* prev;
     size_t size;
@@ -39,6 +40,8 @@ static MallocHeader* allocate_new_block(size_t size)
 
 void* malloc(size_t size)
 {
+    size = align_to(size, alignment);
+
     MallocHeader* first_fit_chunk = nullptr;
 
     for (size_t block = 0; !first_fit_chunk && block < allocated_mem_blocks; block++) {
