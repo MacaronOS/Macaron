@@ -142,6 +142,9 @@ inline constexpr bool IsSame = false;
 template <typename T>
 inline constexpr bool IsSame<T, T> = true;
 
+template<typename Base, typename Derived>
+inline constexpr bool is_base_of = __is_base_of(Base, Derived);
+
 extern "C" {
 
 typedef void (*AtExitFunction)(void*);

@@ -22,7 +22,7 @@ Define:
             {cpp_flags}
             -march=armv7ve
 
-        run_qemu: qemu-system-arm -M vexpress-a15 -cpu cortex-a15 -serial mon\:stdio -hda drive.img -kernel Kernel/MacaBuild/Kernel 
+        run_qemu: qemu-system-arm -M vexpress-a15 -cpu cortex-a15 -vga std -serial mon\:stdio -drive if=sd\,format=raw\,file=drive.img -kernel Kernel/MacaBuild/Kernel
 
 Commands:
     MakeDrive: 
