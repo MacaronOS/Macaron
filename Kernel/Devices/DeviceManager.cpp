@@ -51,4 +51,14 @@ Driver* DeviceManager::find_attached_driver_by_name(const String& name)
     return nullptr;
 }
 
+Driver* DeviceManager::find_attached_driver_by_type(DriverType type)
+{
+    for (auto driver : m_attached_drivers) {
+        if (driver.second->driver_type() == type) {
+            return driver.second;
+        }
+    }
+    return nullptr;
+}
+
 }

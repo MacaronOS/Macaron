@@ -7,7 +7,7 @@ namespace Kernel::Time {
 bool TimeManager::initialize()
 {
     m_real_time_clock = DeviceManager::the().get_device(10, 135, DeviceType::Char);
-    auto pit = static_cast<InterruptTimer*>(DeviceManager::the().find_attached_driver_by_name("PIT"));
+    auto pit = static_cast<InterruptTimer*>(DeviceManager::the().find_attached_driver_by_type(DriverType::InterruptTimer));
     if (!pit) {
         ASSERT_PANIC("[TimeManager] Can not find interrupt timer");
     }

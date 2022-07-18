@@ -44,7 +44,7 @@ Process& Scheduler::current_process()
 
 void Scheduler::initialize()
 {
-    auto pit = static_cast<InterruptTimer*>(DeviceManager::the().find_attached_driver_by_name("PIT"));
+    auto pit = static_cast<InterruptTimer*>(DeviceManager::the().find_attached_driver_by_type(DriverType::InterruptTimer));
     if (!pit) {
         ASSERT_PANIC("[Scheduler] Can not find interrupt timer");
     }

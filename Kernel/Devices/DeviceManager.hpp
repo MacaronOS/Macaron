@@ -9,6 +9,7 @@
 namespace Kernel::Devices {
 
 class Driver;
+enum class DriverType;
 
 class DeviceManager {
 public:
@@ -108,6 +109,7 @@ public:
     }
 
     Driver* find_attached_driver_by_name(const String& name);
+    Driver* find_attached_driver_by_type(DriverType);
     void register_virtual_devices();
     void acknowledge_driver(Driver* driver);
     void install_acknowledged_drivers();

@@ -15,6 +15,12 @@ public:
     void register_callback(InterruptTimerCallback*);
     static constexpr auto frequency() { return 150; }
 
+    // ^Driver
+    virtual DriverType driver_type() override
+    {
+        return DriverType::InterruptTimer;
+    }
+
 protected:
     void dispatch_callbacks(Trapframe*);
 

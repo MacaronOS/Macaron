@@ -14,12 +14,18 @@
 
 namespace Kernel::Devices {
 
+enum class DriverType {
+    InterruptTimer,
+    Other,
+};
+
 class Driver {
     friend class DeviceManager;
 
 public:
     virtual String driver_name() = 0;
     virtual String driver_info() = 0;
+    virtual DriverType driver_type() { return DriverType::Other; }
 
 protected:
     virtual void install() { }
