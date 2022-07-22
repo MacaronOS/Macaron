@@ -25,7 +25,7 @@ TranslationAllocator::TranslationAllocator()
     m_translation_area_start = translation_area_start;
 }
 
-void* TranslationAllocator::allocate_bytes(size_t bytes)
+void* TranslationAllocator::allocate_bytes(size_t bytes, size_t alignment)
 {
     // TODO: handle out of memory.
     auto pages = bytes_to_pages(bytes);

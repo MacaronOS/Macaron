@@ -10,9 +10,9 @@ public:
     TranslationAllocator();
 
     template <typename T>
-    T& allocate_tranlation_entity()
+    T& allocate_tranlation_entity(size_t alignment = 1)
     {
-        return *reinterpret_cast<T*>(allocate_bytes(sizeof(T)));
+        return *reinterpret_cast<T*>(allocate_bytes(sizeof(T), alignment));
     }
 
     template <typename T>
@@ -31,7 +31,7 @@ public:
     uintptr_t virtual_to_physical(uintptr_t virtual_address);
 
 private:
-    void* allocate_bytes(size_t bytes);
+    void* allocate_bytes(size_t bytes, size_t alignment);
     void deallocate_bytes(void* address, size_t bytes);
 
 private:

@@ -60,7 +60,9 @@ uintptr_t VMM::create_translation_table()
     auto& ktranslation_table = *reinterpret_cast<FirstLevelTranslationTable*>(
         Layout::PhysToVirt((uintptr_t)&boot_translation_table));
 
-    auto& translation_table = m_tranlation_allocator.allocate_tranlation_entity<FirstLevelTranslationTable>();
+    // First level translation table base address should be 16 KB aligned to be saved correctly
+    // in the ttbr0 register.
+    auto& translation_table = m_tranlation_allocator.allocate_tranlation_entity<FirstLevelTranslationTable>(16 * KB);
 
     // Copy 12 entries from boot first level translation table to the new one.
     // See Boot/aarch32/Boot.cxx - init_boot_translation_table();

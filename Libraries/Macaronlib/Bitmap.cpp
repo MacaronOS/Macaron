@@ -121,9 +121,9 @@ size_t Bitmap::find_first_zero()
     return BITMAP_NULL;
 }
 
-size_t Bitmap::occupy_sequential(size_t size)
+size_t Bitmap::occupy_sequential(size_t size, size_t alignment)
 {
-    for (size_t start = 0; start < m_size; start++) {
+    for (size_t start = 0; start < m_size;) {
 
         size_t remain = size;
         size_t cur = start;
@@ -137,7 +137,7 @@ size_t Bitmap::occupy_sequential(size_t size)
             return start;
         }
 
-        start = cur;
+        start = align_to(cur + 1, alignment);
     }
     return 0;
 }

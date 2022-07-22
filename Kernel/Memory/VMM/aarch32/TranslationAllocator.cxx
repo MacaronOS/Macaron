@@ -22,10 +22,11 @@ TranslationAllocator::TranslationAllocator()
     m_translation_area_start = translation_area_start;
 }
 
-void* TranslationAllocator::allocate_bytes(size_t bytes)
+void* TranslationAllocator::allocate_bytes(size_t bytes, size_t alignment)
 {
     auto pages = bytes_to_pages(bytes);
-    auto page_start = m_allocated_pages.occupy_sequential(pages);
+    auto alignment_in_pages = bytes_to_pages(alignment);
+    auto page_start = m_allocated_pages.occupy_sequential(pages, alignment_in_pages);
     if (!page_start) {
         return nullptr;
     }
