@@ -40,6 +40,11 @@ using _RecursiveExtractType = typename __RecursiveExtractType<I, BeginT, RestT..
 template <typename BeginT, typename... RestT>
 class Tuple : public _RecursiveTuple<0, BeginT, RestT...> {
 public:
+    Tuple()
+        : _RecursiveTuple<0, BeginT, RestT...>(BeginT(), RestT()...)
+    {
+    }
+
     template <typename... Args>
     Tuple(Args&&... args)
         : _RecursiveTuple<0, BeginT, RestT...>(forward<Args>(args)...)
@@ -47,7 +52,7 @@ public:
     }
 
     template <size_t I>
-    auto& get()
+    constexpr auto& get()
     {
         return static_cast<_TupleTypeHolder<I, _RecursiveExtractType<I, BeginT, RestT...>>*>(this)->val;
     }
@@ -56,6 +61,14 @@ public:
     {
         return 1 + sizeof...(RestT);
     }
+};
+
+template <size_t I, typename TupleType>
+struct TupleElement;
+
+template <size_t I, typename BeginT, typename... RestT>
+struct TupleElement<I, Tuple<BeginT, RestT...>> {
+    using Type = _RecursiveExtractType<I, BeginT, RestT...>;
 };
 
 // Template deduction guideline.
