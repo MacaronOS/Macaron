@@ -10,12 +10,12 @@ namespace Kernel::Tasking {
 using namespace Memory;
 
 SharedVMArea::SharedVMArea(MemoryDescription& md, size_t vm_start, size_t vm_end, uint32_t flags)
-    : VMArea(md, vm_start, vm_end, flags)
+    : SharedVMAreaBase(md, vm_start, vm_end, flags)
 {
     m_pm_start = page_to_address(PMM::the().allocate_frames(bytes_to_pages(vm_size())));
 }
 
-SharedVMArea::PageFaultStatus SharedVMArea::fault(size_t address)
+SharedVMAreaBase::PageFaultStatus SharedVMAreaBase::fault(size_t address)
 {
     VMM::the().map_memory(
         address,
@@ -26,9 +26,9 @@ SharedVMArea::PageFaultStatus SharedVMArea::fault(size_t address)
     return PageFaultStatus::Handled;
 }
 
-void SharedVMArea::fork(MemoryDescription& other)
+void SharedVMAreaBase::fork(MemoryDescription& other)
 {
-    auto shared_vm_area = other.allocate_memory_area_from<SharedVMArea>(vm_start(), vm_size(), flags());
+    auto shared_vm_area = other.allocate_memory_area_from<SharedVMAreaBase>(vm_start(), vm_size(), flags());
     if (!shared_vm_area) {
         return;
     }
