@@ -10,8 +10,6 @@
 
 namespace Kernel::Tasking {
 
-extern "C" void switch_to_user_mode();
-
 // Next 2 functions are used when a scheduler decides to switch to the new thread.
 // The new thread could be preempted either in kernel space or user space.
 //
@@ -59,7 +57,6 @@ void Scheduler::run()
 {
     m_running = true;
     m_interrupt_timer->register_callback(this);
-    switch_to_user_mode();
     reschedule();
 }
 
