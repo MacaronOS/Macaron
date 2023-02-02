@@ -15,10 +15,10 @@ PL050Status PL050Controller::initialize(uintptr_t kmi_base)
         return m_initialization_status;
     }
 
-    auto pl050_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
+    auto pl050_area = kernel_memory_description.allocate_memory_area<ExplicitlySharedVMArea>(
         sizeof(PL050Registers),
         VM_READ | VM_WRITE,
-        true);
+        HIGHER_HALF_OFFSET);
 
     if (!pl050_area) {
         ASSERT_PANIC("[PL050Controller] Could not allocate sp804 vmarea");
@@ -31,6 +31,8 @@ PL050Status PL050Controller::initialize(uintptr_t kmi_base)
         kmi_base,
         sizeof(PL050Registers),
         1);
+
+    pl050_area.result()->set_pm_start(kmi_base);
 
     m_registers = reinterpret_cast<PL050Registers*>(pl050_registers_virtual);
     m_initialization_status = PL050Status::Initialized;

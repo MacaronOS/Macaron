@@ -20,6 +20,7 @@ public:
     {
         return "PIT";
     }
+
     virtual String driver_info() override
     {
         return "MacaronOS x86 Programmable Interrupt Timer driver";

@@ -2,6 +2,7 @@
 
 #include "PL111Registers.hpp"
 #include <Devices/Drivers/Generic/Framebuffer.hpp>
+#include <Devices/Drivers/RegistersMapper.hpp>
 
 namespace Kernel::Devices {
 
@@ -31,7 +32,7 @@ private:
     uintptr_t m_framebuffer {};
     size_t m_framebuffer_length {};
     bool m_buffer_swapper { true };
-    volatile PL111Registers* m_registers;
+    RegistersMapper<RegistersDescription<0x1c1f0000, PL111Registers>> m_registers_mapper;
 };
 
 }

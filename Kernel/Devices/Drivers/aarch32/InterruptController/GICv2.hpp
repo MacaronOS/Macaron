@@ -3,6 +3,7 @@
 #include "GICv2Registers.hpp"
 #include "InterruptController.hpp"
 #include <Devices/Drivers/DeviceDriver.hpp>
+#include <Devices/Drivers/RegistersMapper.hpp>
 
 namespace Kernel::Devices {
 

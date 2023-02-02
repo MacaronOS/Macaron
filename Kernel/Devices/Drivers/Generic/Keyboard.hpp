@@ -25,6 +25,7 @@ public:
     {
         return m_buffer.space_to_read_from(fd.offset);
     }
+
     void read(void* buffer, size_t size, FileDescription& fd) override
     {
         fd.offset += m_buffer.read_from((uint8_t*)buffer, fd.offset, size);

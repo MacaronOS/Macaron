@@ -4,6 +4,7 @@
 
 #include <Devices/Drivers/DeviceDriver.hpp>
 #include <Devices/Drivers/Generic/Console.hpp>
+#include <Devices/Drivers/RegistersMapper.hpp>
 #include <Hardware/Interrupts/aarch32/InterruptArchManager.hpp>
 
 namespace Kernel::Devices {
@@ -40,7 +41,7 @@ public:
     virtual void handle_interrupt(Trapframe* tf) override;
 
 private:
-    PL011Registers* m_registers {};
+    RegistersMapper<RegistersDescription<0x1c090000, PL011Registers>> m_registers_mapper;
 };
 
 }

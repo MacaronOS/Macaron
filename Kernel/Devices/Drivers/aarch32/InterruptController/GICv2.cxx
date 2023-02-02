@@ -20,19 +20,19 @@ constexpr auto cpu_interface_enable = 0x1;
 
 void GICv2::install()
 {
-    auto gicv2_distributor_registers_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
+    auto gicv2_distributor_registers_area = kernel_memory_description.allocate_memory_area<ExplicitlySharedVMArea>(
         sizeof(DistributorRegisters),
         VM_READ | VM_WRITE,
-        true);
+        HIGHER_HALF_OFFSET);
 
     if (!gicv2_distributor_registers_area) {
         ASSERT_PANIC("[GICv2] Could not allocate gicv2 vmarea");
     }
 
-    auto gicv2_cpu_interface_registers_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
+    auto gicv2_cpu_interface_registers_area = kernel_memory_description.allocate_memory_area<ExplicitlySharedVMArea>(
         sizeof(DistributorRegisters),
         VM_READ | VM_WRITE,
-        true);
+        HIGHER_HALF_OFFSET);
 
     if (!gicv2_cpu_interface_registers_area) {
         ASSERT_PANIC("[GICv2] Could not allocate gicv2 vmarea");
@@ -44,6 +44,9 @@ void GICv2::install()
     auto peripheral_base = read_peripheral_base();
     auto gicv2_distributor_registers_physical = peripheral_base + distributor_peripheral_offset;
     auto gicv2_cpu_interface_registers_physical = peripheral_base + cpu_interface_peripheral_offset;
+
+    gicv2_distributor_registers_area.result()->set_pm_start(gicv2_distributor_registers_physical);
+    gicv2_cpu_interface_registers_area.result()->set_pm_start(gicv2_cpu_interface_registers_physical);
 
     VMM::the().map_memory(
         gicv2_distributor_registers_virtual,

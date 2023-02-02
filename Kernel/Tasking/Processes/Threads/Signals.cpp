@@ -18,7 +18,7 @@ void Signals::setup_caller()
     auto signal_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
         signal_caller_len,
         VM_READ | VM_WRITE | VM_EXEC,
-        true);
+        HIGHER_HALF_OFFSET);
 
     if (!signal_area) {
         ASSERT_PANIC("[Signals] Could not allocate signal caller vmarea");

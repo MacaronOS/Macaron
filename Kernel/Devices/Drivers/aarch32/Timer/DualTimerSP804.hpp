@@ -3,6 +3,7 @@
 #include "SP804Registers.hpp"
 
 #include <Devices/Drivers/Generic/InterruptTimer.hpp>
+#include <Devices/Drivers/RegistersMapper.hpp>
 #include <Hardware/Interrupts/aarch32/InterruptArchManager.hpp>
 
 namespace Kernel::Devices {
@@ -36,7 +37,7 @@ protected:
     virtual void install() override;
 
 private:
-    volatile SP804Registers* m_registers {};
+    RegistersMapper<RegistersDescription<0x1c110000, SP804Registers>> m_registers_mapper;
 };
 
 }

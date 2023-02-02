@@ -21,6 +21,13 @@ void DeviceManager::install_acknowledged_drivers()
     static const char* desired_drivers[] = {
         "VgaTUI",
         "UART",
+        "PL011",
+        "SP804",
+        "PL050K",
+        "PL050M",
+        "PL111",
+        "PL181",
+        "GICv2",
         "ATA",
         "PS/2-Mouse",
         "PS/2-Keyboard",
