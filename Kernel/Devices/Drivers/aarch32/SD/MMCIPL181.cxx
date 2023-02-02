@@ -43,10 +43,10 @@ constexpr uint32_t MMCI_STAT_DATA_AVLBL = 1 << 21;
 
 void MMCIPL181::install()
 {
-    auto pl181_area = kernel_memory_description.allocate_memory_area<SharedVMArea>(
+    auto pl181_area = kernel_memory_description.allocate_memory_area<ExplicitlySharedVMArea>(
         sizeof(PL181Registers),
         VM_READ | VM_WRITE,
-        true);
+        HIGHER_HALF_OFFSET);
 
     if (!pl181_area) {
         ASSERT_PANIC("[MMCIPL181] Could not allocate pl181 vmarea");
@@ -59,6 +59,8 @@ void MMCIPL181::install()
         MMCI_PL181_PHYSICAL_ADDRESS,
         sizeof(PL181Registers),
         1);
+
+    pl181_area.result()->set_pm_start(MMCI_PL181_PHYSICAL_ADDRESS);
 
     m_registers = reinterpret_cast<volatile PL181Registers*>(pl181_registers_virtual);
 
@@ -109,7 +111,11 @@ bool MMCIPL181::read_block(uint32_t rca, size_t block, size_t block_size, uint32
 
     size_t bytes_left = block_size;
     constexpr uint32_t error_flags = MMCI_STAT_DATA_CRC_FAIL | MMCI_STAT_DATA_TIME_OUT | MMCI_STAT_RX_OVERRUN;
-    while (bytes_left && !(m_registers->status & error_flags) && m_registers->status & MMCI_STAT_DATA_AVLBL) {
+
+    while (bytes_left && !(m_registers->status & error_flags)) {
+        if (!(m_registers->status & MMCI_STAT_DATA_AVLBL)) {
+            continue;
+        }
         *buffer = m_registers->data_fifo[0];
         buffer++;
         bytes_left -= sizeof(uint32_t);
