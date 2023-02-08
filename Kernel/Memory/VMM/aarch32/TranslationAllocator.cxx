@@ -18,7 +18,7 @@ TranslationAllocator::TranslationAllocator()
     size_t page_count = (translation_area_end - translation_area_start) / CPU::page_size();
 
     m_allocated_pages = Bitmap(page_count);
-    m_allocated_pages.fill();
+    m_allocated_pages.clear();
     m_translation_area_start = translation_area_start;
 }
 
@@ -27,7 +27,7 @@ void* TranslationAllocator::allocate_bytes(size_t bytes, size_t alignment)
     auto pages = bytes_to_pages(bytes);
     auto alignment_in_pages = bytes_to_pages(alignment);
     auto page_start = m_allocated_pages.occupy_sequential(pages, alignment_in_pages);
-    if (!page_start) {
+    if (page_start == BITMAP_NULL) {
         return nullptr;
     }
 

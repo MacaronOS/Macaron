@@ -94,23 +94,23 @@ void Bitmap::set_false(size_t index)
 
 void Bitmap::clear()
 {
-    for (uint32_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
+    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(m_size); chunk++) {
         m_array[chunk] = 0;
     }
 }
 
 void Bitmap::fill()
 {
-    for (uint32_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
+    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(m_size); chunk++) {
         m_array[chunk] = 0xFFFFFFFF;
     }
 }
 
 size_t Bitmap::find_first_zero()
 {
-    for (uint32_t chunk = 0; chunk < m_size / BITMAP_CHUNK_SIZE; chunk++) {
+    for (uint32_t chunk = 0; chunk < BITMAP_CHUNK_COUNT(m_size); chunk++) {
         if (m_array[chunk] != 0xFFFFFFFF) {
-            for (uint32_t pos = 0; pos < BITMAP_CHUNK_SIZE; pos++) {
+            for (uint32_t pos = 0; chunk * BITMAP_CHUNK_SIZE + pos < m_size; pos++) {
                 if (((m_array[chunk] >> pos) & 1) == 0) {
                     return chunk * BITMAP_CHUNK_SIZE + pos;
                 }
@@ -139,5 +139,6 @@ size_t Bitmap::occupy_sequential(size_t size, size_t alignment)
 
         start = align_to(cur + 1, alignment);
     }
-    return 0;
+    
+    return BITMAP_NULL;
 }
